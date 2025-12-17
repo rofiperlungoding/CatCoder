@@ -61,7 +61,7 @@ export const ProfilePage: React.FC = () => {
                             <span className="text-sm font-bold text-slate-900">Level {user.level}</span>
                             <span className="text-xs font-mono text-slate-400">{user.xp} XP</span>
                         </div>
-                        <ProgressBar value={levelProgress.percentage} size="sm" />
+                        <ProgressBar value={levelProgress.percentage} max={100} size="sm" />
                     </div>
 
                     <div className="space-y-4">

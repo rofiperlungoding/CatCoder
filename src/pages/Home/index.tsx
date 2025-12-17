@@ -76,7 +76,7 @@ export const HomePage: React.FC = () => {
                                 <span>Progress</span>
                                 <span>45%</span>
                             </div>
-                            <ProgressBar value={45} className="mb-6" />
+                            <ProgressBar value={45} max={100} className="mb-6" />
                             <Link to="/learn">
                                 <Button className="w-full sm:w-auto gap-2 group-hover:bg-slate-800">
                                     Continue Learning <ArrowRight size={16} />

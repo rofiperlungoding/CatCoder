@@ -71,7 +71,7 @@ export const RoadmapPage: React.FC = () => {
                                     <span className="text-xs font-semibold text-slate-900">0% Complete</span>
                                     <span className="text-xs text-slate-400">0/12 Modules</span>
                                 </div>
-                                <ProgressBar value={0} size="sm" className="mb-4" />
+                                <ProgressBar value={0} max={12} size="sm" className="mb-4" />
                                 <Button variant="secondary" fullWidth className="group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                                     Start Journey
                                 </Button>

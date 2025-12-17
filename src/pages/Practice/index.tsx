@@ -5,7 +5,7 @@ import {
     Filter
 } from 'lucide-react';
 import { Input, Select, Badge, Button } from '../../components/ui';
-import { useProgressStore } from '../../stores';
+import { useProgressStore, useUserStore, useUIStore } from '../../stores';
 import type { Problem, Difficulty } from '../../types';
 
 // Sample problems
@@ -103,11 +103,24 @@ const sampleProblems: Problem[] = [
 ];
 
 export const PracticePage: React.FC = () => {
-    const { isCompleted } = useProgressStore();
+    const { isCompleted, markComplete } = useProgressStore();
+    const { addXP, updateStreak } = useUserStore();
+    const { addToast } = useUIStore();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [difficultyFilter, setDifficultyFilter] = useState<Difficulty | 'all'>('all');
     const [tierFilter, setTierFilter] = useState<string>('all');
     const [activeTab, setActiveTab] = useState<'all' | 'solved' | 'unsolved'>('all');
+
+    const handleSolveProblem = (e: React.MouseEvent, problem: Problem) => {
+        e.stopPropagation();
+        if (isCompleted('problem', problem.id)) return;
+
+        markComplete('problem', problem.id);
+        addXP(problem.xpReward);
+        updateStreak();
+        addToast('success', `Solved "${problem.title}"! +${problem.xpReward} XP`);
+    };
 
     const filteredProblems = sampleProblems.filter(problem => {
         const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -214,37 +227,55 @@ export const PracticePage: React.FC = () => {
                 {/* Right Column: Problem Grid */}
                 <div className="lg:col-span-3">
                     <div className="bento-grid grid-cols-1 md:grid-cols-2">
-                        {filteredProblems.map((problem) => (
-                            <div
-                                key={problem.id}
-                                className="bento-card group hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between h-full"
-                            >
-                                <div>
-                                    <div className="flex justify-between items-start mb-3">
-                                        <Badge className={`${getDifficultyColor(problem.difficulty)} border bg-opacity-10`}>
-                                            {problem.difficulty}
-                                        </Badge>
-                                        {isCompleted('problem', problem.id) && (
-                                            <CheckCircle2 size={18} className="text-emerald-500" />
+                        {filteredProblems.map((problem) => {
+                            const completed = isCompleted('problem', problem.id);
+
+                            return (
+                                <div
+                                    key={problem.id}
+                                    className={`
+                                        bento-card group hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between h-full relative
+                                        ${completed ? 'bg-slate-50/50' : 'bg-white'}
+                                    `}
+                                >
+                                    <div>
+                                        <div className="flex justify-between items-start mb-3">
+                                            <Badge className={`${getDifficultyColor(problem.difficulty)} border bg-opacity-10`}>
+                                                {problem.difficulty}
+                                            </Badge>
+                                            {completed && (
+                                                <CheckCircle2 size={18} className="text-emerald-500" />
+                                            )}
+                                        </div>
+                                        <h3 className="font-bold text-slate-900 text-lg mb-2 group-hover:text-indigo-600 transition-colors">
+                                            {problem.title}
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {problem.tags.map(tag => (
+                                                <span key={tag} className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-md">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-slate-50 pt-4 flex items-center justify-between mt-auto">
+                                        <span className="text-xs font-semibold text-slate-400">Tier {problem.tier}</span>
+                                        {completed ? (
+                                            <span className="text-xs font-bold text-emerald-600">Solved</span>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-auto p-0 text-amber-600 hover:text-amber-700 hover:bg-transparent"
+                                                onClick={(e) => handleSolveProblem(e, problem)}
+                                            >
+                                                Solve (+{problem.xpReward} XP)
+                                            </Button>
                                         )}
                                     </div>
-                                    <h3 className="font-bold text-slate-900 text-lg mb-2 group-hover:text-indigo-600 transition-colors">
-                                        {problem.title}
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {problem.tags.map(tag => (
-                                            <span key={tag} className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-md">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
                                 </div>
-                                <div className="border-t border-slate-50 pt-4 flex items-center justify-between mt-auto">
-                                    <span className="text-xs font-semibold text-slate-400">Tier {problem.tier}</span>
-                                    <span className="text-xs font-bold text-amber-600">+{problem.xpReward} XP</span>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     {filteredProblems.length === 0 && (
                         <div className="bento-card text-center py-16 text-slate-400">

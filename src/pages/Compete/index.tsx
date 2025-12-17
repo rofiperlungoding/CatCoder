@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Trophy,
     Flame,
     Medal,
     Clock,
     Calendar
 } from 'lucide-react';
 import { Button, Badge, Tabs } from '../../components/ui';
+import { useUserStore, useUIStore } from '../../stores';
 import { formatTime } from '../../lib/utils';
 import type { LeaderboardEntry } from '../../types';
 
+// Sample leaderboard data
 const sampleLeaderboard: LeaderboardEntry[] = [
     { rank: 1, user: { id: '1', username: 'CodeMaster', avatarUrl: undefined, rank: 'diamond' }, score: 45000, problemsSolved: 234 },
     { rank: 2, user: { id: '2', username: 'AlgoQueen', avatarUrl: undefined, rank: 'diamond' }, score: 42000, problemsSolved: 221 },
@@ -19,8 +20,23 @@ const sampleLeaderboard: LeaderboardEntry[] = [
 ];
 
 export const CompetePage: React.FC = () => {
+    const { addXP, updateStreak } = useUserStore();
+    const { addToast } = useUIStore();
+
     const [activeTab, setActiveTab] = useState<'challenges' | 'leaderboard'>('challenges');
     const [dailyTimeLeft, setDailyTimeLeft] = useState(0);
+
+    const handleStartChallenge = () => {
+        // Mock starting/completing a challenge
+        addToast('info', 'Challenge started! Timer running...');
+
+        // Simulate completion after 2 seconds
+        setTimeout(() => {
+            addXP(200);
+            updateStreak();
+            addToast('success', 'Challenge Solved! +200 XP (Double Rewards)');
+        }, 2000);
+    };
 
     // Calculate time remaining
     useEffect(() => {
@@ -66,13 +82,14 @@ export const CompetePage: React.FC = () => {
                                 <p className="text-slate-300 mb-6 max-w-xl">
                                     Solve today's featured problem "Matrix Rotation" to earn double XP and extend your streak.
                                 </p>
-                                <Button className="bg-white text-slate-900 hover:bg-indigo-50 border-none">
+                                <Button
+                                    className="bg-white text-slate-900 hover:bg-indigo-50 border-none"
+                                    onClick={handleStartChallenge}
+                                >
                                     Start Challenge Now
                                 </Button>
                             </div>
-                            <div className="w-32 h-32 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-                                <Trophy size={48} className="text-amber-400" />
-                            </div>
+                            {/* ... trophy icon ... */}
                         </div>
                     </div>
 

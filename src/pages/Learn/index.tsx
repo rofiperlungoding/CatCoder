@@ -4,10 +4,10 @@ import {
     Search,
     Clock,
     Code,
-    Sparkles
+    CheckCircle2
 } from 'lucide-react';
-import { Badge, ProgressBar, Tabs } from '../../components/ui';
-import { useUserStore, useProgressStore } from '../../stores';
+import { Badge, ProgressBar, Tabs, Button } from '../../components/ui';
+import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import type { Lesson, Language, Tier } from '../../types';
 
 // Sample lesson data
@@ -95,10 +95,26 @@ const sampleLessons: Lesson[] = [
 ];
 
 export const LearnPage: React.FC = () => {
-    const { selectedLanguage, setSelectedLanguage } = useUserStore();
-    const { isCompleted } = useProgressStore();
+    const { selectedLanguage, setSelectedLanguage, addXP } = useUserStore();
+    const { isCompleted, markComplete } = useProgressStore();
+    const { addToast } = useUIStore();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTier, setSelectedTier] = useState<Tier | 'all'>('all');
+
+    const handleStartLesson = (lesson: Lesson) => {
+        // In real app, navigate to lesson detail
+        console.log('Starting lesson:', lesson.title);
+    };
+
+    const handleCompleteLesson = (e: React.MouseEvent, lesson: Lesson) => {
+        e.stopPropagation(); // Prevent card click
+        if (isCompleted('lesson', lesson.id)) return;
+
+        markComplete('lesson', lesson.id);
+        addXP(lesson.xpReward);
+        addToast('xp', `Completed "${lesson.title}"! +${lesson.xpReward} XP`);
+    };
 
     const languageTabs = [
         { id: 'python', label: 'Python', icon: <Code size={16} /> },
@@ -162,11 +178,11 @@ export const LearnPage: React.FC = () => {
                             placeholder="Search lessons..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all"
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all font-sans"
                         />
                     </div>
                     <select
-                        className="bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                        className="bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-100 font-sans"
                         value={selectedTier.toString()}
                         onChange={(e) => setSelectedTier(e.target.value === 'all' ? 'all' : parseInt(e.target.value) as Tier)}
                     >
@@ -192,37 +208,58 @@ export const LearnPage: React.FC = () => {
                         </div>
 
                         <div className="bento-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                            {lessons.map((lesson) => (
-                                <div
-                                    key={lesson.id}
-                                    className="bento-card group hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer relative"
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                            <Code size={20} />
+                            {lessons.map((lesson) => {
+                                const completed = isCompleted('lesson', lesson.id);
+                                return (
+                                    <div
+                                        key={lesson.id}
+                                        onClick={() => handleStartLesson(lesson)}
+                                        className={`
+                                            bento-card group hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer relative flex flex-col justify-between
+                                            ${completed ? 'bg-slate-50/50' : 'bg-white'}
+                                        `}
+                                    >
+                                        <div>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className={`p-2 rounded-lg transition-colors ${completed ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
+                                                    {completed ? <CheckCircle2 size={20} /> : <Code size={20} />}
+                                                </div>
+                                                {completed && (
+                                                    <Badge variant="success" size="sm">Completed</Badge>
+                                                )}
+                                            </div>
+
+                                            <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors mb-2">
+                                                {lesson.title}
+                                            </h3>
+                                            <p className="text-sm text-slate-500 mb-6 line-clamp-2">
+                                                {lesson.description}
+                                            </p>
                                         </div>
-                                        {isCompleted('lesson', lesson.id) && (
-                                            <Badge variant="success" size="sm">Completed</Badge>
-                                        )}
-                                    </div>
 
-                                    <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors mb-2">
-                                        {lesson.title}
-                                    </h3>
-                                    <p className="text-sm text-slate-500 mb-6 line-clamp-2">
-                                        {lesson.description}
-                                    </p>
+                                        <div className="flex items-center justify-between text-xs font-medium text-slate-400 pt-4 border-t border-slate-50 mt-auto">
+                                            <span className="flex items-center gap-1">
+                                                <Clock size={14} /> {lesson.estimatedTime} min
+                                            </span>
 
-                                    <div className="flex items-center justify-between text-xs font-medium text-slate-400 pt-4 border-t border-slate-50">
-                                        <span className="flex items-center gap-1">
-                                            <Clock size={14} /> {lesson.estimatedTime} min
-                                        </span>
-                                        <span className="flex items-center gap-1 text-amber-600">
-                                            <Sparkles size={14} /> {lesson.xpReward} XP
-                                        </span>
+                                            {!completed ? (
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="text-indigo-600 hover:bg-indigo-50 p-0 h-auto font-bold"
+                                                    onClick={(e) => handleCompleteLesson(e, lesson)}
+                                                >
+                                                    Complete (+{lesson.xpReward} XP)
+                                                </Button>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                                                    Earned {lesson.xpReward} XP
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 ))}

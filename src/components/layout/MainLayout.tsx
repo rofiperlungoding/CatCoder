@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { Modal, Input, Button } from '../ui';
+import { Modal, Input, Button, Toaster, LevelUpModal } from '../ui';
 import { useUserStore } from '../../stores';
 
 export const MainLayout: React.FC = () => {
@@ -80,6 +80,10 @@ export const MainLayout: React.FC = () => {
                     </div>
                 </form>
             </Modal>
+
+            {/* Global UI Components */}
+            <Toaster />
+            <LevelUpModal />
         </div>
     );
 };

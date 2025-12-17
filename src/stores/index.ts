@@ -66,6 +66,11 @@ export const useUserStore = create<UserState>()(
                 const newLevel = calculateLevel(newXP);
                 const newRank = getRank(newXP);
 
+                // Check for level up
+                if (newLevel > user.level) {
+                    useUIStore.getState().showLevelUp(newLevel);
+                }
+
                 set({
                     user: {
                         ...user,
@@ -240,28 +245,55 @@ export const useAchievementStore = create<AchievementState>()(
     )
 );
 
+// Toast Types
+export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'xp';
+
+interface Toast {
+    id: string;
+    type: ToastType;
+    message: string;
+}
+
 // UI Store
 interface UIState {
     sidebarOpen: boolean;
     showAuthModal: boolean;
-    showAchievementToast: string | null;
+    toasts: Toast[];
+    levelUpModal: {
+        isOpen: boolean;
+        level: number;
+    } | null;
 
     // Actions
     toggleSidebar: () => void;
     setSidebarOpen: (open: boolean) => void;
     setShowAuthModal: (show: boolean) => void;
-    showAchievementUnlocked: (achievementId: string) => void;
-    hideAchievementToast: () => void;
+    addToast: (type: ToastType, message: string) => void;
+    removeToast: (id: string) => void;
+    showLevelUp: (level: number) => void;
+    hideLevelUp: () => void;
 }
 
 export const useUIStore = create<UIState>()((set) => ({
     sidebarOpen: true,
     showAuthModal: false,
-    showAchievementToast: null,
+    toasts: [],
+    levelUpModal: null,
 
     toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     setSidebarOpen: (open) => set({ sidebarOpen: open }),
     setShowAuthModal: (show) => set({ showAuthModal: show }),
-    showAchievementUnlocked: (achievementId) => set({ showAchievementToast: achievementId }),
-    hideAchievementToast: () => set({ showAchievementToast: null })
+
+    addToast: (type, message) => {
+        const id = Math.random().toString(36).substring(7);
+        set((state) => ({ toasts: [...state.toasts, { id, type, message }] }));
+        setTimeout(() => {
+            set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
+        }, 3000);
+    },
+
+    removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+
+    showLevelUp: (level) => set({ levelUpModal: { isOpen: true, level } }),
+    hideLevelUp: () => set({ levelUpModal: null })
 }));
