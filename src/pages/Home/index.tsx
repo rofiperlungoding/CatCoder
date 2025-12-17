@@ -1,116 +1,187 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-    BookOpen,
-    Code2,
+    Play,
     Trophy,
+    Flame,
     ArrowRight,
-    CheckCircle2,
-    Shield,
-    Globe
+    Code,
+    Target
 } from 'lucide-react';
+import { Button, ProgressBar, Badge } from '../../components/ui';
+import { useUserStore } from '../../stores';
+
 export const HomePage: React.FC = () => {
+    const { user, isGuest } = useUserStore();
+
+    if (!user && !isGuest) {
+        return (
+            <div className="bento-grid">
+                <div className="bento-card col-span-full min-h-[60vh] flex flex-col items-center justify-center text-center p-12">
+                    <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-slate-900">
+                        Master Coding. <br />
+                        <span className="text-indigo-600">Build Your Future.</span>
+                    </h1>
+                    <p className="text-lg text-slate-500 max-w-2xl mb-8 leading-relaxed">
+                        The enterprise-grade platform for aspiring developers.
+                        Learn Python, JavaScript, and C++ with interactive lessons and real-world challenges.
+                    </p>
+                    <div className="flex gap-4">
+                        <Link to="/learn">
+                            <Button size="lg" className="rounded-xl shadow-lg shadow-indigo-500/20">Start Learning Free</Button>
+                        </Link>
+                        <Link to="/practice">
+                            <Button variant="secondary" size="lg" className="rounded-xl">Explore Problems</Button>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-full bg-white pb-20">
-            {/* Hero Section - Centered & Clean like Google Chrome Download */}
-            <section className="pt-20 pb-16 px-6 text-center max-w-4xl mx-auto">
-                <div className="w-20 h-20 bg-white border border-gray-100 rounded-2xl shadow-sm mx-auto mb-8 flex items-center justify-center">
-                    <span className="text-5xl">🐱</span>
+        <div className="space-y-6">
+            {/* Header / Welcome Bento */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">
+                        Welcome back, {user?.username || 'Guest'}
+                    </h1>
+                    <p className="text-slate-500">Here's what's happening today.</p>
+                </div>
+                <div className="flex gap-3">
+                    <Button variant="secondary" size="sm" className="hidden md:flex">
+                        <Code size={16} className="mr-2" />
+                        Daily Code
+                    </Button>
+                </div>
+            </div>
+
+            {/* Main Bento Grid */}
+            <div className="bento-grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 auto-rows-[minmax(180px,auto)]">
+
+                {/* 1. Hero / Continue Learning (2x2 or 2x1) */}
+                <div className="bento-card md:col-span-2 lg:col-span-2 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                    <div className="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <Badge variant="primary" className="mb-3">Current Course</Badge>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Python Fundamentals</h2>
+                            <p className="text-slate-500 mb-6 max-w-md">
+                                Continue where you left off. You're currently on <span className="font-semibold text-slate-700">Chapter 3: Loops & Logic</span>.
+                            </p>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-xs font-semibold text-slate-500 mb-2">
+                                <span>Progress</span>
+                                <span>45%</span>
+                            </div>
+                            <ProgressBar value={45} className="mb-6" />
+                            <Link to="/learn">
+                                <Button className="w-full sm:w-auto gap-2 group-hover:bg-slate-800">
+                                    Continue Learning <ArrowRight size={16} />
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
                 </div>
 
-                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight mb-6">
-                    Master Coding, <br className="hidden md:block" />
-                    <span className="text-orange-600">One Step at a Time.</span>
-                </h1>
+                {/* 2. Stats Block (1x1) */}
+                <div className="bento-card flex flex-col justify-center items-center text-center">
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-3">
+                        <Target size={24} />
+                    </div>
+                    <h3 className="text-3xl font-bold text-slate-900 mb-1">{user?.xp || 0}</h3>
+                    <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Total XP</p>
+                </div>
 
-                <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-                    The free, comprehensive platform to take you from a curious beginner to a professional developer. No hidden fees, just pure code.
-                </p>
+                {/* 3. Streak Block (1x1) */}
+                <div className="bento-card flex flex-col justify-center items-center text-center">
+                    <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-3">
+                        <Flame size={24} />
+                    </div>
+                    <h3 className="text-3xl font-bold text-slate-900 mb-1">{user?.streakCurrent || 0}</h3>
+                    <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Day Streak</p>
+                </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Link to="/learn">
-                        <button className="h-12 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2">
-                            Start Learning
-                            <ArrowRight size={20} />
-                        </button>
+                {/* 4. Daily Challenge (Horizontal Strip) */}
+                <div className="bento-card md:col-span-3 lg:col-span-3 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-slate-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                            <span className="text-2xl font-bold">17</span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900">Daily Challenge: Reverse Linked List</h3>
+                            <p className="text-sm text-slate-500">Solve this problem directly to earn <span className="text-amber-600 font-bold">+150 XP</span>.</p>
+                        </div>
+                    </div>
+                    <Link to="/practice/daily">
+                        <Button variant="secondary" className="whitespace-nowrap">
+                            Solve Now
+                        </Button>
                     </Link>
-                    <Link to="/practice">
-                        <button className="h-12 px-8 rounded-full bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 font-medium text-lg transition-all">
-                            Solve Problems
-                        </button>
-                    </Link>
                 </div>
-            </section>
 
-            {/* "Steps" Cards - Inspired by the Chrome "Langkah 1, 2, 3" */}
-            <section className="max-w-6xl mx-auto px-6 mb-20">
-                <div className="grid md:grid-cols-3 gap-6">
-                    {/* Card 1 */}
-                    <div className="p-8 rounded-3xl bg-blue-50 border border-blue-100 flex flex-col items-start h-full">
-                        <div className="text-xs font-bold tracking-widest text-blue-800 uppercase mb-4">Step 1</div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-3">Learn Concepts</h3>
-                        <p className="text-gray-600 mb-8 flex-1">
-                            Interactive lessons with built-in code editors. Master Python, JavaScript, and C++ through hands-on theory.
-                        </p>
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                            <BookOpen size={24} />
-                        </div>
+                {/* 5. Leaderboard Snippet (Vertical Tall) */}
+                <div className="bento-card md:col-span-1 lg:col-span-1 md:row-span-2">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                            <Trophy size={18} className="text-indigo-600" />
+                            Top Rated
+                        </h3>
                     </div>
-
-                    {/* Card 2 */}
-                    <div className="p-8 rounded-3xl bg-amber-50 border border-amber-100 flex flex-col items-start h-full">
-                        <div className="text-xs font-bold tracking-widest text-amber-800 uppercase mb-4">Step 2</div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-3">Practice Daily</h3>
-                        <p className="text-gray-600 mb-8 flex-1">
-                            Solve over 500+ problems ranging from "Easy" to "Expert". Earn XP and build your coding streak.
-                        </p>
-                        <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
-                            <Code2 size={24} />
-                        </div>
+                    <div className="space-y-4">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="flex items-center gap-3">
+                                <span className={`
+                                    w-6 h-6 flex items-center justify-center rounded text-xs font-bold
+                                    ${i === 1 ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-500'}
+                                `}>{i}</span>
+                                <div className="w-8 h-8 rounded-full bg-slate-200"></div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-slate-700 truncate">User {i}</p>
+                                    <p className="text-[10px] text-slate-400">12,400 XP</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-
-                    {/* Card 3 */}
-                    <div className="p-8 rounded-3xl bg-green-50 border border-green-100 flex flex-col items-start h-full">
-                        <div className="text-xs font-bold tracking-widest text-green-800 uppercase mb-4">Step 3</div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-3">Compete & Win</h3>
-                        <p className="text-gray-600 mb-8 flex-1">
-                            Join weekly contests, climb the global leaderboard, and earn badges to showcase on your profile.
-                        </p>
-                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
-                            <Trophy size={24} />
-                        </div>
+                    <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+                        <Link to="/compete" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">View Leaderboard</Link>
                     </div>
                 </div>
-            </section>
 
-            {/* Trust/Stats Section */}
-            <section className="border-t border-gray-100 py-20 bg-gray-50">
-                <div className="max-w-6xl mx-auto px-6">
-                    <div className="grid md:grid-cols-3 gap-8 text-center">
-                        <div>
-                            <div className="flex justify-center text-orange-500 mb-4">
-                                <Globe size={32} />
+                {/* 6. Recent Activity (2x1) */}
+                <div className="bento-card md:col-span-3 lg:col-span-3">
+                    <h3 className="font-bold text-slate-900 mb-4">Recent Activity</h3>
+                    <div className="space-y-0 divider-y divide-slate-100">
+                        <div className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                                    <Code size={16} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900">Solved Two Sum</p>
+                                    <p className="text-xs text-slate-500">2 hours ago</p>
+                                </div>
                             </div>
-                            <div className="text-4xl font-bold text-gray-900 mb-2">100% Free</div>
-                            <p className="text-gray-500">Accessible to everyone, forever</p>
+                            <span className="text-xs font-bold text-emerald-600">+50 XP</span>
                         </div>
-                        <div>
-                            <div className="flex justify-center text-blue-500 mb-4">
-                                <CheckCircle2 size={32} />
+                        <div className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                    <Play size={16} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900">Completed Lesson: Variables</p>
+                                    <p className="text-xs text-slate-500">Yesterday</p>
+                                </div>
                             </div>
-                            <div className="text-4xl font-bold text-gray-900 mb-2">2,500+</div>
-                            <p className="text-gray-500">Practice problems available</p>
-                        </div>
-                        <div>
-                            <div className="flex justify-center text-green-500 mb-4">
-                                <Shield size={32} />
-                            </div>
-                            <div className="text-4xl font-bold text-gray-900 mb-2">Secure</div>
-                            <p className="text-gray-500">Cloud save & progress tracking</p>
+                            <span className="text-xs font-bold text-blue-600">+100 XP</span>
                         </div>
                     </div>
                 </div>
-            </section>
+
+            </div>
         </div>
     );
 };

@@ -1,79 +1,84 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { useUIStore, useUserStore } from '../../stores';
-import { Modal, Button, Input } from '../ui';
+import { Modal, Input, Button } from '../ui';
+import { useUserStore } from '../../stores';
 
 export const MainLayout: React.FC = () => {
-    const { showAuthModal, setShowAuthModal } = useUIStore();
-    const { setGuest } = useUserStore();
+    const { setUser } = useUserStore();
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-    // Initialize guest user if not set
-    React.useEffect(() => {
-        const userStore = useUserStore.getState();
-        if (!userStore.user) {
-            setGuest();
-        }
-    }, [setGuest]);
+    // Handle generic login (placeholder)
+    const handleAuth = (e: React.FormEvent) => {
+        e.preventDefault();
+        // In a real app, integrate Supabase Auth here
+        setUser({
+            id: '1',
+            username: email.split('@')[0] || 'User',
+            email: email,
+            xp: 0,
+            level: 1,
+            rank: 'bronze',
+            streakCurrent: 0,
+            streakBest: 0,
+            createdAt: new Date().toISOString()
+        });
+        setShowAuthModal(false);
+    };
 
     return (
-        <div className="flex h-screen bg-secondary overflow-hidden">
-            {/* Sidebar - Fixed Width */}
-            <div className="w-64 flex-shrink-0 border-r border-border bg-white z-20">
-                <Sidebar />
-            </div>
+        <div className="min-h-screen bg-[var(--bg-page)] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+            {/* Sidebar (Floating Rail) */}
+            <Sidebar />
 
-            {/* Main Content - Scrollable */}
-            <main className="flex-1 overflow-y-auto bg-secondary relative">
-                <div className="min-h-full">
+            {/* Main Content Area - Bento Grid Container */}
+            <main className="lg:pl-72 min-h-screen p-4 lg:p-6 transition-all duration-300">
+                <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <Outlet />
                 </div>
             </main>
 
-            {/* Auth Modal */}
+            {/* Auth Modal (Bento Style) */}
             <Modal
                 isOpen={showAuthModal}
                 onClose={() => setShowAuthModal(false)}
-                title="Save Your Progress"
-                size="md"
+                title={authMode === 'login' ? 'Welcome Back' : 'Join CatCoder'}
             >
-                <div className="space-y-4">
-                    <p className="text-[#a1a1aa]">
-                        Create an account to save your progress, sync across devices, and track your achievements!
-                    </p>
+                <form onSubmit={handleAuth} className="space-y-4">
+                    <Input
+                        label="Email"
+                        type="email"
+                        placeholder="coder@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                    <Input
+                        label="Password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                    <Button type="submit" fullWidth>
+                        {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                    </Button>
 
-                    <div className="space-y-3">
-                        <Input
-                            label="Email"
-                            type="email"
-                            placeholder="your@email.com"
-                        />
-                        <Input
-                            label="Username"
-                            type="text"
-                            placeholder="CatCoder123"
-                        />
-                        <Input
-                            label="Password"
-                            type="password"
-                            placeholder="••••••••"
-                        />
+                    <div className="text-center text-sm text-slate-500 mt-4">
+                        {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
+                        <button
+                            type="button"
+                            className="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline"
+                            onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                        >
+                            {authMode === 'login' ? 'Sign Up' : 'Log In'}
+                        </button>
                     </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <Button variant="secondary" className="flex-1" onClick={() => setShowAuthModal(false)}>
-                            Maybe Later
-                        </Button>
-                        <Button variant="primary" className="flex-1">
-                            Create Account
-                        </Button>
-                    </div>
-
-                    <p className="text-center text-sm text-[#71717a]">
-                        Already have an account?{' '}
-                        <button className="text-[#f97316] hover:underline">Sign in</button>
-                    </p>
-                </div>
+                </form>
             </Modal>
         </div>
     );

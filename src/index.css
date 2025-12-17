@@ -1,67 +1,102 @@
 @import "tailwindcss";
 
-@theme {
-  --color-brand-50: #fff7ed;
-  --color-brand-100: #ffedd5;
-  --color-brand-200: #fed7aa;
-  --color-brand-300: #fdba74;
-  --color-brand-400: #fb923c;
-  --color-brand-500: #f97316;
-  --color-brand-600: #ea580c;
-  --color-brand-700: #c2410c;
-  --color-brand-800: #9a3412;
-  --color-brand-900: #7c2d12;
-}
-
 :root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Bento Enterprise Palette (Slate & Indigo) */
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
 
-  color-scheme: light;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Backgrounds */
+  --bg-page: #f8fafc;
+  /* Slate 50 */
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
 
-  /* Google-inspired Enterprise Palette */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  /* Google Grey 50 */
-  --bg-tertiary: #f1f3f4;
-  /* Google Grey 100 */
+  /* Text */
+  --text-primary: #0f172a;
+  /* Slate 900 */
+  --text-secondary: #64748b;
+  /* Slate 500 */
+  --text-tertiary: #94a3b8;
+  /* Slate 400 */
 
-  --text-primary: #202124;
-  /* Google Grey 900 */
-  --text-secondary: #5f6368;
-  /* Google Grey 700 */
-  --text-tertiary: #80868b;
+  /* Brand Colors */
+  --primary: #0f172a;
+  /* Slate 900 - Luxury/Enterprise */
+  --primary-hover: #1e293b;
+  /* Slate 800 */
+  --accent: #4f46e5;
+  /* Indigo 600 - Action color */
 
-  --border-color: #dadce0;
+  /* Status Colors (Subtle/Pastel) */
+  --success-bg: #f0fdf4;
+  --success-text: #166534;
+  --warning-bg: #fffbeb;
+  --warning-text: #92400e;
+  --error-bg: #fef2f2;
+  --error-text: #b91c1c;
 
-  --primary: #f97316;
-  /* CatCoder Orange */
-  --primary-hover: #ea580c;
-
-  --radius-sm: 0.5rem;
-  /* 8px */
-  --radius-md: 0.75rem;
-  /* 12px */
-  --radius-lg: 1rem;
-  /* 16px */
-  --radius-xl: 1.5rem;
-  /* 24px - for specific Google-like cards */
+  /* Bento Borders */
+  --border-subtle: #e2e8f0;
+  /* Slate 200 */
+  --border-hover: #cbd5e1;
+  /* Slate 300 */
 }
 
-body {
-  margin: 0;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+@layer base {
+  body {
+    @apply bg-[var(--bg-page)] text-[var(--text-primary)] font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-indigo-100 text-indigo-900;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply tracking-tight font-bold text-slate-900;
+  }
 }
 
-/* Scrollbar styling */
+@layer components {
+
+  /* Bento Grid Utilities */
+  .bento-grid {
+    @apply grid gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .bento-card {
+    @apply bg-white rounded-2xl border border-slate-200 p-6 transition-all duration-300;
+  }
+
+  .bento-card:hover {
+    @apply border-indigo-200 shadow-sm transform -translate-y-[1px];
+  }
+
+  .btn-primary {
+    @apply bg-slate-900 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-slate-700 border border-slate-200 px-5 py-2.5 rounded-lg font-semibold hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
+  }
+
+  .btn-ghost {
+    @apply text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap gap-1.5;
+  }
+}
+
+/* Custom Scrollbar (Minimalist) */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -69,16 +104,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dadce0;
-  border-radius: 5px;
+  background: #cbd5e1;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #bdc1c6;
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: #94a3b8;
 }

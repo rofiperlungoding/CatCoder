@@ -3,10 +3,10 @@ import {
     BookOpen,
     Search,
     Clock,
-    Star,
-    ChevronRight
+    Code,
+    Sparkles
 } from 'lucide-react';
-import { Card, Badge, ProgressBar, Input, Select, Tabs } from '../../components/ui';
+import { Badge, ProgressBar, Tabs } from '../../components/ui';
 import { useUserStore, useProgressStore } from '../../stores';
 import type { Lesson, Language, Tier } from '../../types';
 
@@ -101,9 +101,9 @@ export const LearnPage: React.FC = () => {
     const [selectedTier, setSelectedTier] = useState<Tier | 'all'>('all');
 
     const languageTabs = [
-        { id: 'python', label: 'Python', icon: <span>🐍</span> },
-        { id: 'javascript', label: 'JavaScript', icon: <span>⚡</span> },
-        { id: 'cpp', label: 'C++', icon: <span>🔧</span> }
+        { id: 'python', label: 'Python', icon: <Code size={16} /> },
+        { id: 'javascript', label: 'JavaScript', icon: <Code size={16} /> },
+        { id: 'cpp', label: 'C++', icon: <Code size={16} /> }
     ];
 
     const filteredLessons = sampleLessons.filter(lesson => {
@@ -127,136 +127,105 @@ export const LearnPage: React.FC = () => {
     const totalCount = sampleLessons.filter(l => l.language === selectedLanguage).length;
 
     return (
-        <div className="min-h-screen py-10 px-6 max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-3 flex items-center gap-3 text-gray-900">
-                    <BookOpen className="text-orange-600" size={32} />
-                    Learning Library
-                </h1>
-                <p className="text-gray-500 text-lg">
-                    Master programming with our step-by-step interactive lessons
-                </p>
+        <div className="space-y-6">
+            {/* Header Bento */}
+            <div className="bento-card bg-slate-900 text-white flex flex-col md:flex-row justify-between items-center gap-6 p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                <div className="relative z-10">
+                    <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                        <BookOpen className="text-indigo-400" size={32} />
+                        Learning Library
+                    </h1>
+                    <p className="text-slate-300 max-w-lg">
+                        Structured, interactive lessons designed to take you from hello world to system architect.
+                    </p>
+                </div>
+                <div className="relative z-10 flex flex-col items-end min-w-[200px]">
+                    <div className="text-sm font-medium text-slate-300 mb-1">Course Progress</div>
+                    <div className="text-3xl font-bold mb-2">{Math.round((completedCount / (totalCount || 1)) * 100)}%</div>
+                    <ProgressBar value={completedCount} max={totalCount || 1} size="sm" variant="primary" />
+                </div>
             </div>
 
-            {/* Language Tabs - Google Style */}
-            <Tabs
-                tabs={languageTabs}
-                activeTab={selectedLanguage}
-                onTabChange={(id) => setSelectedLanguage(id as Language)}
-                className="mb-8"
-            />
-
-            {/* Progress Overview */}
-            <Card padding="lg" className="mb-8 border-none shadow-md bg-white">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <h3 className="font-bold text-gray-900 text-lg mb-1">Your Progress</h3>
-                        <p className="text-sm text-gray-500">
-                            {completedCount} of {totalCount} lessons completed
-                        </p>
-                    </div>
-                    <div className="flex-1 max-w-xl">
-                        <ProgressBar
-                            value={completedCount}
-                            max={totalCount || 1}
-                            size="md"
-                            variant="success"
+            {/* Controls Row */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <Tabs
+                    tabs={languageTabs}
+                    activeTab={selectedLanguage}
+                    onTabChange={(id) => setSelectedLanguage(id as Language)}
+                />
+                <div className="flex gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Search lessons..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all"
                         />
                     </div>
-                    <Badge variant="success" className="self-start px-3 py-1">
-                        {Math.round((completedCount / (totalCount || 1)) * 100)}% Complete
-                    </Badge>
-                </div>
-            </Card>
-
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <div className="flex-1">
-                    <Input
-                        placeholder="Search lessons..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        icon={<Search size={18} />}
-                        className="bg-white border-gray-200 shadow-sm"
-                    />
-                </div>
-                <div className="w-full sm:w-64">
-                    <Select
+                    <select
+                        className="bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                         value={selectedTier.toString()}
                         onChange={(e) => setSelectedTier(e.target.value === 'all' ? 'all' : parseInt(e.target.value) as Tier)}
-                        options={[
-                            { value: 'all', label: 'All Tiers' },
-                            { value: '1', label: '🌱 Tier 1: Seedling' },
-                            { value: '2', label: '🌿 Tier 2: Sprout' },
-                            { value: '3', label: '🌳 Tier 3: Growing' },
-                            { value: '4', label: '🌲 Tier 4: Mature' },
-                            { value: '5', label: '🏔️ Tier 5: Expert' }
-                        ]}
-                    />
+                    >
+                        <option value="all">All Tiers</option>
+                        <option value="1">Tier 1: Seedling</option>
+                        <option value="2">Tier 2: Sprout</option>
+                        <option value="3">Tier 3: Growing</option>
+                        <option value="4">Tier 4: Mature</option>
+                        <option value="5">Tier 5: Expert</option>
+                    </select>
                 </div>
             </div>
 
-            {/* Lesson List */}
+            {/* Tiers & Lessons Grid */}
             <div className="space-y-8">
                 {Object.entries(groupedLessons).map(([tier, lessons]) => (
-                    <div key={tier} className="animate-fade-in">
-                        <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-                            <span>Tier {tier}</span>
-                            <div className="h-px flex-1 bg-gray-100 ml-4"></div>
-                        </h2>
-                        <div className="grid gap-4">
+                    <div key={tier}>
+                        <div className="flex items-center gap-4 mb-4">
+                            <Badge variant="secondary" className="px-3 py-1 text-sm bg-white shadow-sm border-slate-200">
+                                Tier {tier}
+                            </Badge>
+                            <div className="h-px flex-1 bg-slate-200"></div>
+                        </div>
+
+                        <div className="bento-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                             {lessons.map((lesson) => (
-                                <Card
+                                <div
                                     key={lesson.id}
-                                    variant="hover"
-                                    className="group relative overflow-hidden bg-white border border-gray-100 hover:border-orange-200 hover:shadow-md transition-all duration-300"
+                                    className="bento-card group hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer relative"
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
-                                                    {lesson.title}
-                                                </h3>
-                                                {isCompleted('lesson', lesson.id) && (
-                                                    <Badge variant="success" size="sm">Completed</Badge>
-                                                )}
-                                            </div>
-                                            <p className="text-sm text-gray-500 mb-3 max-w-2xl">
-                                                {lesson.description}
-                                            </p>
-                                            <div className="flex items-center gap-4 text-xs text-gray-400 font-medium">
-                                                <span className="flex items-center gap-1">
-                                                    <Clock size={14} />
-                                                    {lesson.estimatedTime} min
-                                                </span>
-                                                <span className="flex items-center gap-1 text-orange-500">
-                                                    <Star size={14} />
-                                                    {lesson.xpReward} XP
-                                                </span>
-                                            </div>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                            <Code size={20} />
                                         </div>
-                                        <div className="p-2 bg-gray-50 rounded-full text-gray-300 group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors">
-                                            <ChevronRight size={20} />
-                                        </div>
+                                        {isCompleted('lesson', lesson.id) && (
+                                            <Badge variant="success" size="sm">Completed</Badge>
+                                        )}
                                     </div>
-                                </Card>
+
+                                    <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors mb-2">
+                                        {lesson.title}
+                                    </h3>
+                                    <p className="text-sm text-slate-500 mb-6 line-clamp-2">
+                                        {lesson.description}
+                                    </p>
+
+                                    <div className="flex items-center justify-between text-xs font-medium text-slate-400 pt-4 border-t border-slate-50">
+                                        <span className="flex items-center gap-1">
+                                            <Clock size={14} /> {lesson.estimatedTime} min
+                                        </span>
+                                        <span className="flex items-center gap-1 text-amber-600">
+                                            <Sparkles size={14} /> {lesson.xpReward} XP
+                                        </span>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
                 ))}
-
-                {Object.keys(groupedLessons).length === 0 && (
-                    <div className="text-center py-20 bg-gray-50 rounded-xl border-dashed border-2 border-gray-200">
-                        <p className="text-gray-500 mb-2">No lessons found</p>
-                        <button
-                            className="text-orange-500 hover:underline font-medium"
-                            onClick={() => { setSearchQuery(''); setSelectedTier('all'); }}
-                        >
-                            Clear filters
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     );
