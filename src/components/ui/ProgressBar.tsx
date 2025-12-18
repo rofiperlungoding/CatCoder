@@ -26,8 +26,8 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     };
 
     const variants = {
-        primary: "bg-indigo-600",
-        success: "bg-emerald-500",
+        primary: "bg-primary", // Black
+        success: "bg-accent",  // Lime
         warning: "bg-amber-500"
     };
 
@@ -39,7 +39,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                     <span>{Math.round(percentage)}%</span>
                 </div>
             )}
-            <div className={`w-full bg-slate-100 rounded-full overflow-hidden ${sizes[size]}`}>
+            <div className={`w-full bg-gray-100 rounded-full overflow-hidden ${sizes[size]}`}>
                 <div
                     className={`h-full rounded-full transition-all duration-500 ease-out ${variants[variant]}`}
                     style={{ width: `${percentage}%` }}

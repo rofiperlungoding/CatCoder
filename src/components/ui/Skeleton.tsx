@@ -13,7 +13,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     height,
     variant = 'text'
 }) => {
-    const baseStyles = "animate-pulse bg-slate-200";
+    const baseStyles = "animate-pulse bg-gray-200";
 
     const variants = {
         text: "rounded-md",

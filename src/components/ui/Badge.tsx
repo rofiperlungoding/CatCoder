@@ -14,12 +14,12 @@ export const Badge: React.FC<BadgeProps> = ({
     className = ''
 }) => {
     const variants = {
-        primary: "bg-indigo-50 text-indigo-700 border-indigo-100",
-        secondary: "bg-slate-100 text-slate-700 border-slate-200",
-        success: "bg-emerald-50 text-emerald-700 border-emerald-100",
+        primary: "bg-primary/5 text-primary border-primary/20",
+        secondary: "bg-secondary text-secondary-foreground border-transparent",
+        success: "bg-accent/10 text-accent-foreground border-accent/20", // Lime
         warning: "bg-amber-50 text-amber-700 border-amber-100",
-        danger: "bg-rose-50 text-rose-700 border-rose-100",
-        outline: "bg-transparent border-slate-200 text-slate-600"
+        danger: "bg-red-50 text-red-700 border-red-100",
+        outline: "bg-transparent border-gray-200 text-muted-foreground"
     };
 
     const sizes = {
@@ -28,7 +28,7 @@ export const Badge: React.FC<BadgeProps> = ({
     };
 
     return (
-        <span className={`inline-flex items-center font-semibold rounded-md border ${variants[variant]} ${sizes[size]} ${className}`}>
+        <span className={`inline-flex items-center font-semibold rounded-full border ${variants[variant]} ${sizes[size]} ${className}`}>
             {children}
         </span>
     );

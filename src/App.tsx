@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
+import { ScrollToTop } from './components/layout';
 import { HomePage } from './pages/Home';
 import { LearnPage } from './pages/Learn';
 import { PracticePage } from './pages/Practice';
@@ -8,6 +9,14 @@ import { CompetePage } from './pages/Compete';
 import { RoadmapPage } from './pages/Roadmap';
 import { ProfilePage } from './pages/Profile';
 import { LandingPage } from './pages/Landing';
+import {
+  FeaturesPage,
+  PricingPage,
+  CoursesPage,
+  AboutPage,
+  ContactPage
+} from './pages/Public';
+import { LoginPage } from './pages/Auth/Login';
 import { useUserStore } from './stores';
 
 // Guard component to redirect unauthenticated users
@@ -32,13 +41,20 @@ const PublicRoute = ({ children }: { children: React.ReactElement }) => {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
+
         {/* Public Routes */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
-          <Route path="/features" element={<PublicRoute><LandingPage /></PublicRoute>} />
-          {/* Add more public pages here if needed */}
+          <Route path="/features" element={<PublicRoute><FeaturesPage /></PublicRoute>} />
+          <Route path="/courses" element={<PublicRoute><CoursesPage /></PublicRoute>} />
+          <Route path="/pricing" element={<PublicRoute><PricingPage /></PublicRoute>} />
+          <Route path="/about" element={<PublicRoute><AboutPage /></PublicRoute>} />
+          <Route path="/contact" element={<PublicRoute><ContactPage /></PublicRoute>} />
         </Route>
+
+        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
         {/* Protected App Routes */}
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>

@@ -14,24 +14,24 @@ const ToastItem: React.FC<{
     // Auto-dismiss handled in store, but we can double check or animate here
 
     const styles = {
-        success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-        error: 'bg-rose-50 border-rose-200 text-rose-800',
-        info: 'bg-slate-50 border-slate-200 text-slate-800',
-        warning: 'bg-amber-50 border-amber-200 text-amber-800',
-        xp: 'bg-indigo-50 border-indigo-200 text-indigo-800 shadow-indigo-100'
+        success: 'bg-white border-gray-200 text-primary', // Minimalist success
+        error: 'bg-red-50 border-red-100 text-red-600',
+        info: 'bg-white border-gray-200 text-muted-foreground',
+        warning: 'bg-amber-50 border-amber-100 text-amber-600',
+        xp: 'bg-white border-lime-200 text-primary shadow-lime-100' // Custom XP style
     };
 
     const icons = {
-        success: <CheckCircle size={18} className="text-emerald-600" />,
-        error: <AlertCircle size={18} className="text-rose-600" />,
-        info: <Info size={18} className="text-slate-600" />,
-        warning: <AlertCircle size={18} className="text-amber-600" />,
-        xp: <Zap size={18} className="text-indigo-600 fill-indigo-200" />
+        success: <CheckCircle size={18} className="text-lime-500" />,
+        error: <AlertCircle size={18} className="text-red-500" />,
+        info: <Info size={18} className="text-gray-400" />,
+        warning: <AlertCircle size={18} className="text-amber-500" />,
+        xp: <Zap size={18} className="text-lime-500 fill-lime-200" />
     };
 
     return (
         <div className={`
-            pointer-events-auto flex items-center gap-3 w-full max-w-sm px-4 py-3 rounded-xl border shadow-lg 
+            pointer-events-auto flex items-center gap-3 w-full max-w-sm px-6 py-4 rounded-full border shadow-xl shadow-black/5
             transform transition-all duration-300 animate-in slide-in-from-bottom-5 fade-in
             ${styles[type]}
         `}>

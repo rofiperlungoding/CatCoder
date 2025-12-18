@@ -3,7 +3,10 @@ import {
     Flame,
     Medal,
     Clock,
-    Calendar
+    Calendar,
+    Trophy,
+    Sparkles,
+    ArrowRight
 } from 'lucide-react';
 import { Button, Badge, Tabs } from '../../components/ui';
 import { useUserStore, useUIStore } from '../../stores';
@@ -53,11 +56,14 @@ export const CompetePage: React.FC = () => {
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-1">Competition Center</h1>
-                    <p className="text-slate-500">Compete, rank up, and earn glory.</p>
+                    <h1 className="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
+                        Competition Center
+                        <Trophy size={24} className="text-yellow-500" />
+                    </h1>
+                    <p className="text-muted-foreground">Compete, rank up, and earn glory among peers.</p>
                 </div>
             </div>
 
@@ -65,87 +71,106 @@ export const CompetePage: React.FC = () => {
                 tabs={tabs}
                 activeTab={activeTab}
                 onTabChange={(id) => setActiveTab(id as any)}
-                className="mb-6"
+                className="mb-8"
             />
 
             {activeTab === 'challenges' && (
-                <div className="bento-grid grid-cols-1 md:grid-cols-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Daily Challenge - Featured */}
-                    <div className="bento-card col-span-1 md:col-span-2 bg-gradient-to-r from-slate-900 to-slate-800 text-white border-none p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-32 bg-indigo-500 rounded-full blur-3xl opacity-20 -mr-20 -mt-20"></div>
-                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-                            <div>
-                                <div className="flex items-center gap-2 mb-2 text-indigo-300 font-semibold tracking-wide uppercase text-xs">
+                    <div className="col-span-1 md:col-span-2 bg-primary text-white rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden shadow-xl shadow-black/5">
+                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-lime-500/20 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
+
+                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                            <div className="max-w-xl">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-lime-400 font-semibold tracking-wide uppercase text-xs mb-4">
                                     <Clock size={14} /> Ends in {formatTime(dailyTimeLeft)}
                                 </div>
-                                <h2 className="text-3xl font-bold mb-2">Daily Algorithm Challenge</h2>
-                                <p className="text-slate-300 mb-6 max-w-xl">
-                                    Solve today's featured problem "Matrix Rotation" to earn double XP and extend your streak.
+                                <h2 className="text-4xl font-bold mb-4">Daily Algorithm Challenge</h2>
+                                <p className="text-white/70 mb-8 text-lg leading-relaxed">
+                                    Solve today's featured problem <span className="text-white font-semibold">"Matrix Rotation"</span> to earn double XP and extend your streak.
                                 </p>
                                 <Button
-                                    className="bg-white text-slate-900 hover:bg-indigo-50 border-none"
+                                    className="bg-lime-400 text-black hover:bg-lime-500 border-none px-8 py-6 text-lg rounded-full font-bold shadow-lg shadow-lime-900/10"
                                     onClick={handleStartChallenge}
                                 >
                                     Start Challenge Now
                                 </Button>
                             </div>
-                            {/* ... trophy icon ... */}
+
+                            <div className="hidden md:flex flex-col items-center justify-center w-32 h-32 bg-white/5 rounded-full backdrop-blur-md border border-white/10">
+                                <span className="text-3xl">🔥</span>
+                                <span className="text-xs font-bold mt-2 text-white/50">200 XP</span>
+                            </div>
                         </div>
                     </div>
 
                     {/* Weekly */}
-                    <div className="bento-card border-l-4 border-l-indigo-500">
-                        <Badge variant="primary" className="mb-3">Weekly Contest</Badge>
-                        <h3 className="font-bold text-lg mb-2">System Design: URL Shortener</h3>
-                        <p className="text-sm text-slate-500 mb-4">Design a scalable URL shortening service like bit.ly.</p>
-                        <Button variant="secondary" size="sm" fullWidth>View Details</Button>
+                    <div className="bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all border border-gray-100 flex flex-col justify-between">
+                        <div>
+                            <Badge variant="secondary" className="mb-4 bg-gray-100 text-primary border-transparent">Weekly Contest</Badge>
+                            <h3 className="font-bold text-xl mb-3 text-primary">System Design: URL Shortener</h3>
+                            <p className="text-muted-foreground mb-6 leading-relaxed">Design a scalable URL shortening service like bit.ly. Focus on database schema and API.</p>
+                        </div>
+                        <Button variant="outline" className="w-full rounded-full border-gray-200 hover:bg-gray-50 group">
+                            View Details <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
                     </div>
 
                     {/* Coming Soon */}
-                    <div className="bento-card border-dashed border-2 bg-slate-50/50 flex flex-col items-center justify-center text-center p-8">
-                        <Calendar size={32} className="text-slate-400 mb-2" />
-                        <h3 className="font-semibold text-slate-500">Weekend Hackathon</h3>
-                        <p className="text-xs text-slate-400">Starts in 3 days</p>
+                    <div className="bg-gray-50 p-8 rounded-[2.5rem] border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <Calendar size={28} className="text-gray-400" />
+                        </div>
+                        <h3 className="font-bold text-lg text-gray-500 mb-1">Weekend Hackathon</h3>
+                        <p className="text-sm text-gray-400 font-medium">Starts in 3 days</p>
                     </div>
                 </div>
             )}
 
             {activeTab === 'leaderboard' && (
-                <div className="bento-card p-0 overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 border-b border-slate-100">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Rank</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">User</th>
-                                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Score</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {sampleLeaderboard.map((entry) => (
-                                <tr key={entry.rank} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className={`
-                                            w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm
-                                            ${entry.rank === 1 ? 'bg-amber-100 text-amber-700' :
-                                                entry.rank === 2 ? 'bg-slate-200 text-slate-700' :
-                                                    entry.rank === 3 ? 'bg-orange-100 text-orange-800' : 'text-slate-500'}
-                                        `}>
-                                            {entry.rank}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-200"></div>
-                                            <span className="font-semibold text-slate-900">{entry.user.username}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-mono font-medium text-slate-700">
-                                        {entry.score.toLocaleString()}
-                                    </td>
+                <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-gray-100">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Rank</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">User</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Score</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {sampleLeaderboard.map((entry) => (
+                                    <tr key={entry.rank} className="group hover:bg-gray-50/80 transition-colors">
+                                        <td className="px-6 py-5">
+                                            <div className={`
+                                                w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm
+                                                ${entry.rank === 1 ? 'bg-yellow-100 text-yellow-700' :
+                                                    entry.rank === 2 ? 'bg-gray-100 text-gray-700' :
+                                                        entry.rank === 3 ? 'bg-orange-100 text-orange-800' : 'bg-white border border-gray-100 text-gray-500'}
+                                            `}>
+                                                {entry.rank}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-lg">
+                                                    🐱
+                                                </div>
+                                                <div>
+                                                    <span className="font-bold text-primary block group-hover:text-lime-600 transition-colors">{entry.user.username}</span>
+                                                    <span className="text-xs text-muted-foreground font-medium capitalize">{entry.user.rank} League</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <div className="font-bold text-primary">{entry.score.toLocaleString()} XP</div>
+                                            <div className="text-xs text-muted-foreground">{entry.problemsSolved} Solved</div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>

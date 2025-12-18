@@ -16,17 +16,17 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
             )}
             <div className="relative">
                 {icon && (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
                         {icon}
                     </div>
                 )}
                 <input
                     className={`
-                        w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder-slate-400
-                        focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all
-                        disabled:bg-slate-50 disabled:text-slate-500
-                        ${icon ? 'pl-10' : ''}
-                        ${error ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : ''}
+                        w-full bg-white border border-gray-200 rounded-full px-6 py-3 text-primary placeholder:text-muted-foreground
+                        focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all
+                        disabled:bg-muted disabled:text-muted-foreground
+                        ${icon ? 'pl-12' : ''}
+                        ${error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}
                         ${className}
                     `}
                     {...props}

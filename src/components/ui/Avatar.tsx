@@ -17,7 +17,7 @@ export const Avatar: React.FC<AvatarProps> = ({ src, alt, fallback, size = 'md',
     };
 
     return (
-        <div className={`relative inline-block rounded-full overflow-hidden bg-slate-100 border border-slate-200 ${sizes[size]} ${className}`}>
+        <div className={`relative inline-block rounded-full overflow-hidden bg-gray-100 border border-gray-200 ${sizes[size]} ${className}`}>
             {src ? (
                 <img
                     src={src}

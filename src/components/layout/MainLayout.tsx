@@ -47,12 +47,12 @@ export const MainLayout: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--bg-page)] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-white">
             {/* Sidebar (Floating Rail) */}
             <Sidebar />
 
-            {/* Main Content Area - Bento Grid Container */}
-            <main className="lg:pl-72 min-h-screen p-4 lg:p-6 transition-all duration-300">
+            {/* Main Content Area */}
+            <main className="lg:pl-80 min-h-screen p-4 lg:p-8 transition-all duration-300">
                 <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <Outlet />
                 </div>

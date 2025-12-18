@@ -23,10 +23,10 @@ export const Select: React.FC<SelectProps> = ({ options, label, error, className
             <div className="relative">
                 <select
                     className={`
-                        w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 
-                        focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all cursor-pointer
-                        disabled:bg-slate-50 disabled:text-slate-500
-                        ${error ? 'border-rose-300' : ''}
+                        w-full appearance-none bg-white border border-gray-200 rounded-full px-6 py-3 text-primary 
+                        focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all cursor-pointer
+                        disabled:bg-muted disabled:text-muted-foreground
+                        ${error ? 'border-red-300' : ''}
                         ${className}
                     `}
                     {...props}
@@ -37,7 +37,7 @@ export const Select: React.FC<SelectProps> = ({ options, label, error, className
                         </option>
                     ))}
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
                     <ChevronDown size={16} />
                 </div>
             </div>
