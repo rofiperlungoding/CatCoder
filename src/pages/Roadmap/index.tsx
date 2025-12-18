@@ -55,7 +55,7 @@ export const RoadmapPage: React.FC = () => {
                     <div className="absolute inset-0 bg-grid-white/[0.05] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]"></div>
 
                     <div className="relative z-10 max-w-lg mx-auto">
-                        <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-8 backdrop-blur-md border border-white/10">
+                        <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-8 backdrop-blur-md border border-white/10">
                             <Lock size={32} className="text-lime-400" />
                         </div>
                         <h2 className="text-3xl font-bold mb-4">Unlock Roadmaps at Level 5</h2>
@@ -67,7 +67,7 @@ export const RoadmapPage: React.FC = () => {
                                 <span className="text-lime-400">Current: Level {userLevel}</span>
                                 <span className="text-white/40">Target: Level 5</span>
                             </div>
-                            <ProgressBar value={userLevel} max={5} className="h-3 bg-white/10" variant="accent" />
+                            <ProgressBar value={userLevel} max={5} className="h-3 bg-white/10" variant="success" />
                             <div className="mt-4 text-xs text-center text-white/40 font-medium">
                                 {(5 - userLevel)} more levels to go
                             </div>

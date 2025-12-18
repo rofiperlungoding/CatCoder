@@ -5,7 +5,6 @@ import {
     Clock,
     Calendar,
     Trophy,
-    Sparkles,
     ArrowRight
 } from 'lucide-react';
 import { Button, Badge, Tabs } from '../../components/ui';
@@ -97,7 +96,7 @@ export const CompetePage: React.FC = () => {
                                 </Button>
                             </div>
 
-                            <div className="hidden md:flex flex-col items-center justify-center w-32 h-32 bg-white/5 rounded-full backdrop-blur-md border border-white/10">
+                            <div className="hidden md:flex flex-col items-center justify-center w-32 h-32 bg-white/5 rounded-[2.5rem] backdrop-blur-md border border-white/10">
                                 <span className="text-3xl">🔥</span>
                                 <span className="text-xs font-bold mt-2 text-white/50">200 XP</span>
                             </div>
@@ -111,14 +110,14 @@ export const CompetePage: React.FC = () => {
                             <h3 className="font-bold text-xl mb-3 text-primary">System Design: URL Shortener</h3>
                             <p className="text-muted-foreground mb-6 leading-relaxed">Design a scalable URL shortening service like bit.ly. Focus on database schema and API.</p>
                         </div>
-                        <Button variant="outline" className="w-full rounded-full border-gray-200 hover:bg-gray-50 group">
+                        <Button variant="secondary" className="w-full rounded-full border-gray-200 hover:bg-gray-50 group">
                             View Details <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </div>
 
                     {/* Coming Soon */}
                     <div className="bg-gray-50 p-8 rounded-[2.5rem] border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
-                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                             <Calendar size={28} className="text-gray-400" />
                         </div>
                         <h3 className="font-bold text-lg text-gray-500 mb-1">Weekend Hackathon</h3>

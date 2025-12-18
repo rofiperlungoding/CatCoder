@@ -25,35 +25,35 @@ export const AboutPage: React.FC = () => {
                     <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-[120px] -ml-32 -mt-32 pointer-events-none"></div>
 
                     <div className="relative z-10">
-                        <h2 className="text-3xl font-bold mb-16 text-center">Our Core Values</h2>
+                        <h2 className="text-3xl font-bold mb-16 text-center text-white">Our Core Values</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-lime-400">
                                     <Target size={24} />
                                 </div>
-                                <h3 className="text-xl font-bold">Excellence</h3>
-                                <p className="text-white/60">We strive for the highest quality in our curriculum and platform experience.</p>
+                                <h3 className="text-xl font-bold text-white">Excellence</h3>
+                                <p className="text-gray-300">We strive for the highest quality in our curriculum and platform experience.</p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-rose-400">
                                     <Heart size={24} />
                                 </div>
-                                <h3 className="text-xl font-bold">Passion</h3>
-                                <p className="text-white/60">We love code, and we want to share that excitement with the world.</p>
+                                <h3 className="text-xl font-bold text-white">Passion</h3>
+                                <p className="text-gray-300">We love code, and we want to share that excitement with the world.</p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400">
                                     <Globe size={24} />
                                 </div>
-                                <h3 className="text-xl font-bold">Accessibility</h3>
-                                <p className="text-white/60">Education should be open to everyone, everywhere, regardless of background.</p>
+                                <h3 className="text-xl font-bold text-white">Accessibility</h3>
+                                <p className="text-gray-300">Education should be open to everyone, everywhere, regardless of background.</p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-amber-400">
                                     <Users size={24} />
                                 </div>
-                                <h3 className="text-xl font-bold">Community</h3>
-                                <p className="text-white/60">Learning is a social activity. We build bridges between learners.</p>
+                                <h3 className="text-xl font-bold text-white">Community</h3>
+                                <p className="text-gray-300">Learning is a social activity. We build bridges between learners.</p>
                             </div>
                         </div>
                     </div>

@@ -1,12 +1,12 @@
-import React from 'react';
 import {
-    Code,
-    Zap,
-    Trophy,
-    Users,
-    Cpu,
-    Globe,
-    ArrowRight
+    TerminalSquare,
+    Activity,
+    Crown,
+    MessageSquareCode,
+    BrainCircuit,
+    Briefcase,
+    ArrowRight,
+    Zap
 } from 'lucide-react';
 import { Button } from '../../components/ui';
 import { useNavigate } from 'react-router-dom';
@@ -16,42 +16,42 @@ export const FeaturesPage: React.FC = () => {
 
     const features = [
         {
-            icon: <Code size={32} />,
+            icon: <TerminalSquare size={32} />,
             title: "Interactive Code Editor",
             description: "Write, run, and debug code directly in your browser with our powerful Monaco-based editor. Supports Python, JavaScript, and C++.",
             color: "text-blue-500",
             bg: "bg-blue-50"
         },
         {
-            icon: <Zap size={32} />,
+            icon: <Activity size={32} />,
             title: "Instant Feedback",
             description: "Get real-time feedback on your code. Our automated testing engine checks your solutions against multiple test cases in milliseconds.",
             color: "text-amber-500",
             bg: "bg-amber-50"
         },
         {
-            icon: <Trophy size={32} />,
+            icon: <Crown size={32} />,
             title: "Gamified Learning",
             description: "Earn XP, maintain streaks, and climb the leaderboards. Unlock badges and achievements as you master new skills.",
             color: "text-lime-600",
             bg: "bg-lime-100"
         },
         {
-            icon: <Users size={32} />,
+            icon: <MessageSquareCode size={32} />,
             title: "Community & Peer Review",
             description: "Connect with other learners, discuss solutions, and review code. Learning is better when we do it together.",
             color: "text-purple-500",
             bg: "bg-purple-50"
         },
         {
-            icon: <Cpu size={32} />,
+            icon: <BrainCircuit size={32} />,
             title: "AI-Powered Hints",
             description: "Stuck on a problem? Our intelligent hints system guides you to the solution without giving it away instantly.",
             color: "text-rose-500",
             bg: "bg-rose-50"
         },
         {
-            icon: <Globe size={32} />,
+            icon: <Briefcase size={32} />,
             title: "Real-world Scenarios",
             description: "Practice with challenges inspired by real-world interview questions and industry use cases.",
             color: "text-teal-500",
@@ -90,9 +90,9 @@ export const FeaturesPage: React.FC = () => {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all duration-300 hover:-translate-y-1 group"
+                            className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm transition-all duration-300 group"
                         >
-                            <div className={`w-16 h-16 ${feature.bg} ${feature.color} rounded-2xl flex items-center justify-center mb-6 text-current group-hover:scale-110 transition-transform duration-300`}>
+                            <div className={`w-16 h-16 ${feature.bg} ${feature.color} rounded-2xl flex items-center justify-center mb-6 text-current transition-transform duration-300`}>
                                 {feature.icon}
                             </div>
                             <h3 className="text-2xl font-bold text-primary mb-4">{feature.title}</h3>
@@ -111,10 +111,10 @@ export const FeaturesPage: React.FC = () => {
 
                     <div className="relative z-10 flex flex-col md:flex-row items-center gap-16">
                         <div className="flex-1 space-y-8">
-                            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+                            <h2 className="text-4xl md:text-5xl font-bold leading-tight text-white">
                                 Designed for <span className="text-lime-400">Efficiency</span> and <span className="text-lime-400">Focus</span>.
                             </h2>
-                            <p className="text-white/60 text-lg leading-relaxed max-w-xl">
+                            <p className="text-gray-300 text-lg leading-relaxed max-w-xl">
                                 Our platform is built with a minimalist aesthetic to reduce distractions.
                                 The clean interface puts your code front and center, helping you enter the flow state faster and stay there longer.
                             </p>
@@ -124,8 +124,8 @@ export const FeaturesPage: React.FC = () => {
                                     "Dark mode optimized for long sessions",
                                     "Keyboard shortcuts for power users"
                                 ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-lg font-medium">
-                                        <div className="w-6 h-6 rounded-full bg-lime-500/20 flex items-center justify-center text-lime-400">
+                                    <li key={i} className="flex items-center gap-3 text-lg font-medium text-white">
+                                        <div className="w-6 h-6 rounded-full bg-lime-500/20 flex items-center justify-center text-lime-400 shrink-0">
                                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
@@ -136,8 +136,11 @@ export const FeaturesPage: React.FC = () => {
                             </ul>
                         </div>
                         <div className="flex-1 w-full relative">
-                            <div className="absolute inset-0 bg-lime-500/20 blur-3xl transform rotate-6 scale-90 rounded-[2rem]"></div>
-                            <div className="bg-gray-900 border border-white/10 rounded-[2rem] p-6 shadow-2xl relative rotate-3 hover:rotate-0 transition-transform duration-500">
+                            {/* Removed rotated background blob for cleaner look */}
+                            <div className="absolute inset-0 bg-lime-500/10 blur-3xl rounded-full opacity-50"></div>
+                            {/* Formal, non-rotated code box */}
+                            <div className="bg-[#1E1E1E] border border-white/10 rounded-[1.5rem] p-8 shadow-2xl relative">
+
                                 <div className="flex gap-2 mb-4">
                                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>

@@ -8,9 +8,12 @@ import {
     CheckCircle2,
     Sparkles,
     ArrowRight,
-    ChevronLeft
+    ChevronLeft,
+    Play,
+    Terminal
 } from 'lucide-react';
 import { Badge, ProgressBar, Tabs, Button } from '../../components/ui';
+import { CodeEditor } from '../../components/editor';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import type { Lesson, Language, Tier } from '../../types';
 
@@ -123,8 +126,39 @@ export const LearnPage: React.FC = () => {
         }
     }, [lessonId]);
 
-    const handleStartLesson = (lesson: Lesson) => {
-        navigate(`/learn/${lesson.id}`);
+    // Editor State
+    const [code, setCode] = useState('');
+    const [output, setOutput] = useState<string | null>(null);
+    const [isRunning, setIsRunning] = useState(false);
+
+    // Reset code when lesson changes
+    useEffect(() => {
+        if (activeLesson) {
+            const defaultCode = {
+                python: 'print("Hello, World!")',
+                javascript: 'console.log("Hello, World!");',
+                cpp: '#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}'
+            };
+            setCode(defaultCode[activeLesson.language as keyof typeof defaultCode] || '');
+            setOutput(null);
+        }
+    }, [activeLesson]);
+
+    const handleRunCode = () => {
+        setIsRunning(true);
+        setOutput(null);
+
+        // Simulate execution delay
+        setTimeout(() => {
+            setIsRunning(false);
+            const mockOutputs = {
+                python: 'Hello, World!\n\nProcess finished with exit code 0',
+                javascript: 'Hello, World!',
+                cpp: 'Hello, World!'
+            };
+            setOutput(mockOutputs[activeLesson?.language as keyof typeof mockOutputs] || 'Executed successfully.');
+            addToast('success', 'Code executed successfully');
+        }, 1000);
     };
 
     const handleCompleteLessonDisplay = () => {
@@ -203,11 +237,44 @@ export const LearnPage: React.FC = () => {
                             Programming is essentially about giving instructions to a computer. We do this by writing code statements.
                             Let's look at a simple example:
                         </p>
-                        <pre>
-                            <code>
-                                {activeLesson.language === 'python' ? 'print("Hello, World!")' : activeLesson.language === 'javascript' ? 'console.log("Hello, World!");' : 'std::cout << "Hello, World!" << std::endl;'}
-                            </code>
-                        </pre>
+                        <div className="not-prose my-8">
+                            <div className="bg-slate-900 rounded-t-2xl p-4 flex items-center justify-between border-b border-white/10">
+                                <div className="flex gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                                </div>
+                                <div className="text-xs font-mono text-slate-400">main.{activeLesson.language === 'python' ? 'py' : activeLesson.language === 'javascript' ? 'js' : 'cpp'}</div>
+                            </div>
+                            <div className="h-[300px] border-x border-slate-200 border-b rounded-b-2xl overflow-hidden shadow-sm relative group">
+                                <CodeEditor
+                                    value={code}
+                                    onChange={(v) => setCode(v || '')}
+                                    language={activeLesson.language}
+                                />
+                                <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                        size="sm"
+                                        className="rounded-full shadow-lg shadow-indigo-500/20"
+                                        onClick={handleRunCode}
+                                        disabled={isRunning}
+                                    >
+                                        {isRunning ? <Sparkles className="animate-spin mr-2" size={14} /> : <Play className="mr-2" size={14} />}
+                                        Run Code
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Output Console */}
+                            {output && (
+                                <div className="mt-4 bg-slate-950 rounded-xl p-4 font-mono text-sm shadow-inner border border-slate-800 animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-center gap-2 text-slate-400 mb-2 text-xs uppercase tracking-wider font-semibold">
+                                        <Terminal size={14} /> Output
+                                    </div>
+                                    <div className="text-emerald-400 whitespace-pre-wrap">{output}</div>
+                                </div>
+                            )}
+                        </div>
                         <h3>Key Concepts</h3>
                         <ul>
                             <li><strong>Syntax</strong>: The grammar rules of a programming language.</li>

@@ -9,6 +9,7 @@ interface UserState {
     user: User | null;
     isAuthenticated: boolean;
     isGuest: boolean;
+    isLoading: boolean;
     selectedLanguage: Language;
 
     // Actions
@@ -17,7 +18,7 @@ interface UserState {
     logout: () => void;
     signIn: (email: string, password: string) => Promise<{ user: any; error: any }>;
     signUp: (email: string, password: string, username: string) => Promise<{ user: any; error: any }>;
-    initializeSession: () => void;
+    initializeSession: () => Promise<void>;
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
     updateStreak: () => void;
@@ -29,6 +30,7 @@ export const useUserStore = create<UserState>()(
             user: null,
             isAuthenticated: false,
             isGuest: false,
+            isLoading: true,
             selectedLanguage: 'python',
 
             setUser: (user) => set({
@@ -158,25 +160,13 @@ export const useUserStore = create<UserState>()(
             },
 
             initializeSession: async () => {
-                if (!isSupabaseConfigured()) return;
-
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session?.user) {
-                    const mappedUser: User = {
-                        id: session.user.id,
-                        email: session.user.email || '',
-                        username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
-                        xp: session.user.user_metadata?.xp || 0,
-                        level: session.user.user_metadata?.level || 1,
-                        rank: session.user.user_metadata?.rank || 'bronze',
-                        streakCurrent: session.user.user_metadata?.streakCurrent || 0,
-                        streakBest: session.user.user_metadata?.streakBest || 0,
-                        createdAt: session.user.created_at
-                    };
-                    set({ user: mappedUser, isAuthenticated: true, isGuest: false });
+                if (!isSupabaseConfigured()) {
+                    set({ isLoading: false });
+                    return;
                 }
 
-                supabase.auth.onAuthStateChange((_event, session) => {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
                     if (session?.user) {
                         const mappedUser: User = {
                             id: session.user.id,
@@ -189,14 +179,33 @@ export const useUserStore = create<UserState>()(
                             streakBest: session.user.user_metadata?.streakBest || 0,
                             createdAt: session.user.created_at
                         };
-                        set({ user: mappedUser, isAuthenticated: true, isGuest: false });
+                        set({ user: mappedUser, isAuthenticated: true, isGuest: false, isLoading: false });
                     } else {
-                        // Keep guest mode if not explicitly logged out? 
-                        // Or reset? For now, if no session, assume logged out unless guest.
-                        // Actually, this might conflict with 'Guest' mode if we aren't careful.
-                        // We will let explicit logout handle clearing, but if session expires, we might want to clear.
+                        set({ isLoading: false });
                     }
-                });
+
+                    supabase.auth.onAuthStateChange((_event, session) => {
+                        if (session?.user) {
+                            const mappedUser: User = {
+                                id: session.user.id,
+                                email: session.user.email || '',
+                                username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+                                xp: session.user.user_metadata?.xp || 0,
+                                level: session.user.user_metadata?.level || 1,
+                                rank: session.user.user_metadata?.rank || 'bronze',
+                                streakCurrent: session.user.user_metadata?.streakCurrent || 0,
+                                streakBest: session.user.user_metadata?.streakBest || 0,
+                                createdAt: session.user.created_at
+                            };
+                            set({ user: mappedUser, isAuthenticated: true, isGuest: false });
+                        } else {
+                            set({ user: null, isAuthenticated: false, isGuest: false });
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error initializing session:', error);
+                    set({ isLoading: false });
+                }
             },
 
             addXP: (amount) => {

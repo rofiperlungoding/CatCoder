@@ -6,7 +6,6 @@ import {
     Flame,
     ArrowRight,
     Code,
-    Target,
     Zap
 } from 'lucide-react';
 import { Button, ProgressBar, Badge } from '../../components/ui';
@@ -67,7 +66,7 @@ export const HomePage: React.FC = () => {
                     <div className="relative z-10 flex flex-col h-full justify-between">
                         <div>
                             <div className="flex items-center gap-2 mb-4">
-                                <Badge variant="default" className="bg-black/5 text-primary hover:bg-black/10">Current Course</Badge>
+                                <Badge variant="secondary" className="bg-black/5 text-primary hover:bg-black/10">Current Course</Badge>
                             </div>
                             <h2 className="text-2xl font-bold text-primary mb-2">Python Fundamentals</h2>
                             <p className="text-muted-foreground mb-6 max-w-md">
@@ -91,7 +90,7 @@ export const HomePage: React.FC = () => {
 
                 {/* 2. Stats Block - XP */}
                 <div className="bento-card flex flex-col justify-center items-center text-center border-0 shadow-sm hover:shadow-md transition-all">
-                    <div className="w-14 h-14 bg-lime-100/50 text-lime-600 rounded-full flex items-center justify-center mb-4">
+                    <div className="w-14 h-14 bg-lime-100/50 text-lime-600 rounded-2xl flex items-center justify-center mb-4">
                         <Zap size={28} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-3xl font-bold text-primary mb-1">{user?.xp || 0}</h3>
@@ -100,7 +99,7 @@ export const HomePage: React.FC = () => {
 
                 {/* 3. Streak Block */}
                 <div className="bento-card flex flex-col justify-center items-center text-center border-0 shadow-sm hover:shadow-md transition-all">
-                    <div className="w-14 h-14 bg-orange-100/50 text-orange-600 rounded-full flex items-center justify-center mb-4">
+                    <div className="w-14 h-14 bg-orange-100/50 text-orange-600 rounded-2xl flex items-center justify-center mb-4">
                         <Flame size={28} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-3xl font-bold text-primary mb-1">{user?.streakCurrent || 0}</h3>
