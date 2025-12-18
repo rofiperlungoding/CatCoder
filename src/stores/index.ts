@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, UserProgress, Language } from '../types';
 import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../lib/utils';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 // User Store
 interface UserState {
@@ -14,6 +15,9 @@ interface UserState {
     setUser: (user: User | null) => void;
     setGuest: () => void;
     logout: () => void;
+    signIn: (email: string, password: string) => Promise<{ user: any; error: any }>;
+    signUp: (email: string, password: string, username: string) => Promise<{ user: any; error: any }>;
+    initializeSession: () => void;
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
     updateStreak: () => void;
@@ -52,11 +56,148 @@ export const useUserStore = create<UserState>()(
                 });
             },
 
-            logout: () => set({
-                user: null,
-                isAuthenticated: false,
-                isGuest: false
-            }),
+            logout: async () => {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('Error signing out:', error);
+                    useUIStore.getState().addToast('error', 'Failed to sign out');
+                    return;
+                }
+                set({
+                    user: null,
+                    isAuthenticated: false,
+                    isGuest: false
+                });
+                useUIStore.getState().addToast('success', 'Signed out successfully');
+            },
+
+            signIn: async (email, password) => {
+                if (!isSupabaseConfigured()) {
+                    useUIStore.getState().addToast('warning', 'Supabase not configured. Using mock login.');
+                    // Fallback to mock login for demo/dev without env vars
+                    set({
+                        user: {
+                            id: 'mock-user-1',
+                            username: email.split('@')[0],
+                            email: email,
+                            xp: 100,
+                            level: 2,
+                            rank: 'bronze',
+                            streakCurrent: 1,
+                            streakBest: 1,
+                            createdAt: new Date().toISOString()
+                        },
+                        isAuthenticated: true,
+                        isGuest: false
+                    });
+                    return { user: null, error: null };
+                }
+
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) {
+                    useUIStore.getState().addToast('error', error.message);
+                    return { user: null, error };
+                }
+
+                // User session mapping is handled by onAuthStateChange or manually here
+                // For now, let's manually map basic data
+                if (data.user) {
+                    const mappedUser: User = {
+                        id: data.user.id,
+                        email: data.user.email || '',
+                        username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
+                        xp: data.user.user_metadata?.xp || 0,
+                        level: data.user.user_metadata?.level || 1,
+                        rank: data.user.user_metadata?.rank || 'bronze',
+                        streakCurrent: data.user.user_metadata?.streakCurrent || 0,
+                        streakBest: data.user.user_metadata?.streakBest || 0,
+                        createdAt: data.user.created_at
+                    };
+
+                    set({
+                        user: mappedUser,
+                        isAuthenticated: true,
+                        isGuest: false
+                    });
+                    useUIStore.getState().addToast('success', 'Welcome back!');
+                }
+
+                return { user: data.user, error: null };
+            },
+
+            signUp: async (email, password, username) => {
+                if (!isSupabaseConfigured()) {
+                    useUIStore.getState().addToast('warning', 'Supabase not configured. Cannot sign up.');
+                    return { user: null, error: { message: 'Supabase not configured' } };
+                }
+
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username: username,
+                            xp: 0,
+                            level: 1,
+                            rank: 'bronze'
+                        }
+                    }
+                });
+
+                if (error) {
+                    useUIStore.getState().addToast('error', error.message);
+                    return { user: null, error };
+                }
+
+                useUIStore.getState().addToast('success', 'Account created! Please check your email.');
+                return { user: data.user, error: null };
+            },
+
+            initializeSession: async () => {
+                if (!isSupabaseConfigured()) return;
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    const mappedUser: User = {
+                        id: session.user.id,
+                        email: session.user.email || '',
+                        username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+                        xp: session.user.user_metadata?.xp || 0,
+                        level: session.user.user_metadata?.level || 1,
+                        rank: session.user.user_metadata?.rank || 'bronze',
+                        streakCurrent: session.user.user_metadata?.streakCurrent || 0,
+                        streakBest: session.user.user_metadata?.streakBest || 0,
+                        createdAt: session.user.created_at
+                    };
+                    set({ user: mappedUser, isAuthenticated: true, isGuest: false });
+                }
+
+                supabase.auth.onAuthStateChange((_event, session) => {
+                    if (session?.user) {
+                        const mappedUser: User = {
+                            id: session.user.id,
+                            email: session.user.email || '',
+                            username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+                            xp: session.user.user_metadata?.xp || 0,
+                            level: session.user.user_metadata?.level || 1,
+                            rank: session.user.user_metadata?.rank || 'bronze',
+                            streakCurrent: session.user.user_metadata?.streakCurrent || 0,
+                            streakBest: session.user.user_metadata?.streakBest || 0,
+                            createdAt: session.user.created_at
+                        };
+                        set({ user: mappedUser, isAuthenticated: true, isGuest: false });
+                    } else {
+                        // Keep guest mode if not explicitly logged out? 
+                        // Or reset? For now, if no session, assume logged out unless guest.
+                        // Actually, this might conflict with 'Guest' mode if we aren't careful.
+                        // We will let explicit logout handle clearing, but if session expires, we might want to clear.
+                    }
+                });
+            },
 
             addXP: (amount) => {
                 const { user } = get();

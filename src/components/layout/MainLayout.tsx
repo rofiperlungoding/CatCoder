@@ -1,32 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Modal, Input, Button, Toaster, LevelUpModal } from '../ui';
-import { useUserStore } from '../../stores';
+import { useUserStore, useUIStore } from '../../stores';
 
 export const MainLayout: React.FC = () => {
-    const { setUser } = useUserStore();
-    const [showAuthModal, setShowAuthModal] = useState(false);
+    const { signIn, signUp, initializeSession } = useUserStore();
+    const { showAuthModal, setShowAuthModal } = useUIStore();
     const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Handle generic login (placeholder)
-    const handleAuth = (e: React.FormEvent) => {
+    useEffect(() => {
+        initializeSession();
+    }, [initializeSession]);
+
+    // Handle Auth
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, integrate Supabase Auth here
-        setUser({
-            id: '1',
-            username: email.split('@')[0] || 'User',
-            email: email,
-            xp: 0,
-            level: 1,
-            rank: 'bronze',
-            streakCurrent: 0,
-            streakBest: 0,
-            createdAt: new Date().toISOString()
-        });
-        setShowAuthModal(false);
+        setIsLoading(true);
+
+        try {
+            if (authMode === 'login') {
+                const { error } = await signIn(email, password);
+                if (!error) {
+                    setShowAuthModal(false);
+                    // Reset form
+                    setEmail('');
+                    setPassword('');
+                }
+            } else {
+                const { error } = await signUp(email, password, username || email.split('@')[0]);
+                if (!error) {
+                    setShowAuthModal(false);
+                    // Reset form
+                    setEmail('');
+                    setPassword('');
+                    setUsername('');
+                }
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -53,7 +70,7 @@ export const MainLayout: React.FC = () => {
                         type="email"
                         placeholder="coder@example.com"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                         required
                     />
                     <Input
@@ -61,11 +78,20 @@ export const MainLayout: React.FC = () => {
                         type="password"
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                         required
                     />
-                    <Button type="submit" fullWidth>
-                        {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                    {authMode === 'signup' && (
+                        <Input
+                            label="Username"
+                            placeholder="Type your username"
+                            value={username}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+                            required
+                        />
+                    )}
+                    <Button type="submit" fullWidth disabled={isLoading}>
+                        {isLoading ? 'Processing...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
                     </Button>
 
                     <div className="text-center text-sm text-slate-500 mt-4">
