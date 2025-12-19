@@ -12,60 +12,84 @@ export const lessons: Lesson[] = [
         language: 'python',
         sections: [
             {
-                id: 'intro',
+                id: 'welcome',
                 type: 'text',
                 title: 'Welcome to Programming!',
                 content: `Selamat datang di dunia programming! 
 
 Di pelajaran pertama ini, kamu akan menulis program pertamamu. Jangan khawatir, kita akan mulai dari yang paling dasar.
 
-**Apa itu Programming?**
-Programming adalah cara kita "berbicara" dengan komputer. Kita menulis instruksi dalam bahasa yang komputer pahami, dan komputer akan menjalankan instruksi tersebut.
+Perjalananmu menjadi seorang Software Engineer dimulai dari sini.`
+            },
+            {
+                id: 'what-is-programming',
+                type: 'text',
+                title: 'Apa itu Programming?',
+                content: `Sebelum kita mulai coding, mari kita pahami konsep dasarnya.
 
-**Mengapa Python?**
-Python adalah bahasa yang sangat ramah untuk pemula karena:
-- Sintaksnya sederhana dan mudah dibaca
+Programming sebenarnya hanyalah cara kita **"berbicara"** dengan komputer.
+
+Sama seperti manusia punya bahasa (Indonesia, Inggris), komputer juga punya bahasa. Kita menulis instruksi dalam bahasa yang komputer pahami, dan komputer akan menjalankan instruksi tersebut dengan patuh.`
+            },
+            {
+                id: 'why-python',
+                type: 'text',
+                title: 'Mengapa Python?',
+                content: `Di kursus ini, kita menggunakan bahasa **Python**.
+                
+Python adalah bahasa yang sangat populer dan ramah untuk pemula karena:
+- Sintaksnya sederhana (mirip bahasa Inggris)
 - Tidak perlu setup yang rumit
-- Banyak digunakan di dunia nyata (AI, Data Science, Web)`
+- Banyak digunakan di perusahaan besar (Google, NASA, Netflix)`
             },
             {
                 id: 'concept',
                 type: 'text',
-                title: 'Mengenal print()',
-                content: `**Fungsi print()** adalah cara Python menampilkan teks ke layar.
+                title: 'Konsep: print()',
+                content: `Setiap perjalanan dimulai dengan satu langkah. Di programming, langkah pertama biasanya adalah menampilkan teks ke layar.
+                
+Di Python, kita menggunakan fungsi bernama \`print()\`.
 
-Bayangkan kamu ingin komputer mengatakan sesuatu. Kamu perlu "mencetak" (print) kata-kata tersebut ke layar.
+**Bayangkan ini:**
+Kamu menyuruh robot untuk "katakan sesuatu".
+Di Python, perintahnya adalah: \`print("sesuatu")\``
+            },
+            {
+                id: 'anatomy',
+                type: 'text',
+                title: 'Bedah Kode',
+                content: `Mari kita lihat anatomi dari perintah \`print\`:
 
-**Anatomi print():**
 \`\`\`
 print("teks yang ingin ditampilkan")
 \`\`\`
 
-Perhatikan:
-1. \`print\` - nama fungsi (perintah)
-2. \`(\` dan \`)\` - kurung pembuka dan penutup
-3. \`"\` dan \`"\` - tanda kutip mengapit teks
-4. Teks di dalam kutip akan ditampilkan`
+**Aturan Main:**
+1. \`print\` adalah kata perintahnya.
+2. Tanda kurung \`(...)\` adalah tempat kita menaruh "isi pesan".
+3. Tanda kutip \`"..."\` memberi tahu komputer bahwa ini adalah Teks, bukan perintah.
+
+Jika kamu lupa tanda kutip, komputer akan bingung!`
             },
             {
-                id: 'example1',
+                id: 'examples',
                 type: 'text',
-                title: 'Contoh-Contoh',
-                content: `Lihat beberapa contoh penggunaan print():
+                title: 'Contoh Nyata',
+                content: `Berikut adalah beberapa contoh penggunaan yang benar:
 
-**Contoh 1:** Menampilkan sapaan
+**Menyapa Dunia:**
 \`\`\`python
-print("Halo!")
+print("Halo, Dunia!")
 \`\`\`
-Output: \`Halo!\`
+Output: \`Halo, Dunia!\`
 
-**Contoh 2:** Menampilkan kalimat
+**Menyatakan Fakta:**
 \`\`\`python
-print("Saya sedang belajar Python")
+print("Python itu seru")
 \`\`\`
-Output: \`Saya sedang belajar Python\`
+Output: \`Python itu seru\`
 
-**Contoh 3:** Menampilkan teks sederhana
+**Suara Kucing:**
 \`\`\`python
 print("Meow!")
 \`\`\`
@@ -74,29 +98,35 @@ Output: \`Meow!\``
             {
                 id: 'guided-practice',
                 type: 'code',
-                title: 'Latihan Terbimbing',
-                content: `Sekarang giliranmu! Tulis kode untuk menampilkan "Hello, World!" ke layar.
+                title: 'Giliranmu!',
+                content: `Sekarang saatnya kamu mencoba sendiri.
+                
+Tugas pertamamu: Tulis kode untuk menampilkan **"Hello, World!"** ke layar.
 
-**Tips:**
-- Pastikan menggunakan tanda kutip ganda (" ")
-- Perhatikan huruf besar/kecil di "Hello, World!"
-- Jangan lupa tanda seru di akhir
+**Checklist:**
+- [ ] Ketik \`print\`
+- [ ] Buka kurung \`(\`
+- [ ] Buka kutip \`"\`
+- [ ] Tulis **Hello, World!**
+- [ ] Tutup kutip \`"\`
+- [ ] Tutup kurung \`)\`
 
-Kode sudah disiapkan, coba klik "Run Code" untuk melihat hasilnya!`,
+Kode sudah disiapkan, coba klik **Run Code** untuk melihat hasilnya!`,
                 codeTemplate: 'print("Hello, World!")',
                 expectedOutput: 'Hello, World!',
-                hints: ['Gunakan print() dengan teks di dalam kutip', 'Pastikan teksnya persis: Hello, World!']
+                hints: ['Pastikan menggunakan tanda kutip ganda (" ")', 'Perhatikan huruf besar/kecil']
             },
             {
                 id: 'challenge',
                 type: 'challenge',
-                title: 'Tantangan Mini',
-                content: `Sekarang coba modifikasi kode di atas untuk menampilkan namamu sendiri!
+                title: 'Tantangan Terakhir',
+                content: `Luar biasa! Kamu sudah menjalankan program pertamamu.
 
-Contoh: \`print("Halo, namaku Budi!")\`
+Tantangan terakhir sebelum lanjut ke bab berikutnya:
+**Ubah kodenya untuk menyapa diri kamu sendiri!**
 
-Setelah berhasil, kamu sudah resmi menjadi programmer!`,
-                hints: ['Ganti teks di dalam kutip dengan sapaan yang menyertakan namamu']
+Contoh: \`print("Halo, Budi!")\``,
+                hints: ['Ganti teks di dalam tanda kutip dengan namamu']
             }
         ],
         xpReward: 50,
