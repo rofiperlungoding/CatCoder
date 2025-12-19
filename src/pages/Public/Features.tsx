@@ -19,43 +19,43 @@ export const FeaturesPage: React.FC = () => {
             icon: <TerminalSquare size={32} />,
             title: "Interactive Code Editor",
             description: "Write, run, and debug code directly in your browser with our powerful Monaco-based editor. Supports Python, JavaScript, and C++.",
-            color: "text-blue-500",
-            bg: "bg-blue-50"
+            color: "text-blue-400",
+            bg: "bg-blue-500/10"
         },
         {
             icon: <Activity size={32} />,
             title: "Instant Feedback",
             description: "Get real-time feedback on your code. Our automated testing engine checks your solutions against multiple test cases in milliseconds.",
-            color: "text-amber-500",
-            bg: "bg-amber-50"
+            color: "text-amber-400",
+            bg: "bg-amber-500/10"
         },
         {
             icon: <Crown size={32} />,
             title: "Gamified Learning",
             description: "Earn XP, maintain streaks, and climb the leaderboards. Unlock badges and achievements as you master new skills.",
-            color: "text-lime-600",
-            bg: "bg-lime-100"
+            color: "text-lime-400",
+            bg: "bg-lime-500/10"
         },
         {
             icon: <MessageSquareCode size={32} />,
             title: "Community & Peer Review",
             description: "Connect with other learners, discuss solutions, and review code. Learning is better when we do it together.",
-            color: "text-purple-500",
-            bg: "bg-purple-50"
+            color: "text-purple-400",
+            bg: "bg-purple-500/10"
         },
         {
             icon: <BrainCircuit size={32} />,
             title: "AI-Powered Hints",
             description: "Stuck on a problem? Our intelligent hints system guides you to the solution without giving it away instantly.",
-            color: "text-rose-500",
-            bg: "bg-rose-50"
+            color: "text-rose-400",
+            bg: "bg-rose-500/10"
         },
         {
             icon: <Briefcase size={32} />,
             title: "Real-world Scenarios",
             description: "Practice with challenges inspired by real-world interview questions and industry use cases.",
-            color: "text-teal-500",
-            bg: "bg-teal-50"
+            color: "text-teal-400",
+            bg: "bg-teal-500/10"
         }
     ];
 
@@ -63,22 +63,22 @@ export const FeaturesPage: React.FC = () => {
         <div className="pt-32 pb-20 space-y-24">
             {/* Hero Section */}
             <section className="px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lime-100 text-lime-800 text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lime-500/10 text-lime-400 border border-lime-500/20 text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <Zap size={16} fill="currentColor" />
                     <span>Supercharge your coding skills</span>
                 </div>
 
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-primary mb-8 max-w-4xl leading-tight">
-                    Everything you need to become a <span className="text-lime-500">Master Developer</span>.
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-8 max-w-4xl leading-tight">
+                    Everything you need to become a <span className="text-lime-400">Master Developer</span>.
                 </h1>
 
-                <p className="text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
+                <p className="text-xl text-gray-400 max-w-2xl mb-10 leading-relaxed">
                     CatCoder provides a comprehensive ecosystem for learning, practicing, and competing.
                     From hello world to system design, we've got you covered.
                 </p>
 
                 <div className="flex gap-4">
-                    <Button size="lg" className="rounded-full px-8 h-14 text-lg shadow-xl shadow-lime-500/20" onClick={() => navigate('/learn')}>
+                    <Button size="lg" className="rounded-full px-8 h-14 text-lg shadow-xl shadow-lime-500/20 bg-lime-400 text-black hover:bg-lime-300" onClick={() => navigate('/learn')}>
                         Start for Free <ArrowRight className="ml-2" />
                     </Button>
                 </div>
@@ -90,13 +90,13 @@ export const FeaturesPage: React.FC = () => {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm transition-all duration-300 group"
+                            className="bg-[#0a0a0a] p-8 rounded-[2.5rem] border border-white/5 shadow-sm transition-all duration-300 group hover:border-white/20"
                         >
-                            <div className={`w-16 h-16 ${feature.bg} ${feature.color} rounded-2xl flex items-center justify-center mb-6 text-current transition-transform duration-300`}>
+                            <div className={`w-16 h-16 ${feature.bg} ${feature.color} rounded-2xl flex items-center justify-center mb-6 text-current transition-transform duration-300 border border-white/5`}>
                                 {feature.icon}
                             </div>
-                            <h3 className="text-2xl font-bold text-primary mb-4">{feature.title}</h3>
-                            <p className="text-muted-foreground leading-relaxed">
+                            <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
+                            <p className="text-gray-400 leading-relaxed">
                                 {feature.description}
                             </p>
                         </div>
@@ -106,15 +106,15 @@ export const FeaturesPage: React.FC = () => {
 
             {/* Bento Highlight */}
             <section className="px-6 md:px-12 max-w-7xl mx-auto">
-                <div className="bg-black text-white rounded-[3rem] p-12 md:p-24 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-lime-500/20 rounded-full blur-[120px] -mr-32 -mt-32 pointer-events-none"></div>
+                <div className="bg-[#0a0a0a] text-white rounded-[3rem] p-12 md:p-24 relative overflow-hidden border border-white/10">
+                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-[120px] -mr-32 -mt-32 pointer-events-none"></div>
 
                     <div className="relative z-10 flex flex-col md:flex-row items-center gap-16">
                         <div className="flex-1 space-y-8">
                             <h2 className="text-4xl md:text-5xl font-bold leading-tight text-white">
                                 Designed for <span className="text-lime-400">Efficiency</span> and <span className="text-lime-400">Focus</span>.
                             </h2>
-                            <p className="text-gray-300 text-lg leading-relaxed max-w-xl">
+                            <p className="text-gray-400 text-lg leading-relaxed max-w-xl">
                                 Our platform is built with a minimalist aesthetic to reduce distractions.
                                 The clean interface puts your code front and center, helping you enter the flow state faster and stay there longer.
                             </p>
@@ -139,12 +139,12 @@ export const FeaturesPage: React.FC = () => {
                             {/* Removed rotated background blob for cleaner look */}
                             <div className="absolute inset-0 bg-lime-500/10 blur-3xl rounded-full opacity-50"></div>
                             {/* Formal, non-rotated code box */}
-                            <div className="bg-[#1E1E1E] border border-white/10 rounded-[1.5rem] p-8 shadow-2xl relative">
+                            <div className="bg-[#151515] border border-white/10 rounded-[1.5rem] p-8 shadow-2xl relative">
 
                                 <div className="flex gap-2 mb-4">
-                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                                    <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
                                 </div>
                                 <div className="space-y-3 font-mono text-sm">
                                     <div className="flex">

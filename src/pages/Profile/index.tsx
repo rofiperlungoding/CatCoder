@@ -1,61 +1,97 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Flame,
     Code2,
     BookOpen,
     MapPin,
     Settings,
-    Edit2
+    Edit2,
+    Check
 } from 'lucide-react';
 import { Avatar, ProgressBar, Button } from '../../components/ui';
-import { useUserStore, useProgressStore } from '../../stores';
+import { EditProfileModal } from '../../components/profile/EditProfileModal';
+import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import { calculateLevelProgress } from '../../lib/utils';
 
 export const ProfilePage: React.FC = () => {
     const { user } = useUserStore();
     const { completedLessons, completedProblems } = useProgressStore();
+    const { addToast } = useUIStore();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     if (!user) return null;
 
     const levelProgress = calculateLevelProgress(user.xp);
 
+    const handleShare = () => {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            setCopied(true);
+            addToast('success', 'Profile link copied to clipboard');
+            setTimeout(() => setCopied(false), 2000);
+        });
+    };
+
     return (
         <div className="space-y-8">
-            {/* Cover & Profile Header - Bento Style */}
-            <div className="bg-white rounded-[2.5rem] p-0 overflow-hidden shadow-sm border border-gray-100">
-                <div className="h-48 bg-primary relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none"></div>
-                    <div className="absolute inset-0 bg-grid-white/[0.05] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]"></div>
+            <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
 
-                    <Button variant="ghost" className="absolute top-6 right-6 text-white hover:bg-white/10 rounded-full p-2 h-auto">
-                        <Settings size={20} />
+            {/* Cover & Profile Header - Bento Style */}
+            <div className="bg-white dark:bg-card rounded-[2.5rem] p-0 overflow-hidden shadow-sm border border-gray-100 dark:border-border">
+                {/* Dark Minimalist Banner */}
+                <div className="h-64 bg-zinc-900 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-lime-500/10 rounded-full blur-[120px] -mr-32 -mt-32 pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]"></div>
+
+                    <Button variant="ghost" className="absolute top-8 right-8 text-white/60 hover:text-white hover:bg-white/10 rounded-full p-2 h-auto transition-colors">
+                        <Settings size={22} />
                     </Button>
                 </div>
+
                 <div className="px-10 pb-10 relative">
-                    <div className="flex flex-col md:flex-row items-end gap-8 -mt-16">
-                        <div className="p-1.5 bg-white rounded-[2rem] shadow-xl shadow-black/5">
+                    <div className="flex flex-col md:flex-row items-end gap-6 -mt-20">
+                        {/* Avatar Container */}
+                        <div className="p-2 bg-white dark:bg-card rounded-[2.5rem] shadow-xl shadow-black/5">
                             <Avatar
                                 src={user.avatarUrl}
                                 fallback={user.username[0]}
                                 size="xl"
-                                className="w-32 h-32 rounded-[1.8rem] bg-gray-100/50"
+                                className="w-36 h-36 !rounded-[2rem] bg-gray-50 dark:bg-muted text-3xl font-bold text-slate-700 dark:text-slate-300"
                             />
                         </div>
-                        <div className="flex-1 mb-2">
-                            <h1 className="text-3xl font-bold text-primary mb-1">{user.username}</h1>
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
-                                <span className="flex items-center gap-1.5"><MapPin size={16} /> Global</span>
-                                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                <span>Joined Dec 2024</span>
-                                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-xs font-bold text-primary border border-gray-200 uppercase tracking-wide">Pro Member</span>
+
+                        {/* User Info */}
+                        <div className="flex-1 mb-3">
+                            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">{user.username}</h1>
+                            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-muted-foreground">
+                                <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                                    <MapPin size={16} /> Global
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                                <span className="text-gray-500 dark:text-gray-400">Joined Dec 2024</span>
+                                <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-muted/50 text-xs font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-border uppercase tracking-wide">
+                                    Pro Member
+                                </span>
                             </div>
                         </div>
-                        <div className="flex gap-3 w-full md:w-auto mt-4 md:mt-0">
-                            <Button variant="outline" size="sm" className="rounded-full border-gray-200 hover:bg-gray-50">
-                                Share Profile
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-3 w-full md:w-auto mt-6 md:mt-0">
+                            <Button
+                                variant="secondary"
+                                onClick={handleShare}
+                                className="px-6 py-2.5 rounded-full border-gray-200 dark:border-border bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-muted text-gray-700 dark:text-white font-bold h-auto shadow-sm flex items-center gap-2"
+                            >
+                                {copied ? <Check size={16} className="text-lime-500" /> : null}
+                                {copied ? 'Copied' : 'Share Profile'}
                             </Button>
-                            <Button size="sm" className="rounded-full flex gap-2">
-                                <Edit2 size={14} /> Edit Profile
+                            <Button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="px-6 py-2.5 rounded-full bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-gray-200 text-white dark:text-gray-900 font-bold h-auto shadow-lg shadow-black/20 dark:shadow-white/5 flex items-center gap-2"
+                            >
+                                <Edit2 size={16} />
+                                Edit Profile
                             </Button>
                         </div>
                     </div>
@@ -64,54 +100,54 @@ export const ProfilePage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Left Col: Stats */}
-                <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 h-full flex flex-col gap-8">
+                <div className="bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border h-full flex flex-col gap-8">
                     <div>
                         <div className="flex justify-between items-end mb-3">
-                            <span className="text-lg font-bold text-primary">Level {user.level}</span>
-                            <span className="text-xs font-bold text-lime-600 bg-lime-50 px-2 py-1 rounded-full">{user.xp} XP / {levelProgress.nextLevelXp} XP</span>
+                            <span className="text-lg font-bold text-primary dark:text-white">Level {user.level}</span>
+                            <span className="text-xs font-bold text-lime-600 bg-lime-50 dark:bg-lime-900/30 dark:text-lime-400 px-2 py-1 rounded-full">{levelProgress.current} XP / {levelProgress.required} XP</span>
                         </div>
                         <ProgressBar value={levelProgress.percentage} max={100} size="md" className="h-3" />
                         <p className="text-xs text-muted-foreground mt-3 font-medium">
-                            {levelProgress.xpToNextLevel} XP needed for Level {user.level + 1}
+                            {levelProgress.required - levelProgress.current} XP needed for Level {user.level + 1}
                         </p>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="p-5 bg-gray-50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 transition-colors">
+                        <div className="p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white rounded-xl shadow-sm text-primary group-hover:scale-110 transition-transform"><Code2 size={20} /></div>
+                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-primary dark:text-white group-hover:scale-110 transition-transform"><Code2 size={20} /></div>
                                 <span className="text-sm font-bold text-muted-foreground">Problems</span>
                             </div>
-                            <span className="font-bold text-xl text-primary">{completedProblems.size}</span>
+                            <span className="font-bold text-xl text-primary dark:text-white">{completedProblems.size}</span>
                         </div>
-                        <div className="p-5 bg-gray-50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 transition-colors">
+                        <div className="p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white rounded-xl shadow-sm text-lime-600 group-hover:scale-110 transition-transform"><BookOpen size={20} /></div>
+                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-lime-600 dark:text-lime-400 group-hover:scale-110 transition-transform"><BookOpen size={20} /></div>
                                 <span className="text-sm font-bold text-muted-foreground">Lessons</span>
                             </div>
-                            <span className="font-bold text-xl text-primary">{completedLessons.size}</span>
+                            <span className="font-bold text-xl text-primary dark:text-white">{completedLessons.size}</span>
                         </div>
-                        <div className="p-5 bg-gray-50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 transition-colors">
+                        <div className="p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white rounded-xl shadow-sm text-orange-500 group-hover:scale-110 transition-transform"><Flame size={20} /></div>
+                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-orange-500 dark:text-orange-400 group-hover:scale-110 transition-transform"><Flame size={20} /></div>
                                 <span className="text-sm font-bold text-muted-foreground">Streak</span>
                             </div>
-                            <span className="font-bold text-xl text-primary">{user.streakCurrent} days</span>
+                            <span className="font-bold text-xl text-primary dark:text-white">{user.streakCurrent} days</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Col: Activity Graph */}
-                <div className="md:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100">
+                <div className="md:col-span-2 bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-bold text-lg text-primary">Contribution Graph</h3>
+                        <h3 className="font-bold text-lg text-primary dark:text-white">Contribution Graph</h3>
                         <div className="text-sm text-muted-foreground font-medium">Last 12 Months</div>
                     </div>
 
                     <div className="grid grid-cols-12 gap-2 h-48 content-center">
                         {Array.from({ length: 84 }).map((_, i) => {
                             const active = Math.random();
-                            let colorClass = 'bg-gray-100';
+                            let colorClass = 'bg-gray-100 dark:bg-muted';
                             if (active > 0.8) colorClass = 'bg-lime-500';
                             else if (active > 0.6) colorClass = 'bg-lime-300';
                             else if (active > 0.4) colorClass = 'bg-lime-200';
@@ -129,7 +165,7 @@ export const ProfilePage: React.FC = () => {
                     <div className="mt-8 flex items-center justify-end text-xs font-bold text-muted-foreground gap-3">
                         <span>Less</span>
                         <div className="flex gap-1.5">
-                            <div className="w-4 h-4 bg-gray-100 rounded-md"></div>
+                            <div className="w-4 h-4 bg-gray-100 dark:bg-muted rounded-md"></div>
                             <div className="w-4 h-4 bg-lime-200 rounded-md"></div>
                             <div className="w-4 h-4 bg-lime-300 rounded-md"></div>
                             <div className="w-4 h-4 bg-lime-500 rounded-md"></div>

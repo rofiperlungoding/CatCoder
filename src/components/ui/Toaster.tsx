@@ -14,11 +14,11 @@ const ToastItem: React.FC<{
     // Auto-dismiss handled in store, but we can double check or animate here
 
     const styles = {
-        success: 'bg-white border-gray-200 text-primary', // Minimalist success
-        error: 'bg-red-50 border-red-100 text-red-600',
-        info: 'bg-white border-gray-200 text-muted-foreground',
-        warning: 'bg-amber-50 border-amber-100 text-amber-600',
-        xp: 'bg-white border-lime-200 text-primary shadow-lime-100' // Custom XP style
+        success: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-primary dark:text-white',
+        error: 'bg-red-50 dark:bg-red-900/30 border-red-100 dark:border-red-900 text-red-600 dark:text-red-400',
+        info: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-muted-foreground',
+        warning: 'bg-amber-50 dark:bg-amber-900/30 border-amber-100 dark:border-amber-900 text-amber-600 dark:text-amber-400',
+        xp: 'bg-white dark:bg-gray-800 border-lime-200 dark:border-lime-900 text-primary dark:text-white shadow-lime-100 dark:shadow-lime-900/20'
     };
 
     const icons = {
@@ -31,7 +31,7 @@ const ToastItem: React.FC<{
 
     return (
         <div className={`
-            pointer-events-auto flex items-center gap-3 w-full max-w-sm px-6 py-4 rounded-full border shadow-xl shadow-black/5
+            pointer-events-auto flex items-center gap-3 w-full max-w-sm px-6 py-4 rounded-full border shadow-xl shadow-black/5 dark:shadow-black/20
             transform transition-all duration-300 animate-in slide-in-from-bottom-5 fade-in
             ${styles[type]}
         `}>
@@ -39,7 +39,7 @@ const ToastItem: React.FC<{
             <p className="flex-1 text-sm font-medium">{message}</p>
             <button
                 onClick={() => onClose(id)}
-                className="p-1 hover:bg-black/5 rounded-full transition-colors"
+                className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
             >
                 <X size={14} className="opacity-50" />
             </button>

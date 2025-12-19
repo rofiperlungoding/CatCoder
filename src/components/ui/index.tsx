@@ -10,3 +10,4 @@ export * from './Skeleton';
 export * from './Modal';
 export * from './Toaster';
 export * from './LevelUpModal';
+export * from './ThemeToggle';

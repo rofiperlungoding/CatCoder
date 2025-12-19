@@ -28,19 +28,19 @@ export const Modal: React.FC<ModalProps> = ({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 dark:bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
             <div className={`
-                bg-background rounded-[2rem] shadow-2xl w-full relative overflow-hidden animate-in zoom-in-95 duration-200 border border-white/50
+                bg-background dark:bg-gray-900 rounded-[2rem] shadow-2xl dark:shadow-black/50 w-full relative overflow-hidden animate-in zoom-in-95 duration-200 border border-white/50 dark:border-gray-800
                 ${sizes[size]}
             `}>
-                <div className="flex items-center justify-between p-8 border-b border-gray-100">
+                <div className="flex items-center justify-between p-8 border-b border-gray-100 dark:border-gray-800">
                     <div>
-                        <h2 className="text-xl font-bold text-primary">{title}</h2>
+                        <h2 className="text-xl font-bold text-primary dark:text-white">{title}</h2>
                         {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors text-muted-foreground hover:text-primary"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-muted-foreground hover:text-primary dark:hover:text-white"
                     >
                         <X size={20} />
                     </button>

@@ -1,5 +1,8 @@
+const colors = require('tailwindcss/colors');
+
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: 'class',
     content: [
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
@@ -10,21 +13,22 @@ export default {
                 sans: ['"Plus Jakarta Sans"', 'sans-serif'],
             },
             colors: {
-                border: "#E5E5E5", // Gray 200
-                input: "#E5E5E5",
+                gray: colors.neutral, // Force consistent neutral gray (no blue tint)
+                border: "var(--border-color)",
+                input: "var(--border-color)",
                 ring: "#84CC16", // Lime
-                background: "#F4F4F0", // AeroSense Cream
-                foreground: "#1A1A1A", // AeroSense Dark Charcoal
+                background: "var(--bg-color)",
+                foreground: "var(--fg-color)",
                 primary: {
-                    DEFAULT: "#1A1A1A", // Black/Charcoal for primary actions
-                    foreground: "#FFFFFF",
+                    DEFAULT: "var(--fg-color)", // Auto-flips: Black (Light) <-> White (Dark)
+                    foreground: "var(--bg-color)", // Auto-flips: Cream (Light) <-> Black (Dark)
                 },
                 secondary: {
-                    DEFAULT: "#FFFFFF", // White for secondary actions/cards
-                    foreground: "#1A1A1A",
+                    DEFAULT: "var(--secondary-bg)",
+                    foreground: "var(--secondary-fg)",
                 },
                 accent: {
-                    DEFAULT: "#84CC16", // Vibrant Lime
+                    DEFAULT: "#84CC16", // Vibrant Lime - Keep consistent
                     foreground: "#FFFFFF",
                 },
                 destructive: {
@@ -32,16 +36,16 @@ export default {
                     foreground: "#FFFFFF",
                 },
                 muted: {
-                    DEFAULT: "#F5F5F5", // Light Gray for varying backgrounds
-                    foreground: "#737373",
+                    DEFAULT: "var(--muted-bg)",
+                    foreground: "var(--muted-fg)",
                 },
                 popover: {
-                    DEFAULT: "#FFFFFF",
-                    foreground: "#1A1A1A",
+                    DEFAULT: "var(--card-bg)",
+                    foreground: "var(--fg-color)",
                 },
                 card: {
-                    DEFAULT: "#FFFFFF",
-                    foreground: "#1A1A1A",
+                    DEFAULT: "var(--card-bg)",
+                    foreground: "var(--fg-color)",
                 },
             },
             borderRadius: {

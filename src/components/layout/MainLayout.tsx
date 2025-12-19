@@ -47,12 +47,12 @@ export const MainLayout: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-white">
+        <div className="min-h-screen bg-[#050505] text-[#FAFAFA] font-sans selection:bg-lime-500/30 selection:text-white">
             {/* Sidebar (Floating Rail) */}
             <Sidebar />
 
             {/* Main Content Area */}
-            <main className="lg:pl-80 min-h-screen p-4 lg:p-8 transition-all duration-300">
+            <main className="lg:pl-[22rem] min-h-screen p-4 lg:p-8 transition-all duration-300">
                 <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <Outlet />
                 </div>
@@ -72,6 +72,7 @@ export const MainLayout: React.FC = () => {
                         value={email}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                         required
+                        className="bg-[#1a1a1a] border-[#262626] text-white focus:border-white/20"
                     />
                     <Input
                         label="Password"
@@ -80,6 +81,7 @@ export const MainLayout: React.FC = () => {
                         value={password}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                         required
+                        className="bg-[#1a1a1a] border-[#262626] text-white focus:border-white/20"
                     />
                     {authMode === 'signup' && (
                         <Input
@@ -88,17 +90,18 @@ export const MainLayout: React.FC = () => {
                             value={username}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
                             required
+                            className="bg-[#1a1a1a] border-[#262626] text-white focus:border-white/20"
                         />
                     )}
-                    <Button type="submit" fullWidth disabled={isLoading}>
+                    <Button type="submit" fullWidth disabled={isLoading} className="bg-white text-black hover:bg-gray-200">
                         {isLoading ? 'Processing...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
                     </Button>
 
-                    <div className="text-center text-sm text-slate-500 mt-4">
+                    <div className="text-center text-sm text-gray-500 mt-4">
                         {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
                         <button
                             type="button"
-                            className="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline"
+                            className="text-white hover:text-gray-300 font-semibold hover:underline"
                             onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
                         >
                             {authMode === 'login' ? 'Sign Up' : 'Log In'}

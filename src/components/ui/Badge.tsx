@@ -14,12 +14,12 @@ export const Badge: React.FC<BadgeProps> = ({
     className = ''
 }) => {
     const variants = {
-        primary: "bg-primary/5 text-primary border-primary/20",
-        secondary: "bg-secondary text-secondary-foreground border-transparent",
-        success: "bg-accent/10 text-accent-foreground border-accent/20", // Lime
-        warning: "bg-amber-50 text-amber-700 border-amber-100",
-        danger: "bg-red-50 text-red-700 border-red-100",
-        outline: "bg-transparent border-gray-200 text-muted-foreground"
+        primary: "bg-primary/5 dark:bg-primary/20 text-primary dark:text-white border-primary/20 dark:border-primary/40",
+        secondary: "bg-secondary dark:bg-gray-700 text-secondary-foreground dark:text-white border-transparent",
+        success: "bg-accent/10 dark:bg-accent/20 text-accent-foreground border-accent/20 dark:border-accent/40",
+        warning: "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-800",
+        danger: "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800",
+        outline: "bg-transparent border-gray-200 dark:border-gray-700 text-muted-foreground"
     };
 
     const sizes = {

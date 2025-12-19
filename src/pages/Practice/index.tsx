@@ -14,100 +14,7 @@ import { Input, Select, Badge, Button } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
 import { useProgressStore, useUserStore, useUIStore } from '../../stores';
 import type { Problem, Difficulty } from '../../types';
-
-// Sample problems
-const sampleProblems: Problem[] = [
-    {
-        id: 'two-sum',
-        title: 'Two Sum',
-        difficulty: 'easy',
-        tier: 2,
-        languages: ['python', 'javascript', 'cpp'],
-        description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
-        examples: [{ input: 'nums = [2,7,11,15], target = 9', output: '[0,1]' }],
-        hints: ['Try using a hash map'],
-        solution: { python: '', javascript: '', cpp: '' },
-        explanation: '',
-        testCases: [],
-        xpReward: 50,
-        tags: ['Array', 'Hash Table']
-    },
-    {
-        id: 'palindrome-check',
-        title: 'Palindrome Check',
-        difficulty: 'easy',
-        tier: 1,
-        languages: ['python', 'javascript', 'cpp'],
-        description: 'Given a string s, return true if it is a palindrome, false otherwise.',
-        examples: [{ input: 's = "racecar"', output: 'true' }],
-        hints: ['Compare characters from both ends'],
-        solution: { python: '', javascript: '', cpp: '' },
-        explanation: '',
-        testCases: [],
-        xpReward: 50,
-        tags: ['String', 'Two Pointers']
-    },
-    {
-        id: 'reverse-string',
-        title: 'Reverse String',
-        difficulty: 'easy',
-        tier: 1,
-        languages: ['python', 'javascript', 'cpp'],
-        description: 'Write a function that reverses a string.',
-        examples: [{ input: 's = ["h","e","l","l","o"]', output: '["o","l","l","e","h"]' }],
-        hints: ['Use two pointers'],
-        solution: { python: '', javascript: '', cpp: '' },
-        explanation: '',
-        testCases: [],
-        xpReward: 50,
-        tags: ['String', 'Two Pointers']
-    },
-    {
-        id: 'fizzbuzz',
-        title: 'FizzBuzz',
-        difficulty: 'easy',
-        tier: 1,
-        languages: ['python', 'javascript', 'cpp'],
-        description: 'Given an integer n, return a string array answer.',
-        examples: [{ input: 'n = 15', output: '["1","2","Fizz","4","Buzz",...]' }],
-        hints: ['Use modulo operator'],
-        solution: { python: '', javascript: '', cpp: '' },
-        explanation: '',
-        testCases: [],
-        xpReward: 50,
-        tags: ['Math', 'Simulation']
-    },
-    {
-        id: 'binary-search',
-        title: 'Binary Search',
-        difficulty: 'easy',
-        tier: 2,
-        languages: ['python', 'javascript', 'cpp'],
-        description: 'Given an array of integers nums which is sorted in ascending order, search target.',
-        examples: [{ input: 'nums = [-1,0,3,5,9,12], target = 9', output: '4' }],
-        hints: ['Divide and conquer'],
-        solution: { python: '', javascript: '', cpp: '' },
-        explanation: '',
-        testCases: [],
-        xpReward: 75,
-        tags: ['Array', 'Binary Search']
-    },
-    {
-        id: 'valid-parentheses',
-        title: 'Valid Parentheses',
-        difficulty: 'medium',
-        tier: 3,
-        languages: ['python', 'javascript', 'cpp'],
-        description: 'Determine if the input string is valid.',
-        examples: [{ input: 's = "()[]{}"', output: 'true' }],
-        hints: ['Use a stack'],
-        solution: { python: '', javascript: '', cpp: '' },
-        explanation: '',
-        testCases: [],
-        xpReward: 100,
-        tags: ['String', 'Stack']
-    }
-];
+import { problems as problemsData } from '../../data/problems';
 
 export const PracticePage: React.FC = () => {
     const { problemId } = useParams();
@@ -128,7 +35,7 @@ export const PracticePage: React.FC = () => {
 
     useEffect(() => {
         if (problemId) {
-            const problem = sampleProblems.find(p => p.id === problemId);
+            const problem = problemsData.find(p => p.id === problemId);
             if (problem) {
                 setActiveProblem(problem);
             }
@@ -161,7 +68,7 @@ export const PracticePage: React.FC = () => {
         }, 1500);
     };
 
-    const filteredProblems = sampleProblems.filter(problem => {
+    const filteredProblems = problemsData.filter(problem => {
         const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             problem.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
         const matchesDifficulty = difficultyFilter === 'all' || problem.difficulty === difficultyFilter;
@@ -190,7 +97,7 @@ export const PracticePage: React.FC = () => {
                     <Button variant="ghost" className="rounded-full" onClick={() => navigate('/practice')}>
                         <ChevronLeft size={20} /> Back
                     </Button>
-                    <h1 className="text-2xl font-bold text-primary">{activeProblem.title}</h1>
+                    <h1 className="text-2xl font-bold text-primary dark:text-white">{activeProblem.title}</h1>
                     <Badge className={`${getDifficultyColor(activeProblem.difficulty)} rounded-full border bg-opacity-20`}>
                         {activeProblem.difficulty}
                     </Badge>
@@ -198,7 +105,7 @@ export const PracticePage: React.FC = () => {
 
                 <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
                     {/* Problem Description */}
-                    <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 overflow-y-auto">
+                    <div className="bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border overflow-y-auto">
                         <div className="prose max-w-none">
                             <h3 className="text-xl font-bold mb-4">Description</h3>
                             <p className="text-muted-foreground mb-6">{activeProblem.description}</p>
@@ -206,9 +113,9 @@ export const PracticePage: React.FC = () => {
                             <h4 className="text-md font-bold mb-3">Examples</h4>
                             <div className="space-y-4 mb-6">
                                 {activeProblem.examples.map((ex, i) => (
-                                    <div key={i} className="bg-gray-50 p-4 rounded-xl font-mono text-sm border border-gray-100">
-                                        <div className="mb-2"><span className="font-bold text-primary">Input:</span> {ex.input}</div>
-                                        <div><span className="font-bold text-primary">Output:</span> {ex.output}</div>
+                                    <div key={i} className="bg-gray-50 dark:bg-muted/50 p-4 rounded-xl font-mono text-sm border border-gray-100 dark:border-border">
+                                        <div className="mb-2"><span className="font-bold text-primary dark:text-white">Input:</span> {ex.input}</div>
+                                        <div><span className="font-bold text-primary dark:text-white">Output:</span> {ex.output}</div>
                                     </div>
                                 ))}
                             </div>
@@ -216,7 +123,7 @@ export const PracticePage: React.FC = () => {
                             <h4 className="text-md font-bold mb-3">Tags</h4>
                             <div className="flex gap-2">
                                 {activeProblem.tags.map(tag => (
-                                    <span key={tag} className="px-3 py-1 bg-gray-50 text-muted-foreground text-xs font-semibold rounded-full border border-gray-100">
+                                    <span key={tag} className="px-3 py-1 bg-gray-50 dark:bg-muted/50 text-muted-foreground text-xs font-semibold rounded-full border border-gray-100 dark:border-border">
                                         {tag}
                                     </span>
                                 ))}
@@ -260,7 +167,7 @@ export const PracticePage: React.FC = () => {
                     <p className="text-muted-foreground">Sharpen your algorithmic skills with curated problems.</p>
                 </div>
                 <Button className="rounded-full px-6 shadow-lg shadow-black/5" onClick={() => {
-                    const random = sampleProblems[Math.floor(Math.random() * sampleProblems.length)];
+                    const random = problemsData[Math.floor(Math.random() * problemsData.length)];
                     navigate(`/practice/${random.id}`);
                 }}>Random Problem</Button>
             </div>
@@ -268,8 +175,8 @@ export const PracticePage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Left Column: Control Center */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-white rounded-[2.5rem] p-6 shadow-sm sticky top-6 border border-gray-100">
-                        <div className="flex items-center gap-2 mb-6 text-primary font-bold text-lg">
+                    <div className="bg-white dark:bg-card rounded-[2.5rem] p-6 shadow-sm sticky top-6 border border-gray-100 dark:border-border">
+                        <div className="flex items-center gap-2 mb-6 text-primary dark:text-white font-bold text-lg">
                             <Filter size={20} /> Filters
                         </div>
 
@@ -284,8 +191,8 @@ export const PracticePage: React.FC = () => {
                                             className={`
                                                 w-full text-left px-4 py-3 rounded-full text-sm font-semibold transition-all
                                                 ${activeTab === status
-                                                    ? 'bg-primary text-white shadow-md'
-                                                    : 'text-muted-foreground hover:bg-gray-50'
+                                                    ? 'bg-primary dark:bg-white text-white dark:text-black shadow-md'
+                                                    : 'text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted dark:text-gray-400'
                                                 }
                                             `}
                                         >
@@ -304,7 +211,7 @@ export const PracticePage: React.FC = () => {
                                     icon={<Search size={14} />}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="bg-gray-50 border-transparent focus:bg-white"
+                                    className="bg-gray-50 dark:bg-muted border-transparent focus:bg-white dark:focus:bg-card"
                                 />
                             </div>
 
@@ -319,7 +226,7 @@ export const PracticePage: React.FC = () => {
                                         { value: 'medium', label: 'Medium' },
                                         { value: 'hard', label: 'Hard' }
                                     ]}
-                                    className="bg-gray-50 border-transparent focus:bg-white"
+                                    className="bg-gray-50 dark:bg-muted border-transparent focus:bg-white dark:focus:bg-card"
                                 />
                             </div>
 
@@ -336,7 +243,7 @@ export const PracticePage: React.FC = () => {
                                         { value: '4', label: 'Tier 4' },
                                         { value: '5', label: 'Tier 5' }
                                     ]}
-                                    className="bg-gray-50 border-transparent focus:bg-white"
+                                    className="bg-gray-50 dark:bg-muted border-transparent focus:bg-white dark:focus:bg-card"
                                 />
                             </div>
                         </div>
@@ -355,8 +262,8 @@ export const PracticePage: React.FC = () => {
                                     className={`
                                         group relative p-6 rounded-[2.5rem] border border-transparent transition-all duration-300 cursor-pointer flex flex-col justify-between h-full min-h-[220px]
                                         ${completed
-                                            ? 'bg-gray-50 border-gray-100'
-                                            : 'bg-white shadow-sm hover:shadow-xl hover:shadow-black/5 hover:border-lime-200 hover:-translate-y-1'
+                                            ? 'bg-gray-50 dark:bg-muted border-gray-100 dark:border-border'
+                                            : 'bg-white dark:bg-card shadow-sm hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/10 hover:border-lime-200 dark:hover:border-lime-900 hover:-translate-y-1'
                                         }
                                     `}
                                 >
@@ -371,18 +278,18 @@ export const PracticePage: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <h3 className="font-bold text-primary text-xl mb-3 group-hover:text-black transition-colors">
+                                        <h3 className="font-bold text-primary dark:text-white text-xl mb-3 group-hover:text-black dark:group-hover:text-white transition-colors">
                                             {problem.title}
                                         </h3>
                                         <div className="flex flex-wrap gap-2 mb-6">
                                             {problem.tags.map(tag => (
-                                                <span key={tag} className="px-3 py-1 bg-gray-50 text-muted-foreground text-xs font-semibold rounded-full border border-gray-100">
+                                                <span key={tag} className="px-3 py-1 bg-gray-50 dark:bg-muted text-muted-foreground text-xs font-semibold rounded-full border border-gray-100 dark:border-border">
                                                     {tag}
                                                 </span>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="border-t border-gray-100 pt-4 flex items-center justify-between mt-auto">
+                                    <div className="border-t border-gray-100 dark:border-border pt-4 flex items-center justify-between mt-auto">
                                         <span className="text-xs font-semibold text-muted-foreground">Tier {problem.tier}</span>
                                         {completed ? (
                                             <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
@@ -391,7 +298,7 @@ export const PracticePage: React.FC = () => {
                                         ) : (
                                             <div
                                                 onClick={(e) => handleSolveProblem(e, problem)}
-                                                className="flex items-center gap-1 text-xs font-bold text-primary group-hover:text-lime-600 transition-colors"
+                                                className="flex items-center gap-1 text-xs font-bold text-primary dark:text-white group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors"
                                             >
                                                 Solve Challenge <ArrowRight size={14} />
                                             </div>

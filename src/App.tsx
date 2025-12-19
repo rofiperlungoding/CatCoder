@@ -18,6 +18,8 @@ import {
   ContactPage
 } from './pages/Public';
 import { LoginPage } from './pages/Auth/Login';
+import { ForgotPasswordPage } from './pages/Auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/Auth/ResetPasswordPage';
 import { OnboardingPage } from './pages/Onboarding';
 import { useUserStore } from './stores';
 import { Cat } from 'lucide-react';
@@ -83,6 +85,8 @@ function App() {
         </Route>
 
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/onboarding" element={<PublicRoute><OnboardingPage /></PublicRoute>} />
 
         {/* Protected App Routes */}

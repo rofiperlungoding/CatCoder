@@ -10,96 +10,15 @@ import {
     ArrowRight,
     ChevronLeft,
     Play,
-    Terminal
+    Terminal,
+    HelpCircle,
+    Lightbulb
 } from 'lucide-react';
-import { Badge, ProgressBar, Tabs, Button } from '../../components/ui';
+import { Badge, Tabs, Button } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import type { Lesson, Language, Tier } from '../../types';
-
-// Sample lesson data
-const sampleLessons: Lesson[] = [
-    {
-        id: 'py-intro-1',
-        title: 'Hello, World!',
-        description: 'Write your first Python program and learn about print statements.',
-        tier: 1,
-        language: 'python',
-        sections: [],
-        xpReward: 50,
-        estimatedTime: 10
-    },
-    {
-        id: 'py-intro-2',
-        title: 'Variables & Data Types',
-        description: 'Learn how to store and manipulate data using variables.',
-        tier: 1,
-        language: 'python',
-        sections: [],
-        xpReward: 75,
-        estimatedTime: 15
-    },
-    {
-        id: 'py-intro-3',
-        title: 'User Input',
-        description: 'Make your programs interactive by accepting user input.',
-        tier: 1,
-        language: 'python',
-        sections: [],
-        xpReward: 75,
-        estimatedTime: 12
-    },
-    {
-        id: 'py-basics-1',
-        title: 'Conditionals: If/Else',
-        description: 'Make decisions in your code using conditional statements.',
-        tier: 2,
-        language: 'python',
-        sections: [],
-        xpReward: 100,
-        estimatedTime: 20
-    },
-    {
-        id: 'py-basics-2',
-        title: 'Loops: For & While',
-        description: 'Repeat actions efficiently using loops.',
-        tier: 2,
-        language: 'python',
-        sections: [],
-        xpReward: 125,
-        estimatedTime: 25
-    },
-    {
-        id: 'js-intro-1',
-        title: 'Hello, JavaScript!',
-        description: 'Your first step into the world of JavaScript.',
-        tier: 1,
-        language: 'javascript',
-        sections: [],
-        xpReward: 50,
-        estimatedTime: 10
-    },
-    {
-        id: 'js-intro-2',
-        title: 'Variables: let, const, var',
-        description: 'Understanding variable declarations in JavaScript.',
-        tier: 1,
-        language: 'javascript',
-        sections: [],
-        xpReward: 75,
-        estimatedTime: 15
-    },
-    {
-        id: 'cpp-intro-1',
-        title: 'Hello, C++!',
-        description: 'Introduction to C++ programming basics.',
-        tier: 1,
-        language: 'cpp',
-        sections: [],
-        xpReward: 50,
-        estimatedTime: 12
-    }
-];
+import { lessons as lessonsData } from '../../data/lessons';
 
 export const LearnPage: React.FC = () => {
     const { lessonId } = useParams();
@@ -114,51 +33,109 @@ export const LearnPage: React.FC = () => {
 
     // Detail State
     const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+    const [currentStep, setCurrentStep] = useState(0);
 
+    // Editor State
+    const [code, setCode] = useState('');
+    const [output, setOutput] = useState<string | null>(null);
+    const [isRunning, setIsRunning] = useState(false);
+    const [codeValidated, setCodeValidated] = useState(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
+
+    // Load lesson when lessonId changes
     useEffect(() => {
         if (lessonId) {
-            const lesson = sampleLessons.find(l => l.id === lessonId);
+            const lesson = lessonsData.find(l => l.id === lessonId);
             if (lesson) {
                 setActiveLesson(lesson);
+                setCurrentStep(0);
             }
         } else {
             setActiveLesson(null);
         }
     }, [lessonId]);
 
-    // Editor State
-    const [code, setCode] = useState('');
-    const [output, setOutput] = useState<string | null>(null);
-    const [isRunning, setIsRunning] = useState(false);
-
-    // Reset code when lesson changes
+    // Reset code when step changes to a code section
     useEffect(() => {
         if (activeLesson) {
-            const defaultCode = {
-                python: 'print("Hello, World!")',
-                javascript: 'console.log("Hello, World!");',
-                cpp: '#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}'
-            };
-            setCode(defaultCode[activeLesson.language as keyof typeof defaultCode] || '');
-            setOutput(null);
+            const currentSection = activeLesson.sections[currentStep];
+            if (currentSection && currentSection.type === 'code') {
+                const initialCode = currentSection.codeTemplate || getDefaultCode(activeLesson.language);
+                setCode(initialCode);
+                setOutput(null);
+                setCodeValidated(false);
+                setValidationError(null);
+            }
         }
-    }, [activeLesson]);
+    }, [activeLesson, currentStep]);
 
+    // Helper to get default code by language
+    const getDefaultCode = (lang: string) => {
+        const defaults: Record<string, string> = {
+            python: '# Write your code here\n',
+            javascript: '// Write your code here\n',
+            cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    return 0;\n}'
+        };
+        return defaults[lang] || '';
+    };
+
+    // Simulate code execution and validate output
     const handleRunCode = () => {
         setIsRunning(true);
         setOutput(null);
+        setValidationError(null);
 
-        // Simulate execution delay
+        const currentSection = activeLesson?.sections[currentStep];
+        const expectedOutput = currentSection?.expectedOutput;
+
         setTimeout(() => {
             setIsRunning(false);
-            const mockOutputs = {
-                python: 'Hello, World!\n\nProcess finished with exit code 0',
-                javascript: 'Hello, World!',
-                cpp: 'Hello, World!'
-            };
-            setOutput(mockOutputs[activeLesson?.language as keyof typeof mockOutputs] || 'Executed successfully.');
-            addToast('success', 'Code executed successfully');
-        }, 1000);
+            const simulatedOutput = simulateCodeExecution(code, activeLesson?.language || 'python');
+            setOutput(simulatedOutput);
+
+            if (expectedOutput) {
+                const normalizedExpected = expectedOutput.trim().toLowerCase();
+                const normalizedActual = simulatedOutput.trim().toLowerCase();
+
+                if (normalizedActual.includes(normalizedExpected) || normalizedExpected.includes(normalizedActual)) {
+                    setCodeValidated(true);
+                    setValidationError(null);
+                    addToast('success', 'Output matches expected result!');
+                } else {
+                    setCodeValidated(false);
+                    setValidationError(`Expected: "${expectedOutput}" but got different output.`);
+                    addToast('error', 'Output does not match expected result.');
+                }
+            } else {
+                setCodeValidated(true);
+                addToast('success', 'Code executed successfully');
+            }
+        }, 1200);
+    };
+
+    // Simple code execution simulator
+    const simulateCodeExecution = (codeStr: string, lang: string): string => {
+        try {
+            if (lang === 'python') {
+                const printMatch = codeStr.match(/print\(['"](.+?)['"]\)/g);
+                if (printMatch) {
+                    return printMatch.map(p => p.replace(/print\(['"]|['"]\)/g, '')).join('\n');
+                }
+            } else if (lang === 'javascript') {
+                const logMatch = codeStr.match(/console\.log\(['"](.+?)['"]\)/g);
+                if (logMatch) {
+                    return logMatch.map(l => l.replace(/console\.log\(['"]|['"]\)/g, '')).join('\n');
+                }
+            } else if (lang === 'cpp') {
+                const coutMatch = codeStr.match(/cout\s*<<\s*['"](.+?)['"]/g);
+                if (coutMatch) {
+                    return coutMatch.map(c => c.replace(/cout\s*<<\s*['"]/g, '').replace(/['"]$/g, '')).join('\n');
+                }
+            }
+            return 'Executed successfully.';
+        } catch {
+            return 'Error executing code.';
+        }
     };
 
     const handleCompleteLessonDisplay = () => {
@@ -172,7 +149,9 @@ export const LearnPage: React.FC = () => {
         navigate('/learn');
     };
 
-
+    const handleStartLesson = (lesson: Lesson) => {
+        navigate(`/learn/${lesson.id}`);
+    };
 
     const languageTabs = [
         { id: 'python', label: 'Python', icon: <Code size={16} /> },
@@ -180,7 +159,7 @@ export const LearnPage: React.FC = () => {
         { id: 'cpp', label: 'C++', icon: <Code size={16} /> }
     ];
 
-    const filteredLessons = sampleLessons.filter(lesson => {
+    const filteredLessons = lessonsData.filter(lesson => {
         const matchesLanguage = lesson.language === selectedLanguage;
         const matchesSearch = lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             lesson.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -195,108 +174,250 @@ export const LearnPage: React.FC = () => {
         return acc;
     }, {} as Record<number, Lesson[]>);
 
-    const completedCount = sampleLessons.filter(l =>
+    const completedCount = lessonsData.filter(l =>
         l.language === selectedLanguage && isCompleted('lesson', l.id)
     ).length;
-    const totalCount = sampleLessons.filter(l => l.language === selectedLanguage).length;
+    const totalCount = lessonsData.filter(l => l.language === selectedLanguage).length;
 
-    // Render Detail View
+    // ========= RENDER DETAIL VIEW (CAROUSEL) =========
     if (activeLesson) {
-        return (
-            <div className="space-y-6">
-                <Button variant="ghost" className="rounded-full mb-2" onClick={() => navigate('/learn')}>
-                    <ChevronLeft size={20} /> Back to Library
-                </Button>
+        const totalSteps = activeLesson.sections.length;
+        const currentSection = activeLesson.sections[currentStep];
+        const isLastStep = currentStep === totalSteps - 1;
+        const isCodeStep = currentSection.type === 'code';
+        const canProceed = isCodeStep ? codeValidated : true;
 
-                <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8 border-b border-gray-100 pb-8">
-                        <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <Badge variant="secondary" className="bg-gray-100 text-primary border-transparent">
-                                    Tier {activeLesson.tier}
-                                </Badge>
-                                <span className="flex items-center gap-1 text-sm font-semibold text-muted-foreground">
-                                    <Clock size={16} /> {activeLesson.estimatedTime} min read
-                                </span>
+        const handleNext = () => {
+            if (isLastStep) {
+                handleCompleteLessonDisplay();
+            } else if (canProceed) {
+                setCurrentStep(prev => prev + 1);
+                window.scrollTo(0, 0);
+            }
+        };
+
+        const handlePrev = () => {
+            if (currentStep > 0) {
+                setCurrentStep(prev => prev - 1);
+            }
+        };
+
+        return (
+            <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] pb-24">
+                {/* Top Navigation Bar */}
+                <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 mb-10">
+                    <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                        <Button variant="ghost" size="sm" className="rounded-full gap-2 text-muted-foreground hover:text-primary transition-colors hover:bg-transparent" onClick={() => navigate('/learn')}>
+                            <ChevronLeft size={18} /> <span className="font-medium">Library</span>
+                        </Button>
+
+                        {/* Progress */}
+                        <div className="flex-1 max-w-sm mx-auto px-4">
+                            <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                                <span>Part {currentStep + 1}</span>
+                                <span>{totalSteps} Steps</span>
                             </div>
-                            <h1 className="text-4xl font-bold text-primary mb-4">{activeLesson.title}</h1>
-                            <p className="text-xl text-muted-foreground max-w-2xl">{activeLesson.description}</p>
+                            <div className="h-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+                                    style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+                                />
+                            </div>
                         </div>
-                        <div className="w-16 h-16 bg-lime-100 rounded-2xl flex items-center justify-center text-lime-600">
-                            <BookOpen size={32} />
+
+                        <div className="w-[88px] flex justify-end">
+                            {/* Placeholder for future tools */}
                         </div>
                     </div>
+                </div>
 
-                    <div className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-primary prose-p:text-gray-600 prose-code:text-indigo-600 prose-pre:bg-gray-900 prose-pre:text-gray-50 prose-pre:rounded-2xl">
-                        <h3>Introduction</h3>
-                        <p>
-                            Welcome to <strong>{activeLesson.title}</strong>. In this lesson, we will explore the fundamental concepts
-                            that will build the foundation for your coding journey in {activeLesson.language === 'python' ? 'Python' : activeLesson.language === 'javascript' ? 'JavaScript' : 'C++'}.
-                        </p>
-                        <p>
-                            Programming is essentially about giving instructions to a computer. We do this by writing code statements.
-                            Let's look at a simple example:
-                        </p>
-                        <div className="not-prose my-8">
-                            <div className="bg-slate-900 rounded-t-2xl p-4 flex items-center justify-between border-b border-white/10">
-                                <div className="flex gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                                </div>
-                                <div className="text-xs font-mono text-slate-400">main.{activeLesson.language === 'python' ? 'py' : activeLesson.language === 'javascript' ? 'js' : 'cpp'}</div>
-                            </div>
-                            <div className="h-[300px] border-x border-slate-200 border-b rounded-b-2xl overflow-hidden shadow-sm relative group">
-                                <CodeEditor
-                                    value={code}
-                                    onChange={(v) => setCode(v || '')}
-                                    language={activeLesson.language}
-                                />
-                                <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                        size="sm"
-                                        className="rounded-full shadow-lg shadow-indigo-500/20"
-                                        onClick={handleRunCode}
-                                        disabled={isRunning}
-                                    >
-                                        {isRunning ? <Sparkles className="animate-spin mr-2" size={14} /> : <Play className="mr-2" size={14} />}
-                                        Run Code
-                                    </Button>
-                                </div>
+                <div className="max-w-4xl mx-auto px-6">
+                    {/* Content Card */}
+                    <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
+
+                        {/* Section Header */}
+                        <div className="mb-10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 bg-primary/10 text-primary border-primary/20 rounded-md">
+                                    {currentSection.type}
+                                </Badge>
                             </div>
 
-                            {/* Output Console */}
-                            {output && (
-                                <div className="mt-4 bg-slate-950 rounded-xl p-4 font-mono text-sm shadow-inner border border-slate-800 animate-in fade-in slide-in-from-top-2">
-                                    <div className="flex items-center gap-2 text-slate-400 mb-2 text-xs uppercase tracking-wider font-semibold">
-                                        <Terminal size={14} /> Output
-                                    </div>
-                                    <div className="text-emerald-400 whitespace-pre-wrap">{output}</div>
-                                </div>
+                            {currentSection.title && (
+                                <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-6 tracking-tight leading-[1.1] text-left">
+                                    {currentSection.title}
+                                </h1>
                             )}
                         </div>
-                        <h3>Key Concepts</h3>
-                        <ul>
-                            <li><strong>Syntax</strong>: The grammar rules of a programming language.</li>
-                            <li><strong>Execution</strong>: Running your code to see the result.</li>
-                            <li><strong>Debugging</strong>: Finding and fixing errors in your code.</li>
-                        </ul>
-                        <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 my-8">
-                            <h4 className="flex items-center gap-2 text-blue-800 mt-0">
-                                <Sparkles size={20} /> Pro Tip
-                            </h4>
-                            <p className="mb-0 text-blue-700">
-                                Always comment your code! It helps others (and your future self) understand what your code does.
-                            </p>
-                        </div>
-                    </div>
 
-                    <div className="flex justify-between items-center mt-12 pt-8 border-t border-gray-100">
-                        <Button variant="ghost" className="rounded-full" onClick={() => navigate('/learn')}>
-                            Cancel
+                        {/* Text Content */}
+                        {currentSection.type === 'text' && (
+                            <div className="prose prose-xl prose-gray dark:prose-invert max-w-none 
+                                prose-headings:font-bold prose-headings:tracking-tight 
+                                prose-p:leading-relaxed prose-p:text-muted-foreground 
+                                prose-strong:text-foreground prose-strong:font-semibold
+                                prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
+                                ">
+                                <div className="whitespace-pre-line">
+                                    {currentSection.content.split('```').map((part, i) => {
+                                        if (i % 2 === 1) {
+                                            const lines = part.split('\n');
+                                            const codeContent = lines.slice(1).join('\n');
+                                            return (
+                                                <div key={i} className="not-prose my-10 rounded-xl overflow-hidden bg-[#0d1117] border border-white/10 shadow-lg">
+                                                    <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/5">
+                                                        <div className="flex gap-1.5">
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                                                        </div>
+                                                        <div className="ml-auto text-xs font-mono text-gray-500 opacity-60">code preview</div>
+                                                    </div>
+                                                    <div className="p-6 overflow-x-auto">
+                                                        <code className="font-mono text-sm text-gray-300 leading-relaxed">{codeContent}</code>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        return <span key={i}>{part}</span>;
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Code Practice Section */}
+                        {currentSection.type === 'code' && (
+                            <div className="grid grid-cols-1 gap-8">
+                                <div className="prose prose-lg dark:prose-invert max-w-none text-muted-foreground">
+                                    <p className="whitespace-pre-line leading-relaxed">{currentSection.content}</p>
+                                </div>
+
+                                {currentSection.hints && currentSection.hints.length > 0 && (
+                                    <div className="bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 p-5 rounded-r-lg">
+                                        <h4 className="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-200 mb-2 text-sm uppercase tracking-wide">
+                                            <Lightbulb size={16} /> Hint
+                                        </h4>
+                                        <div className="text-blue-800 dark:text-blue-200/80 text-sm leading-relaxed">
+                                            {currentSection.hints[0]}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[500px]">
+                                    {/* Editor */}
+                                    <div className="flex flex-col rounded-xl overflow-hidden border border-border shadow-lg bg-[#1e1e1e]">
+                                        <div className="bg-[#1e1e1e] px-4 py-3 flex items-center justify-between border-b border-white/5">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Editor</span>
+                                            <div className="flex gap-1.5 opacity-40">
+                                                <div className="w-2 h-2 rounded-full bg-white" />
+                                                <div className="w-2 h-2 rounded-full bg-white" />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-h-[400px]">
+                                            <CodeEditor
+                                                value={code || ''}
+                                                onChange={(v) => setCode(v || '')}
+                                                language={activeLesson.language}
+                                            />
+                                        </div>
+                                        <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end">
+                                            <Button
+                                                onClick={handleRunCode}
+                                                disabled={isRunning}
+                                                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                                                size="sm"
+                                            >
+                                                {isRunning ? <Sparkles className="animate-spin mr-2" size={14} /> : <Play className="mr-2" size={14} />}
+                                                Run
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {/* Output */}
+                                    <div className="flex flex-col">
+                                        {(output || validationError) ? (
+                                            <div className={`h-full rounded-xl p-5 font-mono text-sm border flex flex-col animate-in fade-in zoom-in-95 duration-200 ${codeValidated
+                                                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50'
+                                                : validationError
+                                                    ? 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50'
+                                                    : 'bg-card border-border'
+                                                }`}>
+                                                <div className="flex items-center justify-between mb-3 pb-3 border-b border-black/5 dark:border-white/5">
+                                                    <span className="font-bold text-xs uppercase tracking-wider opacity-70 flex items-center gap-2">
+                                                        <Terminal size={14} />
+                                                        {codeValidated ? 'Passed' : 'Console'}
+                                                    </span>
+                                                    {codeValidated && <CheckCircle2 size={16} className="text-emerald-500" />}
+                                                </div>
+
+                                                <div className={`flex-1 whitespace-pre-wrap ${codeValidated ? 'text-emerald-700 dark:text-emerald-300' : validationError ? 'text-red-700 dark:text-red-300' : 'text-foreground'}`}>
+                                                    {validationError || output}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="h-full rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/30">
+                                                <Terminal size={24} className="mb-3 opacity-30" />
+                                                <p className="text-sm">Output will appear here</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Challenge Section */}
+                        {currentSection.type === 'challenge' && (
+                            <div className="bg-card dark:bg-card border border-border p-8 md:p-12 rounded-[2rem] shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <div className="bg-primary/10 p-2 rounded-lg">
+                                            <Sparkles size={20} className="text-primary" />
+                                        </div>
+                                        <span className="text-sm font-bold uppercase tracking-widest text-primary">Challenge</span>
+                                    </div>
+
+                                    <p className="text-xl md:text-2xl text-foreground leading-relaxed mb-8 font-medium">
+                                        {currentSection.content}
+                                    </p>
+
+                                    {currentSection.hints && (
+                                        <div className="bg-muted/50 rounded-xl p-6 border border-border inline-block">
+                                            <p className="font-bold text-muted-foreground text-xs tracking-wider uppercase mb-2 flex items-center gap-2">
+                                                <HelpCircle size={14} /> Hint
+                                            </p>
+                                            <p className="text-foreground/80">{currentSection.hints[0]}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer Navigation */}
+                <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-t border-gray-200 dark:border-white/5">
+                    <div className="max-w-6xl mx-auto flex justify-between items-center">
+                        <Button
+                            variant="secondary"
+                            onClick={handlePrev}
+                            disabled={currentStep === 0}
+                            className="rounded-full px-6 text-muted-foreground"
+                        >
+                            Previous
                         </Button>
-                        <Button className="rounded-full px-8" onClick={handleCompleteLessonDisplay}>
-                            Complete Lesson <CheckCircle2 size={18} className="ml-2" />
+
+                        <Button
+                            onClick={handleNext}
+                            disabled={!canProceed}
+                            className={`rounded-full px-8 h-11 text-sm font-bold shadow-md transition-all ${canProceed
+                                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                : 'opacity-50 cursor-not-allowed'
+                                }`}
+                        >
+                            <span>{isLastStep ? 'Complete' : 'Next Step'}</span>
+                            {isLastStep ? <CheckCircle2 size={16} className="ml-2" /> : <ArrowRight size={16} className="ml-2" />}
                         </Button>
                     </div>
                 </div>
@@ -304,11 +425,11 @@ export const LearnPage: React.FC = () => {
         );
     }
 
-    // Render List View
+    // ========= RENDER LIST VIEW =========
     return (
         <div className="space-y-8">
             {/* Header Bento */}
-            <div className="relative overflow-hidden bg-primary text-white rounded-[2.5rem] p-8 md:p-12 shadow-xl shadow-black/5">
+            <div className="relative overflow-hidden bg-black dark:bg-card text-white rounded-[2.5rem] p-8 md:p-12 shadow-xl shadow-black/5 dark:shadow-black/20 border border-transparent dark:border-border">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-lime-500/20 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none"></div>
 
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
@@ -317,7 +438,7 @@ export const LearnPage: React.FC = () => {
                             <Sparkles size={12} className="text-lime-400" />
                             <span>Interactive Curriculum</span>
                         </div>
-                        <h1 className="text-4xl font-bold mb-4 flex items-center gap-4">
+                        <h1 className="text-4xl font-bold mb-4 flex items-center gap-4 text-white">
                             Learning Library
                         </h1>
                         <p className="text-white/70 max-w-lg text-lg leading-relaxed">
@@ -325,18 +446,33 @@ export const LearnPage: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="w-full md:w-auto min-w-[240px] bg-white/5 backdrop-blur-md rounded-[2rem] p-6 border border-white/10">
-                        <div className="flex justify-between items-end mb-2">
-                            <div className="text-sm font-medium text-white/80">Course Progress</div>
-                            <div className="text-3xl font-bold text-lime-400">{Math.round((completedCount / (totalCount || 1)) * 100)}%</div>
-                        </div>
-                        <ProgressBar value={completedCount} max={totalCount || 1} size="md" className="h-3 bg-white/20" />
-                        <div className="mt-4 flex gap-2">
-                            <div className="flex-1 bg-white/10 h-10 rounded-full flex items-center justify-center text-xs font-bold border border-white/10">
-                                {completedCount} Completed
+                    <div className="w-full md:w-auto min-w-[280px] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-[2rem] p-6 border border-black/10 dark:border-white/5 shadow-xl shadow-black/10">
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-5">
+                            <span className="text-sm font-semibold text-white/60 tracking-wide">Course Progress</span>
+                            <div className="flex items-baseline gap-0.5">
+                                <span className="text-4xl font-black text-lime-400 tracking-tight">{Math.round((completedCount / (totalCount || 1)) * 100)}</span>
+                                <span className="text-lg font-bold text-lime-400/70">%</span>
                             </div>
-                            <div className="flex-1 bg-white/10 h-10 rounded-full flex items-center justify-center text-xs font-bold border border-white/10">
-                                {totalCount} Total
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-5">
+                            <div
+                                className="h-full bg-gradient-to-r from-lime-400 to-lime-300 rounded-full transition-all duration-500 ease-out"
+                                style={{ width: `${Math.round((completedCount / (totalCount || 1)) * 100)}%` }}
+                            />
+                        </div>
+
+                        {/* Stats */}
+                        <div className="flex gap-3">
+                            <div className="flex-1 bg-white/5 py-2.5 rounded-xl flex items-center justify-center gap-2 border border-black/10 dark:border-white/5">
+                                <CheckCircle2 size={14} className="text-lime-400" />
+                                <span className="text-xs font-semibold text-white/80">{completedCount} Done</span>
+                            </div>
+                            <div className="flex-1 bg-white/5 py-2.5 rounded-xl flex items-center justify-center gap-2 border border-black/10 dark:border-white/5">
+                                <BookOpen size={14} className="text-white/40" />
+                                <span className="text-xs font-semibold text-white/80">{totalCount} Total</span>
                             </div>
                         </div>
                     </div>
@@ -358,11 +494,11 @@ export const LearnPage: React.FC = () => {
                             placeholder="Search lessons..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-6 py-3 bg-white text-primary border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-lime-100 focus:border-lime-500 transition-all font-sans shadow-sm"
+                            className="w-full pl-10 pr-6 py-3 bg-white dark:bg-card text-primary dark:text-white border border-gray-200 dark:border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-lime-100 dark:focus:ring-lime-900 focus:border-lime-500 transition-all font-sans shadow-sm"
                         />
                     </div>
                     <select
-                        className="bg-white border border-gray-200 rounded-full text-sm px-6 py-3 focus:outline-none focus:ring-2 focus:ring-lime-100 font-sans shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 focus:outline-none focus:ring-2 focus:ring-lime-100 dark:focus:ring-lime-900 font-sans shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-muted text-primary dark:text-white transition-colors"
                         value={selectedTier.toString()}
                         onChange={(e) => setSelectedTier(e.target.value === 'all' ? 'all' : parseInt(e.target.value) as Tier)}
                     >
@@ -381,10 +517,10 @@ export const LearnPage: React.FC = () => {
                 {Object.entries(groupedLessons).map(([tier, lessons]) => (
                     <div key={tier}>
                         <div className="flex items-center gap-4 mb-8">
-                            <Badge variant="secondary" className="px-4 py-1.5 text-sm bg-white shadow-sm border border-gray-100 rounded-full">
+                            <Badge variant="secondary" className="px-4 py-1.5 text-sm bg-white dark:bg-card shadow-sm border border-gray-100 dark:border-border rounded-full">
                                 Tier {tier}
                             </Badge>
-                            <div className="h-px flex-1 bg-gray-200"></div>
+                            <div className="h-px flex-1 bg-gray-200 dark:bg-border"></div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -397,8 +533,8 @@ export const LearnPage: React.FC = () => {
                                         className={`
                                             group relative p-8 rounded-[2.5rem] border border-transparent transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[240px]
                                             ${completed
-                                                ? 'bg-gray-50 border-gray-100'
-                                                : 'bg-white shadow-sm hover:shadow-xl hover:shadow-black/5 hover:border-lime-200 hover:-translate-y-1'
+                                                ? 'bg-gray-50 dark:bg-muted/50 border-gray-100 dark:border-border'
+                                                : 'bg-white dark:bg-card shadow-sm hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-lime-200 dark:hover:border-lime-900 hover:-translate-y-1'
                                             }
                                         `}
                                     >
@@ -407,8 +543,8 @@ export const LearnPage: React.FC = () => {
                                                 <div className={`
                                                     w-12 h-12 rounded-2xl flex items-center justify-center transition-colors
                                                     ${completed
-                                                        ? 'bg-lime-100 text-lime-600'
-                                                        : 'bg-gray-100 text-primary group-hover:bg-primary group-hover:text-lime-400'
+                                                        ? 'bg-lime-100 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400'
+                                                        : 'bg-gray-100 dark:bg-muted text-primary dark:text-white group-hover:bg-primary group-hover:text-lime-400 dark:group-hover:bg-white dark:group-hover:text-black'
                                                     }
                                                 `}>
                                                     {completed ? <CheckCircle2 size={24} /> : <Code size={24} />}
@@ -426,7 +562,7 @@ export const LearnPage: React.FC = () => {
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
+                                        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100 dark:border-border">
                                             <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                                 <Clock size={14} /> {lesson.estimatedTime} min
                                             </span>

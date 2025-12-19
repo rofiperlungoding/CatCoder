@@ -10,7 +10,7 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                     {label}
                 </label>
             )}
@@ -22,8 +22,8 @@ export const Input: React.FC<InputProps> = ({ label, error, icon, className = ''
                 )}
                 <input
                     className={`
-                        w-full bg-white border border-gray-200 rounded-full px-6 py-3 text-primary placeholder:text-muted-foreground
-                        focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all
+                        w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-6 py-3 text-primary dark:text-white placeholder:text-muted-foreground
+                        focus:outline-none focus:ring-2 focus:ring-primary/10 dark:focus:ring-white/10 focus:border-primary dark:focus:border-gray-500 transition-all
                         disabled:bg-muted disabled:text-muted-foreground
                         ${icon ? 'pl-12' : ''}
                         ${error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}

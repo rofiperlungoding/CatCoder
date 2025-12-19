@@ -13,7 +13,7 @@ import {
     Cat
 } from 'lucide-react';
 import { useUserStore } from '../../stores';
-import { Avatar, Button } from '../ui'; // Updated imports
+import { Avatar, Button } from '../ui';
 
 export const Sidebar: React.FC = () => {
     const location = useLocation();
@@ -32,16 +32,16 @@ export const Sidebar: React.FC = () => {
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full bg-white/50">
+        <div className="flex flex-col h-full bg-[#050505]/50 backdrop-blur-md">
             {/* Brand */}
             <div className="p-6 mb-2">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-black/10">
+                    <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center shadow-lg shadow-white/10">
                         <Cat size={20} />
                     </div>
                     <div>
-                        <h1 className="font-bold text-lg tracking-tight text-primary">CatCoder</h1>
-                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground bg-white px-2 py-0.5 rounded-full border border-gray-100">Enterprise</span>
+                        <h1 className="font-bold text-lg tracking-tight text-white">CatCoder</h1>
+                        <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">Enterprise</span>
                     </div>
                 </div>
             </div>
@@ -58,12 +58,12 @@ export const Sidebar: React.FC = () => {
                             className={`
                                 flex items-center gap-3 px-5 py-3.5 rounded-full transition-all duration-300 group
                                 ${isActive
-                                    ? 'bg-primary text-white shadow-lg shadow-black/10 translate-x-1'
-                                    : 'text-muted-foreground hover:bg-white hover:text-primary hover:shadow-sm'
+                                    ? 'bg-white text-black shadow-lg shadow-white/5 translate-x-1'
+                                    : 'text-gray-400 hover:bg-white/10 hover:text-white'
                                 }
                             `}
                         >
-                            <item.icon size={20} className={isActive ? 'text-lime-300' : 'group-hover:text-primary transition-colors'} />
+                            <item.icon size={20} className={isActive ? 'text-black' : 'group-hover:text-white transition-colors'} />
                             <span className="font-medium text-sm">{item.label}</span>
                         </NavLink>
                     );
@@ -72,35 +72,35 @@ export const Sidebar: React.FC = () => {
 
             {/* Profile */}
             <div className="p-4 mt-auto">
-                <div className="bg-white rounded-[2rem] p-5 border border-gray-100 shadow-sm group hover:border-gray-200 transition-colors">
+                <div className="bg-[#0a0a0a] rounded-[2rem] p-5 border border-white/10 shadow-sm group hover:border-white/20 transition-colors">
                     {user ? (
                         <div className="flex items-center gap-3 mb-4">
                             <Avatar
                                 src={user.avatarUrl}
                                 fallback={user.username.charAt(0).toUpperCase()}
                                 size="sm"
-                                className="border-2 border-white shadow-sm ring-1 ring-gray-100"
+                                className="border-2 border-grau-800 shadow-sm ring-1 ring-white/10"
                             />
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-primary truncate">{user.username}</p>
-                                <p className="text-xs text-muted-foreground truncate">Level {user.level}</p>
+                                <p className="text-sm font-bold text-white truncate">{user.username}</p>
+                                <p className="text-xs text-gray-500 truncate">Level {user.level}</p>
                             </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                                <User size={18} className="text-muted-foreground" />
+                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                                <User size={18} className="text-gray-400" />
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-primary">Guest</p>
-                                <p className="text-xs text-muted-foreground">Sign in to save</p>
+                                <p className="text-sm font-bold text-white">Guest</p>
+                                <p className="text-xs text-gray-500">Sign in to save</p>
                             </div>
                         </div>
                     )}
 
                     {user && (
                         <NavLink to="/profile">
-                            <Button variant="secondary" size="sm" fullWidth className="text-xs mb-3 rounded-full border-gray-200">
+                            <Button variant="secondary" size="sm" fullWidth className="text-xs mb-3 rounded-full border-transparent bg-white/5 text-white hover:bg-white/10 font-bold border-0">
                                 View Profile
                             </Button>
                         </NavLink>
@@ -108,7 +108,7 @@ export const Sidebar: React.FC = () => {
 
                     <button
                         onClick={user ? logout : () => { }}
-                        className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground hover:text-red-500 py-2 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 hover:text-red-400 py-2 transition-colors"
                     >
                         <LogOut size={14} />
                         {user ? 'Sign Out' : 'Sign In'}
@@ -121,19 +121,19 @@ export const Sidebar: React.FC = () => {
     return (
         <>
             {/* Desktop Sidebar (Floating Rail) */}
-            <aside className="hidden lg:block fixed left-6 top-6 bottom-6 w-72 bg-white/60 backdrop-blur-xl rounded-[2.5rem] border border-white/60 shadow-xl shadow-black/5 z-40 overflow-hidden">
+            <aside className="hidden lg:block fixed left-6 top-6 bottom-6 w-72 bg-black/60 backdrop-blur-xl rounded-[2.5rem] border border-white/5 shadow-2xl shadow-black/50 z-40 overflow-hidden">
                 <SidebarContent />
             </aside>
 
             {/* Mobile Header & Menu */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-gray-100 z-40 px-4 flex items-center justify-between">
+            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 z-40 px-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
                         <Cat size={16} />
                     </div>
-                    <span className="font-bold text-primary">CatCoder</span>
+                    <span className="font-bold text-primary dark:text-white">CatCoder</span>
                 </div>
-                <button onClick={toggleMobileMenu} className="p-2 text-primary bg-white rounded-full shadow-sm border border-gray-100">
+                <button onClick={toggleMobileMenu} className="p-2 text-primary dark:text-white bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-100 dark:border-gray-700">
                     {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>

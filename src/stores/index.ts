@@ -4,6 +4,71 @@ import type { User, UserProgress, Language } from '../types';
 import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../lib/utils';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
+// Helper function to fetch profile from Supabase
+const fetchProfile = async (userId: string): Promise<User | null> => {
+    // Don't attempt to fetch if Supabase isn't configured
+    if (!isSupabaseConfigured()) {
+        return null;
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle(); // Use maybeSingle to avoid 406 errors when no row exists
+
+        if (error) {
+            // Only log if it's an unexpected error
+            if (error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                console.error('Error fetching profile:', error);
+            }
+            return null;
+        }
+
+        if (!data) {
+            return null;
+        }
+
+        return {
+            id: data.id,
+            email: '', // Will be filled from auth
+            username: data.username,
+            avatarUrl: data.avatar_url,
+            xp: data.xp || 0,
+            level: data.level || 1,
+            rank: (data.rank as User['rank']) || 'bronze',
+            streakCurrent: data.streak_current || 0,
+            streakBest: data.streak_best || 0,
+            createdAt: data.created_at
+        };
+    } catch (err) {
+        // Silently fail for network errors in dev mode
+        return null;
+    }
+};
+
+// Helper function to update profile in Supabase
+const syncProfileToSupabase = async (userId: string, updates: Partial<{
+    xp: number;
+    level: number;
+    rank: string;
+    streak_current: number;
+    streak_best: number;
+    last_activity_date: string;
+}>) => {
+    if (!isSupabaseConfigured()) return;
+
+    const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
+
+    if (error) {
+        console.error('Error syncing profile:', error);
+    }
+};
+
 // User Store
 interface UserState {
     user: User | null;
@@ -22,6 +87,7 @@ interface UserState {
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
     updateStreak: () => void;
+    updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 export const useUserStore = create<UserState>()(
@@ -59,12 +125,14 @@ export const useUserStore = create<UserState>()(
             },
 
             logout: async () => {
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                    console.error('Error signing out:', error);
-                    useUIStore.getState().addToast('error', 'Failed to sign out');
-                    return;
+                if (isSupabaseConfigured()) {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                        console.error('Error signing out of Supabase:', error);
+                        // Continue to clear local state anyway
+                    }
                 }
+
                 set({
                     user: null,
                     isAuthenticated: false,
@@ -76,7 +144,6 @@ export const useUserStore = create<UserState>()(
             signIn: async (email, password) => {
                 if (!isSupabaseConfigured()) {
                     useUIStore.getState().addToast('warning', 'Supabase not configured. Using mock login.');
-                    // Fallback to mock login for demo/dev without env vars
                     set({
                         user: {
                             id: 'mock-user-1',
@@ -105,27 +172,18 @@ export const useUserStore = create<UserState>()(
                     return { user: null, error };
                 }
 
-                // User session mapping is handled by onAuthStateChange or manually here
-                // For now, let's manually map basic data
                 if (data.user) {
-                    const mappedUser: User = {
-                        id: data.user.id,
-                        email: data.user.email || '',
-                        username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
-                        xp: data.user.user_metadata?.xp || 0,
-                        level: data.user.user_metadata?.level || 1,
-                        rank: data.user.user_metadata?.rank || 'bronze',
-                        streakCurrent: data.user.user_metadata?.streakCurrent || 0,
-                        streakBest: data.user.user_metadata?.streakBest || 0,
-                        createdAt: data.user.created_at
-                    };
-
-                    set({
-                        user: mappedUser,
-                        isAuthenticated: true,
-                        isGuest: false
-                    });
-                    useUIStore.getState().addToast('success', 'Welcome back!');
+                    // Fetch profile from profiles table
+                    const profile = await fetchProfile(data.user.id);
+                    if (profile) {
+                        profile.email = data.user.email || '';
+                        set({
+                            user: profile,
+                            isAuthenticated: true,
+                            isGuest: false
+                        });
+                        useUIStore.getState().addToast('success', 'Welcome back!');
+                    }
                 }
 
                 return { user: data.user, error: null };
@@ -142,10 +200,7 @@ export const useUserStore = create<UserState>()(
                     password,
                     options: {
                         data: {
-                            username: username,
-                            xp: 0,
-                            level: 1,
-                            rank: 'bronze'
+                            username: username
                         }
                     }
                 });
@@ -168,36 +223,24 @@ export const useUserStore = create<UserState>()(
                 try {
                     const { data: { session } } = await supabase.auth.getSession();
                     if (session?.user) {
-                        const mappedUser: User = {
-                            id: session.user.id,
-                            email: session.user.email || '',
-                            username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
-                            xp: session.user.user_metadata?.xp || 0,
-                            level: session.user.user_metadata?.level || 1,
-                            rank: session.user.user_metadata?.rank || 'bronze',
-                            streakCurrent: session.user.user_metadata?.streakCurrent || 0,
-                            streakBest: session.user.user_metadata?.streakBest || 0,
-                            createdAt: session.user.created_at
-                        };
-                        set({ user: mappedUser, isAuthenticated: true, isGuest: false, isLoading: false });
+                        const profile = await fetchProfile(session.user.id);
+                        if (profile) {
+                            profile.email = session.user.email || '';
+                            set({ user: profile, isAuthenticated: true, isGuest: false, isLoading: false });
+                        } else {
+                            set({ isLoading: false });
+                        }
                     } else {
                         set({ isLoading: false });
                     }
 
-                    supabase.auth.onAuthStateChange((_event, session) => {
+                    supabase.auth.onAuthStateChange(async (_event, session) => {
                         if (session?.user) {
-                            const mappedUser: User = {
-                                id: session.user.id,
-                                email: session.user.email || '',
-                                username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
-                                xp: session.user.user_metadata?.xp || 0,
-                                level: session.user.user_metadata?.level || 1,
-                                rank: session.user.user_metadata?.rank || 'bronze',
-                                streakCurrent: session.user.user_metadata?.streakCurrent || 0,
-                                streakBest: session.user.user_metadata?.streakBest || 0,
-                                createdAt: session.user.created_at
-                            };
-                            set({ user: mappedUser, isAuthenticated: true, isGuest: false });
+                            const profile = await fetchProfile(session.user.id);
+                            if (profile) {
+                                profile.email = session.user.email || '';
+                                set({ user: profile, isAuthenticated: true, isGuest: false });
+                            }
                         } else {
                             set({ user: null, isAuthenticated: false, isGuest: false });
                         }
@@ -208,7 +251,7 @@ export const useUserStore = create<UserState>()(
                 }
             },
 
-            addXP: (amount) => {
+            addXP: async (amount) => {
                 const { user } = get();
                 if (!user) return;
 
@@ -221,19 +264,28 @@ export const useUserStore = create<UserState>()(
                     useUIStore.getState().showLevelUp(newLevel);
                 }
 
-                set({
-                    user: {
-                        ...user,
+                const updatedUser = {
+                    ...user,
+                    xp: newXP,
+                    level: newLevel,
+                    rank: newRank
+                };
+
+                set({ user: updatedUser });
+
+                // Sync to Supabase
+                if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+                    syncProfileToSupabase(user.id, {
                         xp: newXP,
                         level: newLevel,
                         rank: newRank
-                    }
-                });
+                    });
+                }
             },
 
             setSelectedLanguage: (language) => set({ selectedLanguage: language }),
 
-            updateStreak: () => {
+            updateStreak: async () => {
                 const { user } = get();
                 if (!user) return;
 
@@ -251,13 +303,43 @@ export const useUserStore = create<UserState>()(
 
                 setLocalStorage('lastVisit', today);
 
-                set({
-                    user: {
-                        ...user,
-                        streakCurrent: newStreak,
-                        streakBest: Math.max(user.streakBest, newStreak)
-                    }
-                });
+                const updatedUser = {
+                    ...user,
+                    streakCurrent: newStreak,
+                    streakBest: Math.max(user.streakBest, newStreak)
+                };
+
+                set({ user: updatedUser });
+
+                // Sync to Supabase
+                if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+                    syncProfileToSupabase(user.id, {
+                        streak_current: newStreak,
+                        streak_best: Math.max(user.streakBest, newStreak),
+                        last_activity_date: new Date().toISOString().split('T')[0]
+                    });
+                }
+            },
+            updateProfile: async (updates) => {
+                const { user } = get();
+                if (!user) return;
+
+                const updatedUser = { ...user, ...updates };
+                set({ user: updatedUser });
+
+                if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+                    // Map User fields to Supabase columns
+                    const supabaseUpdates: any = {};
+                    if (updates.username) supabaseUpdates.username = updates.username;
+                    if (updates.avatarUrl) supabaseUpdates.avatar_url = updates.avatarUrl;
+
+                    // We only sync specific profile fields here, not XP/stats which are handled by addXP
+                    await syncProfileToSupabase(user.id, supabaseUpdates);
+
+                    useUIStore.getState().addToast('success', 'Profile updated successfully');
+                } else {
+                    useUIStore.getState().addToast('success', 'Profile updated (Guest mode)');
+                }
             }
         }),
         {
@@ -271,12 +353,37 @@ interface ProgressState {
     progress: UserProgress[];
     completedLessons: Set<string>;
     completedProblems: Set<string>;
+    isLoaded: boolean;
 
     // Actions
+    fetchProgress: (userId: string) => Promise<void>;
     markComplete: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string, score?: number) => void;
     isCompleted: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string) => boolean;
     getProgress: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string) => UserProgress | undefined;
 }
+
+// Helper to sync progress to Supabase
+const syncProgressToSupabase = async (userId: string, contentType: string, contentId: string, score?: number) => {
+    if (!isSupabaseConfigured()) return;
+    if (userId.startsWith('guest-') || userId.startsWith('mock-')) return;
+
+    const { error } = await supabase
+        .from('user_progress')
+        .upsert({
+            user_id: userId,
+            content_type: contentType,
+            content_id: contentId,
+            status: 'completed',
+            score: score,
+            completed_at: new Date().toISOString()
+        }, {
+            onConflict: 'user_id,content_type,content_id'
+        });
+
+    if (error) {
+        console.error('Error syncing progress:', error);
+    }
+};
 
 export const useProgressStore = create<ProgressState>()(
     persist(
@@ -284,13 +391,60 @@ export const useProgressStore = create<ProgressState>()(
             progress: [],
             completedLessons: new Set(),
             completedProblems: new Set(),
+            isLoaded: false,
+
+            fetchProgress: async (userId: string) => {
+                if (!isSupabaseConfigured()) {
+                    set({ isLoaded: true });
+                    return;
+                }
+                if (userId.startsWith('guest-') || userId.startsWith('mock-')) {
+                    set({ isLoaded: true });
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from('user_progress')
+                    .select('*')
+                    .eq('user_id', userId);
+
+                if (error) {
+                    console.error('Error fetching progress:', error);
+                    set({ isLoaded: true });
+                    return;
+                }
+
+                const progress: UserProgress[] = (data || []).map((row: any) => ({
+                    id: row.id,
+                    userId: row.user_id,
+                    contentType: row.content_type,
+                    contentId: row.content_id,
+                    status: row.status,
+                    score: row.score,
+                    completedAt: row.completed_at
+                }));
+
+                const completedLessons = new Set<string>();
+                const completedProblems = new Set<string>();
+
+                progress.forEach(p => {
+                    if (p.status === 'completed') {
+                        if (p.contentType === 'lesson') completedLessons.add(p.contentId);
+                        if (p.contentType === 'problem') completedProblems.add(p.contentId);
+                    }
+                });
+
+                set({ progress, completedLessons, completedProblems, isLoaded: true });
+            },
 
             markComplete: (contentType, contentId, score) => {
                 const { progress, completedLessons, completedProblems } = get();
+                const userStore = useUserStore.getState();
+                const userId = userStore.user?.id || 'current';
 
                 const newProgress: UserProgress = {
                     id: `${contentType}-${contentId}-${Date.now()}`,
-                    userId: 'current',
+                    userId: userId,
                     contentType,
                     contentId,
                     status: 'completed',
@@ -312,6 +466,9 @@ export const useProgressStore = create<ProgressState>()(
                     completedLessons: newCompletedLessons,
                     completedProblems: newCompletedProblems
                 });
+
+                // Sync to Supabase
+                syncProgressToSupabase(userId, contentType, contentId, score);
             },
 
             isCompleted: (contentType, contentId) => {
@@ -447,3 +604,43 @@ export const useUIStore = create<UIState>()((set) => ({
     showLevelUp: (level) => set({ levelUpModal: { isOpen: true, level } }),
     hideLevelUp: () => set({ levelUpModal: null })
 }));
+
+// Theme Store
+type Theme = 'dark';
+
+interface ThemeState {
+    theme: Theme;
+    setTheme: (theme: Theme) => void;
+    toggleTheme: () => void;
+}
+
+const applyTheme = () => {
+    // Always apply dark mode
+    const root = document.documentElement;
+    root.classList.add('dark');
+};
+
+export const useThemeStore = create<ThemeState>()(
+    persist(
+        (set) => ({
+            theme: 'dark',
+
+            setTheme: () => {
+                applyTheme();
+                set({ theme: 'dark' });
+            },
+
+            toggleTheme: () => {
+                // Disabled: Always keep dark mode
+                applyTheme();
+                set({ theme: 'dark' });
+            }
+        }),
+        {
+            name: 'catcoder-theme',
+            onRehydrateStorage: () => () => {
+                applyTheme();
+            }
+        }
+    )
+);

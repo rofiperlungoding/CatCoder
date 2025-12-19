@@ -8,11 +8,32 @@ import {
     Code,
     Zap
 } from 'lucide-react';
-import { Button, ProgressBar, Badge } from '../../components/ui';
+import { Button, ProgressBar, Badge, Avatar } from '../../components/ui';
 import { useUserStore } from '../../stores';
+import { fetchLeaderboard } from '../../lib/leaderboard';
+import type { LeaderboardEntry } from '../../types';
 
 export const HomePage: React.FC = () => {
     const { user, isGuest } = useUserStore();
+    const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardEntry[]>([]);
+    const [loadingLeaderboard, setLoadingLeaderboard] = React.useState(true);
+
+    React.useEffect(() => {
+        const loadLeaderboard = async () => {
+            try {
+                const data = await fetchLeaderboard(5);
+                setLeaderboardData(data);
+            } catch (error) {
+                console.error('Failed to load leaderboard', error);
+            } finally {
+                setLoadingLeaderboard(false);
+            }
+        };
+
+        if (user || isGuest) {
+            loadLeaderboard();
+        }
+    }, [user, isGuest]);
 
     if (!user && !isGuest) {
         return (
@@ -90,16 +111,16 @@ export const HomePage: React.FC = () => {
 
                 {/* 2. Stats Block - XP */}
                 <div className="bento-card flex flex-col justify-center items-center text-center border-0 shadow-sm hover:shadow-md transition-all">
-                    <div className="w-14 h-14 bg-lime-100/50 text-lime-600 rounded-2xl flex items-center justify-center mb-4">
+                    <div className="w-14 h-14 bg-lime-100 dark:bg-lime-500/20 text-lime-600 dark:text-lime-400 rounded-2xl flex items-center justify-center mb-4">
                         <Zap size={28} strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-3xl font-bold text-primary mb-1">{user?.xp || 0}</h3>
+                    <h3 className="text-3xl font-bold text-primary dark:text-white mb-1">{user?.xp || 0}</h3>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total XP</p>
                 </div>
 
                 {/* 3. Streak Block */}
                 <div className="bento-card flex flex-col justify-center items-center text-center border-0 shadow-sm hover:shadow-md transition-all">
-                    <div className="w-14 h-14 bg-orange-100/50 text-orange-600 rounded-2xl flex items-center justify-center mb-4">
+                    <div className="w-14 h-14 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center mb-4">
                         <Flame size={28} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-3xl font-bold text-primary mb-1">{user?.streakCurrent || 0}</h3>
@@ -125,7 +146,7 @@ export const HomePage: React.FC = () => {
                         </div>
                     </div>
                     <Link to="/practice/two-sum" className="relative z-10 w-full md:w-auto">
-                        <Button className="bg-white text-black hover:bg-gray-100 w-full md:w-auto whitespace-nowrap border-0">
+                        <Button className="!bg-white !text-black hover:!bg-gray-100 w-full md:w-auto whitespace-nowrap border-0 font-bold">
                             Solve Now
                         </Button>
                     </Link>
@@ -140,21 +161,46 @@ export const HomePage: React.FC = () => {
                         </h3>
                     </div>
                     <div className="space-y-4">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="flex items-center gap-3">
-                                <span className={`
-                                    w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold
-                                    ${i === 1 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}
-                                `}>{i}</span>
-                                <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200"></div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-primary truncate">User {i}</p>
-                                    <p className="text-[10px] text-muted-foreground">12,400 XP</p>
+                        {loadingLeaderboard ? (
+                            // Simple Loading Skeleton
+                            [1, 2, 3, 4, 5].map((i) => (
+                                <div key={i} className="flex items-center gap-3 animate-pulse">
+                                    <div className="w-6 h-6 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+                                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-20"></div>
+                                        <div className="h-2 bg-gray-200 dark:bg-gray-800 rounded w-12"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            leaderboardData.map((entry, index) => (
+                                <div key={entry.user.id} className="flex items-center gap-3">
+                                    <span className={`
+                                    w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold
+                                    ${index === 0 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                                            index === 1 ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400' :
+                                                index === 2 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+                                                    'bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600'}
+                                `}>{index + 1}</span>
+                                    <Avatar
+                                        src={entry.user.avatarUrl}
+                                        fallback={entry.user.username.charAt(0).toUpperCase()}
+                                        size="sm"
+                                        className="h-8 w-8 border border-gray-100 dark:border-gray-800"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-bold text-primary truncate">{entry.user.username}</p>
+                                        <p className="text-[10px] text-muted-foreground">{entry.score.toLocaleString()} XP</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                        {!loadingLeaderboard && leaderboardData.length === 0 && (
+                            <p className="text-xs text-center text-muted-foreground py-4">No data available</p>
+                        )}
                     </div>
-                    <div className="mt-8 pt-4 border-t border-gray-100 text-center">
+                    <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-800 text-center">
                         <Link to="/compete" className="text-xs font-bold text-primary hover:underline">View Leaderboard</Link>
                     </div>
                 </div>
