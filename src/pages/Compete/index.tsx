@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import {
     Zap,
-    Clock,
-    Trophy,
     Timer,
     ArrowUpRight,
     Search
 } from 'lucide-react';
-import { Badge, Button } from '../../components/ui';
-import { useUserStore } from '../../stores';
+import { Button } from '../../components/ui';
 
 // Types for Speed Run
 interface SpeedRunEntry {
@@ -66,17 +63,7 @@ const MOCK_SPEED_RUNS: SpeedRunEntry[] = [
 ];
 
 export const CompetePage: React.FC = () => {
-    const { user } = useUserStore();
     const [searchTerm, setSearchTerm] = useState('');
-
-    const getDifficultyColor = (diff: string) => {
-        switch (diff) {
-            case 'easy': return 'text-green-500 bg-green-500/10 border-green-500/20';
-            case 'medium': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-            case 'hard': return 'text-red-500 bg-red-500/10 border-red-500/20';
-            default: return 'text-gray-500';
-        }
-    };
 
     return (
         <div className="space-y-8 max-w-5xl mx-auto pb-20">
@@ -117,49 +104,55 @@ export const CompetePage: React.FC = () => {
                         <div className="flex flex-col md:flex-row items-center gap-6">
 
                             {/* 1. Rank & Avatar */}
-                            <div className="flex items-center gap-4 w-full md:w-auto">
-                                <div className="font-mono text-2xl font-bold text-gray-300 w-8 text-center">
-                                    #{index + 1}
+                            <div className="flex items-center gap-4 w-full md:w-auto min-w-[200px]">
+                                <div className="flex justify-center w-12">
+                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold font-mono ${index === 0 ? 'bg-yellow-500/10 text-yellow-500 ring-1 ring-yellow-500/40 shadow-[0_0_10px_rgba(234,179,8,0.2)]' :
+                                            index === 1 ? 'bg-slate-400/10 text-slate-400 ring-1 ring-slate-400/40' :
+                                                index === 2 ? 'bg-orange-600/10 text-orange-600 ring-1 ring-orange-600/40' :
+                                                    'text-gray-500 dark:text-gray-400'
+                                        }`}>
+                                        {index + 1}
+                                    </div>
                                 </div>
                                 <div className="relative">
-                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-2 border-white dark:border-gray-700 shadow-sm flex items-center justify-center text-xl font-bold text-gray-500 uppercase overflow-hidden">
+                                    <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg font-bold text-gray-500 overflow-hidden">
                                         {run.user.avatarUrl ? (
                                             <img src={run.user.avatarUrl} alt={run.user.username} className="w-full h-full object-cover" />
                                         ) : (
                                             run.user.username.charAt(0)
                                         )}
                                     </div>
-                                    <div className="absolute -bottom-1 -right-1 bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white dark:border-black uppercase tracking-wider">
-                                        {run.user.league}
+                                    <div className="absolute -bottom-1 -right-1 text-sm">
+                                        {run.user.league === 'diamond' ? '💎' :
+                                            run.user.league === 'platinum' ? '🔷' :
+                                                run.user.league === 'gold' ? '🥇' :
+                                                    run.user.league === 'silver' ? '🥈' : '🥉'}
                                     </div>
                                 </div>
                                 <div className="md:hidden flex-1">
                                     <h3 className="font-bold text-base text-primary">{run.user.username}</h3>
-                                    <span className="text-xs text-muted-foreground">{run.solvedAt}</span>
                                 </div>
                             </div>
 
                             {/* 2. Challenge Info */}
                             <div className="flex-1 w-full text-center md:text-left">
-                                <div className="hidden md:block">
-                                    <h3 className="font-bold text-lg text-primary flex items-center gap-2 group-hover:text-lime-600 transition-colors cursor-pointer">
+                                <div className="flex flex-col md:flex-row items-center gap-2">
+                                    <h3 className="font-bold text-lg text-primary hover:text-lime-500 transition-colors cursor-pointer">
                                         {run.user.username}
-                                        <span className="text-muted-foreground font-normal text-sm">solved</span>
-                                        {run.problem.title}
                                     </h3>
-                                </div>
-                                <div className="md:hidden text-center mb-2">
                                     <span className="text-muted-foreground text-sm">solved</span>
-                                    <div className="font-bold text-primary">{run.problem.title}</div>
+                                    <span className="font-semibold text-primary">{run.problem.title}</span>
                                 </div>
 
-                                <div className="flex items-center justify-center md:justify-start gap-3 mt-1">
-                                    <Badge variant="outline" className={`border h-6 ${getDifficultyColor(run.problem.difficulty)}`}>
+                                <div className="flex items-center justify-center md:justify-start gap-3 mt-1 text-xs text-muted-foreground font-medium">
+                                    <span className={`flex items-center gap-1.5 ${run.problem.difficulty === 'easy' ? 'text-green-500' :
+                                        run.problem.difficulty === 'medium' ? 'text-yellow-500' : 'text-red-500'
+                                        }`}>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-current" />
                                         {run.problem.difficulty}
-                                    </Badge>
-                                    <span className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
-                                        <Clock size={12} /> {run.solvedAt}
                                     </span>
+                                    <span>•</span>
+                                    <span>{run.solvedAt}</span>
                                 </div>
                             </div>
 
@@ -179,7 +172,7 @@ export const CompetePage: React.FC = () => {
 
                             {/* Action Button (Desktop) */}
                             <div className="hidden md:block pl-4">
-                                <Button size="icon" variant="ghost" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-primary">
+                                <Button size="sm" variant="ghost" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-primary">
                                     <ArrowUpRight size={20} />
                                 </Button>
                             </div>
