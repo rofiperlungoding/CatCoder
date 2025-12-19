@@ -100,15 +100,19 @@ export const LearnPage: React.FC = () => {
                 if (normalizedActual.includes(normalizedExpected) || normalizedExpected.includes(normalizedActual)) {
                     setCodeValidated(true);
                     setValidationError(null);
-                    // addToast('success', 'Output matches expected result!');
                 } else {
                     setCodeValidated(false);
                     setValidationError(`Expected: "${expectedOutput}" but got different output.`);
-                    // addToast('error', 'Output does not match expected result.');
                 }
             } else {
-                setCodeValidated(true);
-                // addToast('success', 'Code executed successfully');
+                // If no expected output, just check if it executed without error
+                if (simulatedOutput.includes('Error executing')) {
+                    setCodeValidated(false);
+                    setValidationError('Fix the errors in your code to proceed.');
+                } else {
+                    setCodeValidated(true);
+                    setValidationError(null);
+                }
             }
         }, 1200);
     };

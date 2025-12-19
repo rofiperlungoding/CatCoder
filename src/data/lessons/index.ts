@@ -113,7 +113,7 @@ Tugas pertamamu: Tulis kode untuk menampilkan **"Hello, World!"** ke layar.
 
 Kode sudah disiapkan, coba klik **Run Code** untuk melihat hasilnya!`,
                 codeTemplate: 'print("Hello, World!")',
-                expectedOutput: 'Hello, World!',
+
                 hints: ['Pastikan menggunakan tanda kutip ganda (" ")', 'Perhatikan huruf besar/kecil']
             },
             {
@@ -232,7 +232,7 @@ Tugas:
 
 Kode dasar sudah disiapkan.`,
                 codeTemplate: 'nama_hewan = "..."\nprint(nama_hewan)',
-                expectedOutput: '...',
+
                 hints: ['Isi titik-titik dengan teks', 'Jangan lupa tanda kutip untuk teks']
             },
             {
@@ -329,7 +329,7 @@ Tugas:
 1. Perbaiki variabel \`angka_dua\` agar menjadi integer (hapus tanda kutipnya).
 2. Jalankan kode.`,
                 codeTemplate: 'angka_satu = 5\nangka_dua = "10" # Hapus tanda kutip ini!\n\nhasil = angka_satu + angka_dua\nprint(hasil)',
-                expectedOutput: '15',
+
                 hints: ['Hapus tanda kutip disekitar angka 10', 'Integer tidak memakai kutip']
             },
             {
@@ -419,7 +419,7 @@ Jika kamu ingin menjumlahkannya, kamu harus mengubahnya menjadi angka dulu (Konv
 Tugas:
 Gunakan variabel untuk menggabungkan kata sapaan.`,
                 codeTemplate: 'nama = "Programmer"\npesan = "Semangat belajar, " + nama\nprint(pesan)',
-                expectedOutput: 'Semangat belajar, Programmer',
+
                 hints: ['Gunakan operator + untuk menggabungkan string']
             },
             {
@@ -520,7 +520,7 @@ Karena 50 tidak lebih besar dari 75, program akan melompat ke bagian \`else\`.`
 Tugas:
 Lengkapi kode untuk mengecek jika \`angka\` kurang dari 0.`,
                 codeTemplate: 'angka = -5\n\nif angka > 0:\n    print("Positif")\nelif angka < 0:\n    # Tulis kodemu di sini\n    print("Negatif")',
-                expectedOutput: 'Negatif',
+
                 hints: ['Gunakan elif angka < 0:', 'Jangan lupa titik dua (:)']
             },
             {
@@ -597,7 +597,7 @@ Kode di atas akan menampilkan "Halo" sebanyak 5 kali (0 sampai 4).`
 
 Tugas: Jelajahi kode di bawah dan coba jalankan.`,
                 codeTemplate: 'print("Mulai hitung mundur...")\nfor i in range(3, 0, -1):\n    print(i)\nprint("Meluncur!")',
-                expectedOutput: 'Meluncur!',
+
                 hints: ['Parameter ketiga range adalah "langkah" (step)', '-1 artinya mundur']
             },
             {
@@ -688,7 +688,7 @@ print(hasil) # 8
                 title: 'Latihan Fungsi',
                 content: `Buatlah fungsi sederhana bernama \`kuadrat\` yang menerima satu angka, dan mengembalikan hasil pangkat duanya.`,
                 codeTemplate: 'def kuadrat(angka):\n    # Tulis kodemu disini\n    return ...\n\nprint(kuadrat(4))',
-                expectedOutput: '16',
+
                 hints: ['Gunakan operator ** 2 untuk pangkat dua']
             },
             {
@@ -767,7 +767,7 @@ Meskipun JS modern sering membolehkan kita menghapus \`;\`, sebagai pemula, **bi
 
 Jangan lupa titik komanya ya!`,
                 codeTemplate: 'console.log("Hello, World!");',
-                expectedOutput: 'Hello, World!',
+
                 hints: ['Gunakan console.log() dengan teks dalam kutip', 'Akhiri dengan titik koma ;']
             },
             {
@@ -827,7 +827,7 @@ skor = 10;
                 title: 'Latihan Variabel',
                 content: `Buat variabel \`nama\` menggunakan \`const\`, lalu tampilkan.`,
                 codeTemplate: 'const nama = "CatCoder";\nconsole.log(nama);',
-                expectedOutput: 'CatCoder',
+
                 hints: ['const nama = "..."', 'Jangan lupa titik koma']
             },
             {
@@ -898,7 +898,7 @@ int main() {
                 title: 'Latihan Hello World',
                 content: `Tulis ulang program Hello World C++ dengan benar.`,
                 codeTemplate: '#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!";\n    return 0;\n}',
-                expectedOutput: 'Hello, World!',
+
                 hints: ['Jangan lupa std::cout', 'Perhatikan tanda << (arah panah ke kiri)', 'Titik koma wajib!']
             },
             {
@@ -971,7 +971,7 @@ std::string nama = "Budi";
                 title: 'Latihan Variabel',
                 content: `Lengkapi kode berikut untuk menampilkan umur.`,
                 codeTemplate: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int umur = 17;\n    cout << "Umur: " << umur;\n    return 0;\n}',
-                expectedOutput: 'Umur: 17',
+
                 hints: ['Gunakan cout << "Teks" << variabel', 'using namespace std; agar tidak perlu tulis std:: terus']
             },
             {
