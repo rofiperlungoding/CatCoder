@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Modal, Input, Button, Toaster, LevelUpModal } from '../ui';
 import { useUserStore, useUIStore } from '../../stores';
@@ -12,6 +12,11 @@ export const MainLayout: React.FC = () => {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const location = useLocation();
+
+    // Hide sidebar on active lesson/practice routes (e.g., /learn/abc, /practice/123)
+    // But show it on the main lists (/learn, /practice)
+    const isFocusMode = /^\/(learn|practice)\/.+/.test(location.pathname);
 
     useEffect(() => {
         initializeSession();
@@ -48,12 +53,13 @@ export const MainLayout: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#050505] text-[#FAFAFA] font-sans selection:bg-lime-500/30 selection:text-white">
-            {/* Sidebar (Floating Rail) */}
-            <Sidebar />
+            {/* Sidebar (Floating Rail) - Hidden in Focus Mode */}
+            {!isFocusMode && <Sidebar />}
 
             {/* Main Content Area */}
-            <main className="lg:pl-[22rem] min-h-screen p-4 lg:p-8 transition-all duration-300">
-                <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Remove left padding when sidebar is hidden */}
+            <main className={`${isFocusMode ? 'lg:pl-0 p-4 md:p-8' : 'lg:pl-[22rem] p-4 lg:p-8'} min-h-screen transition-all duration-300`}>
+                <div className={`${isFocusMode ? 'max-w-4xl' : 'max-w-[1600px]'} mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                     <Outlet />
                 </div>
             </main>
