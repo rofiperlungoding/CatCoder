@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { ScrollToTop } from './components/layout';
+import { Toaster } from './components/ui';
 import { HomePage } from './pages/Home';
 import { LearnPage } from './pages/Learn';
 import { PracticePage } from './pages/Practice';
@@ -105,6 +106,7 @@ function App() {
         {/* Catch all - redirect to home (which will redirect to landing if not auth) */}
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
+      <Toaster />
     </BrowserRouter>
   );
 }
