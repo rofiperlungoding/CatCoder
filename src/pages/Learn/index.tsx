@@ -279,7 +279,17 @@ export const LearnPage: React.FC = () => {
                                                 </div>
                                             );
                                         }
-                                        return <span key={i}>{part}</span>;
+                                        // Parse bold markdown manually since we don't have a library
+                                        return (
+                                            <span key={i}>
+                                                {part.split(/(\*\*.*?\*\*)/).map((chunk, j) => {
+                                                    if (chunk.startsWith('**') && chunk.endsWith('**')) {
+                                                        return <strong key={j} className="text-foreground font-black">{chunk.slice(2, -2)}</strong>;
+                                                    }
+                                                    return chunk;
+                                                })}
+                                            </span>
+                                        );
                                     })}
                                 </div>
                             </div>
