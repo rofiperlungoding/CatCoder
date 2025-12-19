@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
     Home,
     BookOpen,
@@ -17,8 +17,16 @@ import { Avatar, Button } from '../ui';
 
 export const Sidebar: React.FC = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { user, logout } = useUserStore();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const handleLogout = async () => {
+        console.log('[Sidebar] Logging out...');
+        await logout();
+        console.log('[Sidebar] Logout complete, navigating to /login');
+        navigate('/login', { replace: true });
+    };
 
     const navItems = [
         { icon: Home, label: 'Home', path: '/' },
@@ -107,7 +115,7 @@ export const Sidebar: React.FC = () => {
                     )}
 
                     <button
-                        onClick={user ? logout : () => { }}
+                        onClick={user ? handleLogout : () => { }}
                         className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 hover:text-red-400 py-2 transition-colors"
                     >
                         <LogOut size={14} />
