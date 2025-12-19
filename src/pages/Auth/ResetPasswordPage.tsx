@@ -39,7 +39,7 @@ export const ResetPasswordPage: React.FC = () => {
         checkSession();
 
         // Listen for auth state changes (Supabase handles recovery token automatically)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, _session) => {
             if (event === 'PASSWORD_RECOVERY') {
                 setIsValidSession(true);
             }
