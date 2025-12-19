@@ -126,6 +126,7 @@ Tantangan terakhir sebelum lanjut ke bab berikutnya:
 **Ubah kodenya untuk menyapa diri kamu sendiri!**
 
 Contoh: \`print("Halo, Budi!")\``,
+                codeTemplate: 'print("Halo, ...")',
                 hints: ['Ganti teks di dalam tanda kutip dengan namamu']
             }
         ],

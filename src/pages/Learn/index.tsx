@@ -59,7 +59,7 @@ export const LearnPage: React.FC = () => {
     useEffect(() => {
         if (activeLesson) {
             const currentSection = activeLesson.sections[currentStep];
-            if (currentSection && currentSection.type === 'code') {
+            if (currentSection && (currentSection.type === 'code' || currentSection.type === 'challenge')) {
                 const initialCode = currentSection.codeTemplate || getDefaultCode(activeLesson.language);
                 setCode(initialCode);
                 setOutput(null);
@@ -138,6 +138,43 @@ export const LearnPage: React.FC = () => {
         }
     };
 
+    // Helper to render content with markdown (bold and code blocks)
+    const renderMarkdown = (content: string) => (
+        <div className="whitespace-pre-line">
+            {content.split('```').map((part, i) => {
+                if (i % 2 === 1) {
+                    const lines = part.split('\n');
+                    const codeContent = lines.slice(1).join('\n');
+                    return (
+                        <div key={i} className="not-prose my-12 rounded-xl overflow-hidden bg-zinc-950 border border-white/5 shadow-2xl">
+                            <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/5">
+                                <div className="flex gap-2 opacity-20">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                </div>
+                                <div className="ml-auto text-xs font-mono text-gray-500">code</div>
+                            </div>
+                            <div className="p-6 overflow-x-auto">
+                                <code className="font-mono text-sm text-gray-300 leading-relaxed block whitespace-pre">{codeContent}</code>
+                            </div>
+                        </div>
+                    );
+                }
+                return (
+                    <span key={i}>
+                        {part.split(/(\*\*.*?\*\*)/).map((chunk, j) => {
+                            if (chunk.startsWith('**') && chunk.endsWith('**')) {
+                                return <strong key={j} className="text-foreground font-black">{chunk.slice(2, -2)}</strong>;
+                            }
+                            return chunk;
+                        })}
+                    </span>
+                );
+            })}
+        </div>
+    );
+
     const handleCompleteLessonDisplay = () => {
         if (!activeLesson) return;
 
@@ -184,7 +221,7 @@ export const LearnPage: React.FC = () => {
         const totalSteps = activeLesson.sections.length;
         const currentSection = activeLesson.sections[currentStep];
         const isLastStep = currentStep === totalSteps - 1;
-        const isCodeStep = currentSection.type === 'code';
+        const isCodeStep = currentSection.type === 'code' || currentSection.type === 'challenge';
         const canProceed = isCodeStep ? codeValidated : true;
 
         const handleNext = () => {
@@ -258,40 +295,7 @@ export const LearnPage: React.FC = () => {
                                 prose-strong:text-foreground prose-strong:font-bold
                                 prose-code:text-foreground prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none prose-code:font-mono prose-code:text-[0.9em]
                                 ">
-                                <div className="whitespace-pre-line">
-                                    {currentSection.content.split('```').map((part, i) => {
-                                        if (i % 2 === 1) {
-                                            const lines = part.split('\n');
-                                            const codeContent = lines.slice(1).join('\n');
-                                            return (
-                                                <div key={i} className="not-prose my-12 rounded-xl overflow-hidden bg-zinc-950 border border-white/5 shadow-2xl">
-                                                    <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/5">
-                                                        <div className="flex gap-2 opacity-20">
-                                                            <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                                                            <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                                                            <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                                                        </div>
-                                                        <div className="ml-auto text-xs font-mono text-gray-500">code</div>
-                                                    </div>
-                                                    <div className="p-6 overflow-x-auto">
-                                                        <code className="font-mono text-sm text-gray-300 leading-relaxed block whitespace-pre">{codeContent}</code>
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
-                                        // Parse bold markdown manually since we don't have a library
-                                        return (
-                                            <span key={i}>
-                                                {part.split(/(\*\*.*?\*\*)/).map((chunk, j) => {
-                                                    if (chunk.startsWith('**') && chunk.endsWith('**')) {
-                                                        return <strong key={j} className="text-foreground font-black">{chunk.slice(2, -2)}</strong>;
-                                                    }
-                                                    return chunk;
-                                                })}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
+                                {renderMarkdown(currentSection.content)}
                             </div>
                         )}
 
@@ -388,18 +392,75 @@ export const LearnPage: React.FC = () => {
                                         <span className="text-sm font-bold uppercase tracking-widest text-primary">Challenge</span>
                                     </div>
 
-                                    <p className="text-xl md:text-2xl text-foreground leading-relaxed mb-8 font-medium">
-                                        {currentSection.content}
-                                    </p>
+                                    <div className="text-xl md:text-2xl text-foreground leading-relaxed mb-8 font-medium">
+                                        {renderMarkdown(currentSection.content)}
+                                    </div>
 
                                     {currentSection.hints && (
-                                        <div className="bg-muted/50 rounded-xl p-6 border border-border inline-block">
+                                        <div className="bg-muted/50 rounded-xl p-6 border border-border mb-8 inline-block">
                                             <p className="font-bold text-muted-foreground text-xs tracking-wider uppercase mb-2 flex items-center gap-2">
                                                 <HelpCircle size={14} /> Hint
                                             </p>
                                             <p className="text-foreground/80">{currentSection.hints[0]}</p>
                                         </div>
                                     )}
+
+                                    {/* Code Editor for Challenge */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[400px]">
+                                        {/* Editor */}
+                                        <div className="flex flex-col rounded-xl overflow-hidden border border-border shadow-lg bg-[#1e1e1e]">
+                                            <div className="bg-[#1e1e1e] px-4 py-3 flex items-center justify-between border-b border-white/5">
+                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Solution Editor</span>
+                                            </div>
+                                            <div className="flex-1 min-h-[300px]">
+                                                <CodeEditor
+                                                    value={code || ''}
+                                                    onChange={(v) => setCode(v || '')}
+                                                    language={activeLesson.language}
+                                                />
+                                            </div>
+                                            <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end">
+                                                <Button
+                                                    onClick={handleRunCode}
+                                                    disabled={isRunning}
+                                                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                                                    size="sm"
+                                                >
+                                                    {isRunning ? <Sparkles className="animate-spin mr-2" size={14} /> : <Play className="mr-2" size={14} />}
+                                                    Run Solution
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Output */}
+                                        <div className="flex flex-col">
+                                            {(output || validationError) ? (
+                                                <div className={`h-full rounded-xl p-5 font-mono text-sm border flex flex-col animate-in fade-in zoom-in-95 duration-200 ${codeValidated
+                                                    ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50'
+                                                    : validationError
+                                                        ? 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50'
+                                                        : 'bg-card border-border'
+                                                    }`}>
+                                                    <div className="flex items-center justify-between mb-3 pb-3 border-b border-black/5 dark:border-white/5">
+                                                        <span className="font-bold text-xs uppercase tracking-wider opacity-70 flex items-center gap-2">
+                                                            <Terminal size={14} />
+                                                            {codeValidated ? 'Passed' : 'Console'}
+                                                        </span>
+                                                        {codeValidated && <CheckCircle2 size={16} className="text-emerald-500" />}
+                                                    </div>
+
+                                                    <div className={`flex-1 whitespace-pre-wrap ${codeValidated ? 'text-emerald-700 dark:text-emerald-300' : validationError ? 'text-red-700 dark:text-red-300' : 'text-foreground'}`}>
+                                                        {validationError || output}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="h-full rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/30">
+                                                    <Terminal size={24} className="mb-3 opacity-30" />
+                                                    <p className="text-sm">Run your code to see output</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
