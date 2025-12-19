@@ -14,7 +14,7 @@ export const lessons: Lesson[] = [
             {
                 id: 'intro',
                 type: 'text',
-                title: '🌱 Welcome to Programming!',
+                title: 'Welcome to Programming!',
                 content: `Selamat datang di dunia programming! 
 
 Di pelajaran pertama ini, kamu akan menulis program pertamamu. Jangan khawatir, kita akan mulai dari yang paling dasar.
@@ -31,7 +31,7 @@ Python adalah bahasa yang sangat ramah untuk pemula karena:
             {
                 id: 'concept',
                 type: 'text',
-                title: '📖 Mengenal print()',
+                title: 'Mengenal print()',
                 content: `**Fungsi print()** adalah cara Python menampilkan teks ke layar.
 
 Bayangkan kamu ingin komputer mengatakan sesuatu. Kamu perlu "mencetak" (print) kata-kata tersebut ke layar.
@@ -50,7 +50,7 @@ Perhatikan:
             {
                 id: 'example1',
                 type: 'text',
-                title: '👀 Contoh-Contoh',
+                title: 'Contoh-Contoh',
                 content: `Lihat beberapa contoh penggunaan print():
 
 **Contoh 1:** Menampilkan sapaan
@@ -65,16 +65,16 @@ print("Saya sedang belajar Python")
 \`\`\`
 Output: \`Saya sedang belajar Python\`
 
-**Contoh 3:** Menampilkan emoji
+**Contoh 3:** Menampilkan teks sederhana
 \`\`\`python
-print("🐱 Meow!")
+print("Meow!")
 \`\`\`
-Output: \`🐱 Meow!\``
+Output: \`Meow!\``
             },
             {
                 id: 'guided-practice',
                 type: 'code',
-                title: '🎯 Latihan Terbimbing',
+                title: 'Latihan Terbimbing',
                 content: `Sekarang giliranmu! Tulis kode untuk menampilkan "Hello, World!" ke layar.
 
 **Tips:**
@@ -90,12 +90,12 @@ Kode sudah disiapkan, coba klik "Run Code" untuk melihat hasilnya!`,
             {
                 id: 'challenge',
                 type: 'challenge',
-                title: '🏆 Tantangan Mini',
+                title: 'Tantangan Mini',
                 content: `Sekarang coba modifikasi kode di atas untuk menampilkan namamu sendiri!
 
 Contoh: \`print("Halo, namaku Budi!")\`
 
-Setelah berhasil, kamu sudah resmi menjadi programmer! 🎉`,
+Setelah berhasil, kamu sudah resmi menjadi programmer!`,
                 hints: ['Ganti teks di dalam kutip dengan sapaan yang menyertakan namamu']
             }
         ],

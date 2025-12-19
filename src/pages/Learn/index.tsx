@@ -236,15 +236,15 @@ export const LearnPage: React.FC = () => {
                     <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
 
                         {/* Section Header */}
-                        <div className="mb-10">
-                            <div className="flex items-center gap-3 mb-4">
-                                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 bg-primary/10 text-primary border-primary/20 rounded-md">
+                        <div className="mb-12">
+                            <div className="flex items-center gap-3 mb-6">
+                                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 border border-border px-3 py-1 rounded-full">
                                     {currentSection.type}
-                                </Badge>
+                                </span>
                             </div>
 
                             {currentSection.title && (
-                                <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-6 tracking-tight leading-[1.1] text-left">
+                                <h1 className="text-4xl md:text-6xl font-black text-foreground mb-8 tracking-tighter leading-[1.1] text-left">
                                     {currentSection.title}
                                 </h1>
                             )}
@@ -252,11 +252,11 @@ export const LearnPage: React.FC = () => {
 
                         {/* Text Content */}
                         {currentSection.type === 'text' && (
-                            <div className="prose prose-xl prose-gray dark:prose-invert max-w-none 
+                            <div className="prose prose-xl prose-stone dark:prose-invert max-w-none 
                                 prose-headings:font-bold prose-headings:tracking-tight 
-                                prose-p:leading-relaxed prose-p:text-muted-foreground 
-                                prose-strong:text-foreground prose-strong:font-semibold
-                                prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
+                                prose-p:leading-relaxed prose-p:text-muted-foreground prose-p:text-lg
+                                prose-strong:text-foreground prose-strong:font-bold
+                                prose-code:text-foreground prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none prose-code:font-mono prose-code:text-[0.9em]
                                 ">
                                 <div className="whitespace-pre-line">
                                     {currentSection.content.split('```').map((part, i) => {
@@ -264,17 +264,17 @@ export const LearnPage: React.FC = () => {
                                             const lines = part.split('\n');
                                             const codeContent = lines.slice(1).join('\n');
                                             return (
-                                                <div key={i} className="not-prose my-10 rounded-xl overflow-hidden bg-[#0d1117] border border-white/10 shadow-lg">
+                                                <div key={i} className="not-prose my-12 rounded-xl overflow-hidden bg-zinc-950 border border-white/5 shadow-2xl">
                                                     <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/5">
-                                                        <div className="flex gap-1.5">
-                                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
-                                                            <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
-                                                            <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                                                        <div className="flex gap-2 opacity-20">
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-white" />
                                                         </div>
-                                                        <div className="ml-auto text-xs font-mono text-gray-500 opacity-60">code preview</div>
+                                                        <div className="ml-auto text-xs font-mono text-gray-500">code</div>
                                                     </div>
                                                     <div className="p-6 overflow-x-auto">
-                                                        <code className="font-mono text-sm text-gray-300 leading-relaxed">{codeContent}</code>
+                                                        <code className="font-mono text-sm text-gray-300 leading-relaxed block whitespace-pre">{codeContent}</code>
                                                     </div>
                                                 </div>
                                             );
