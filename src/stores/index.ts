@@ -142,7 +142,10 @@ export const useUserStore = create<UserState>()(
             },
 
             signIn: async (email, password) => {
+                console.log('[Auth] signIn called with email:', email);
+
                 if (!isSupabaseConfigured()) {
+                    console.log('[Auth] Supabase not configured - using mock login');
                     useUIStore.getState().addToast('warning', 'Supabase not configured. Using mock login.');
                     set({
                         user: {
@@ -162,33 +165,127 @@ export const useUserStore = create<UserState>()(
                     return { user: null, error: null };
                 }
 
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
+                try {
+                    console.log('[Auth] Attempting Supabase signIn...');
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
 
-                if (error) {
-                    useUIStore.getState().addToast('error', error.message);
-                    return { user: null, error };
+                    if (error) {
+                        console.error('[Auth] SignIn error:', error.message);
+                        useUIStore.getState().addToast('error', error.message);
+                        return { user: null, error };
+                    }
+
+                    console.log('[Auth] SignIn successful, user:', data.user?.id);
+
+                    if (data.user) {
+                        // Try to fetch profile from profiles table
+                        console.log('[Auth] Fetching profile...');
+                        const profile = await fetchProfile(data.user.id);
+
+                        if (profile) {
+                            console.log('[Auth] Profile found:', profile.username);
+                            profile.email = data.user.email || '';
+                            set({
+                                user: profile,
+                                isAuthenticated: true,
+                                isGuest: false
+                            });
+                            useUIStore.getState().addToast('success', 'Welcome back!');
+                        } else {
+                            console.log('[Auth] No profile found - creating basic user');
+                            // Profile doesn't exist yet - create basic user from auth data
+                            const basicUser: User = {
+                                id: data.user.id,
+                                email: data.user.email || '',
+                                username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
+                                xp: 0,
+                                level: 1,
+                                rank: 'bronze',
+                                streakCurrent: 0,
+                                streakBest: 0,
+                                createdAt: data.user.created_at || new Date().toISOString()
+                            };
+                            set({
+                                user: basicUser,
+                                isAuthenticated: true,
+                                isGuest: false
+                            });
+                            useUIStore.getState().addToast('success', 'Welcome!');
+
+                            // Try to create profile in database
+                            console.log('[Auth] Creating profile in database...');
+                            try {
+                                await supabase.from('profiles').upsert({
+                                    id: data.user.id,
+                                    username: basicUser.username,
+                                    xp: 0,
+                                    level: 1,
+                                    rank: 'bronze',
+                                    streak_current: 0,
+                                    streak_best: 0
+                                });
+                                console.log('[Auth] Profile created successfully');
+                            } catch (profileError) {
+                                console.warn('[Auth] Failed to create profile:', profileError);
+                            }
+                        }
+                    }
+
+                    console.log('[Auth] SignIn complete, isAuthenticated:', true);
+                    return { user: data.user, error: null };
+                } catch (err) {
+                    console.error('[Auth] Unexpected error during signIn:', err);
+                    useUIStore.getState().addToast('error', 'An unexpected error occurred');
+                    return { user: null, error: { message: 'Unexpected error' } };
+                }
+            },
+
+            signUp: async (email, password, username) => {
+                console.log('[Auth] signUp called with email:', email, 'username:', username);
+
+                if (!isSupabaseConfigured()) {
+                    console.log('[Auth] Supabase not configured');
+                    useUIStore.getState().addToast('warning', 'Supabase not configured. Cannot sign up.');
+                    return { user: null, error: { message: 'Supabase not configured' } };
                 }
 
-                if (data.user) {
-                    // Fetch profile from profiles table
-                    const profile = await fetchProfile(data.user.id);
-                    if (profile) {
-                        profile.email = data.user.email || '';
-                        set({
-                            user: profile,
-                            isAuthenticated: true,
-                            isGuest: false
-                        });
-                        useUIStore.getState().addToast('success', 'Welcome back!');
-                    } else {
-                        // Profile doesn't exist yet - create basic user from auth data
+                try {
+                    console.log('[Auth] Attempting Supabase signUp...');
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: {
+                                username: username
+                            }
+                        }
+                    });
+
+                    if (error) {
+                        console.error('[Auth] SignUp error:', error.message);
+                        useUIStore.getState().addToast('error', error.message);
+                        return { user: null, error };
+                    }
+
+                    console.log('[Auth] SignUp response:', data);
+
+                    // Check if email confirmation is required
+                    if (data.user && !data.session) {
+                        console.log('[Auth] Email confirmation required');
+                        useUIStore.getState().addToast('success', 'Account created! Please check your email to confirm.');
+                        return { user: data.user, error: null };
+                    }
+
+                    // If session exists, user is auto-confirmed
+                    if (data.user && data.session) {
+                        console.log('[Auth] User auto-confirmed, logging in...');
                         const basicUser: User = {
                             id: data.user.id,
                             email: data.user.email || '',
-                            username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
+                            username: username || data.user.email?.split('@')[0] || 'User',
                             xp: 0,
                             level: 1,
                             rank: 'bronze',
@@ -196,41 +293,38 @@ export const useUserStore = create<UserState>()(
                             streakBest: 0,
                             createdAt: data.user.created_at || new Date().toISOString()
                         };
+
                         set({
                             user: basicUser,
                             isAuthenticated: true,
                             isGuest: false
                         });
-                        useUIStore.getState().addToast('success', 'Welcome! Setting up your profile...');
-                    }
-                }
 
-                return { user: data.user, error: null };
-            },
-
-            signUp: async (email, password, username) => {
-                if (!isSupabaseConfigured()) {
-                    useUIStore.getState().addToast('warning', 'Supabase not configured. Cannot sign up.');
-                    return { user: null, error: { message: 'Supabase not configured' } };
-                }
-
-                const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            username: username
+                        // Create profile in database
+                        try {
+                            await supabase.from('profiles').upsert({
+                                id: data.user.id,
+                                username: username,
+                                xp: 0,
+                                level: 1,
+                                rank: 'bronze',
+                                streak_current: 0,
+                                streak_best: 0
+                            });
+                            console.log('[Auth] Profile created in database');
+                        } catch (profileError) {
+                            console.warn('[Auth] Failed to create profile:', profileError);
                         }
+
+                        useUIStore.getState().addToast('success', 'Welcome to CatCoder!');
                     }
-                });
 
-                if (error) {
-                    useUIStore.getState().addToast('error', error.message);
-                    return { user: null, error };
+                    return { user: data.user, error: null };
+                } catch (err) {
+                    console.error('[Auth] Unexpected error during signUp:', err);
+                    useUIStore.getState().addToast('error', 'An unexpected error occurred');
+                    return { user: null, error: { message: 'Unexpected error' } };
                 }
-
-                useUIStore.getState().addToast('success', 'Account created! Please check your email.');
-                return { user: data.user, error: null };
             },
 
             initializeSession: async () => {
