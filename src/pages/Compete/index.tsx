@@ -1,205 +1,193 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-    Flame,
-    Medal,
+    Zap,
     Clock,
-    Calendar,
     Trophy,
-    ArrowRight
+    Timer,
+    ArrowUpRight,
+    Search
 } from 'lucide-react';
-import { Button, Badge, Tabs } from '../../components/ui';
-import { useUserStore, useUIStore } from '../../stores';
-import { formatTime } from '../../lib/utils';
-import { fetchLeaderboard } from '../../lib/leaderboard';
-import type { LeaderboardEntry } from '../../types';
+import { Badge, Button } from '../../components/ui';
+import { useUserStore } from '../../stores';
+
+// Types for Speed Run
+interface SpeedRunEntry {
+    id: string;
+    user: {
+        username: string;
+        avatarUrl?: string;
+        league: string;
+    };
+    problem: {
+        title: string;
+        difficulty: 'easy' | 'medium' | 'hard';
+    };
+    duration: string; // e.g., "12m 30s"
+    solvedAt: string; // e.g., "2 mins ago"
+}
+
+// Mock Data
+const MOCK_SPEED_RUNS: SpeedRunEntry[] = [
+    {
+        id: '1',
+        user: { username: 'kucing_glitch', league: 'diamond' },
+        problem: { title: 'Two Sum', difficulty: 'easy' },
+        duration: '00:45s',
+        solvedAt: 'Just now'
+    },
+    {
+        id: '2',
+        user: { username: 'keyboard_warior', league: 'gold' },
+        problem: { title: 'Merge Sort Implementation', difficulty: 'medium' },
+        duration: '12m 10s',
+        solvedAt: '2 mins ago'
+    },
+    {
+        id: '3',
+        user: { username: 'algo_master', league: 'platinum' },
+        problem: { title: 'Dijkstra Pathfinding', difficulty: 'hard' },
+        duration: '45m 00s',
+        solvedAt: '5 mins ago'
+    },
+    {
+        id: '4',
+        user: { username: 'newbie_coder', league: 'silver' },
+        problem: { title: 'Palindrome Check', difficulty: 'easy' },
+        duration: '05m 20s',
+        solvedAt: '12 mins ago'
+    },
+    {
+        id: '5',
+        user: { username: 'bug_hunter_99', league: 'gold' },
+        problem: { title: 'Valid Parentheses', difficulty: 'medium' },
+        duration: '08m 45s',
+        solvedAt: '25 mins ago'
+    },
+];
 
 export const CompetePage: React.FC = () => {
-    const { user, addXP, updateStreak } = useUserStore();
-    const { addToast } = useUIStore();
+    const { user } = useUserStore();
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const [activeTab, setActiveTab] = useState<'challenges' | 'leaderboard'>('challenges');
-    const [dailyTimeLeft, setDailyTimeLeft] = useState(0);
-    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-
-    // Fetch leaderboard on mount
-    useEffect(() => {
-        const loadLeaderboard = async () => {
-            const data = await fetchLeaderboard(10);
-            setLeaderboard(data);
-        };
-        loadLeaderboard();
-    }, []);
-
-    const handleStartChallenge = () => {
-        addToast('info', 'Challenge started! Timer running...');
-        setTimeout(() => {
-            addXP(200);
-            updateStreak();
-            addToast('success', 'Challenge Solved! +200 XP (Double Rewards)');
-        }, 2000);
+    const getDifficultyColor = (diff: string) => {
+        switch (diff) {
+            case 'easy': return 'text-green-500 bg-green-500/10 border-green-500/20';
+            case 'medium': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
+            case 'hard': return 'text-red-500 bg-red-500/10 border-red-500/20';
+            default: return 'text-gray-500';
+        }
     };
 
-    // Calculate time remaining
-    useEffect(() => {
-        const calculateTimeLeft = () => {
-            setDailyTimeLeft(prev => (prev > 0 ? prev - 1 : 86400));
-        };
-        calculateTimeLeft();
-    }, []);
-
-    const tabs = [
-        { id: 'challenges', label: 'Active Challenges', icon: <Flame size={16} /> },
-        { id: 'leaderboard', label: 'Global Rankings', icon: <Medal size={16} /> }
-    ];
-
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="space-y-8 max-w-5xl mx-auto pb-20">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
-                        Competition Center
-                        <Trophy size={24} className="text-yellow-500" />
+                    <h1 className="text-4xl font-black text-primary mb-2 flex items-center gap-3 tracking-tight">
+                        <Zap size={32} className="text-yellow-500 fill-yellow-500" />
+                        Live Speed Runs
                     </h1>
-                    <p className="text-muted-foreground">Compete, rank up, and earn glory among peers.</p>
+                    <p className="text-muted-foreground text-lg">
+                        Real-time feed of developers crushing coding challenges.
+                    </p>
+                </div>
+
+                <div className="flex gap-3 w-full md:w-auto">
+                    {/* Search Bar */}
+                    <div className="relative group w-full md:w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search racer..."
+                            className="w-full bg-white dark:bg-card border-none ring-1 ring-gray-200 dark:ring-border rounded-full pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
 
-            <Tabs
-                tabs={tabs}
-                activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as any)}
-                className="mb-8"
-            />
+            {/* Speed Run Feed */}
+            <div className="grid gap-4">
+                {MOCK_SPEED_RUNS.map((run, index) => (
+                    <div
+                        key={run.id}
+                        className="group relative bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-muted/30 rounded-3xl p-5 border border-gray-100 dark:border-border transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-black/5"
+                    >
+                        <div className="flex flex-col md:flex-row items-center gap-6">
 
-            {activeTab === 'challenges' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Daily Challenge - Featured */}
-                    <div className="col-span-1 md:col-span-2 bg-black dark:bg-card border border-transparent dark:border-border text-white rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden shadow-xl shadow-black/5 dark:shadow-black/20">
-                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-lime-500/20 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
-
-                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                            <div className="max-w-xl">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-black/10 dark:border-white/5 text-lime-400 font-semibold tracking-wide uppercase text-xs mb-4">
-                                    <Clock size={14} /> Ends in {formatTime(dailyTimeLeft)}
+                            {/* 1. Rank & Avatar */}
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                                <div className="font-mono text-2xl font-bold text-gray-300 w-8 text-center">
+                                    #{index + 1}
                                 </div>
-                                <h2 className="text-4xl font-bold mb-4 text-white">Daily Algorithm Challenge</h2>
-                                <p className="text-white/70 mb-8 text-lg leading-relaxed">
-                                    Solve today's featured problem <span className="text-white font-semibold">"Matrix Rotation"</span> to earn double XP and extend your streak.
-                                </p>
-                                <Button
-                                    className="bg-lime-400 text-black hover:bg-lime-500 border-none px-8 py-6 text-lg rounded-full font-bold shadow-lg shadow-lime-900/10"
-                                    onClick={handleStartChallenge}
-                                >
-                                    Start Challenge Now
+                                <div className="relative">
+                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-2 border-white dark:border-gray-700 shadow-sm flex items-center justify-center text-xl font-bold text-gray-500 uppercase overflow-hidden">
+                                        {run.user.avatarUrl ? (
+                                            <img src={run.user.avatarUrl} alt={run.user.username} className="w-full h-full object-cover" />
+                                        ) : (
+                                            run.user.username.charAt(0)
+                                        )}
+                                    </div>
+                                    <div className="absolute -bottom-1 -right-1 bg-black dark:bg-white text-white dark:text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white dark:border-black uppercase tracking-wider">
+                                        {run.user.league}
+                                    </div>
+                                </div>
+                                <div className="md:hidden flex-1">
+                                    <h3 className="font-bold text-base text-primary">{run.user.username}</h3>
+                                    <span className="text-xs text-muted-foreground">{run.solvedAt}</span>
+                                </div>
+                            </div>
+
+                            {/* 2. Challenge Info */}
+                            <div className="flex-1 w-full text-center md:text-left">
+                                <div className="hidden md:block">
+                                    <h3 className="font-bold text-lg text-primary flex items-center gap-2 group-hover:text-lime-600 transition-colors cursor-pointer">
+                                        {run.user.username}
+                                        <span className="text-muted-foreground font-normal text-sm">solved</span>
+                                        {run.problem.title}
+                                    </h3>
+                                </div>
+                                <div className="md:hidden text-center mb-2">
+                                    <span className="text-muted-foreground text-sm">solved</span>
+                                    <div className="font-bold text-primary">{run.problem.title}</div>
+                                </div>
+
+                                <div className="flex items-center justify-center md:justify-start gap-3 mt-1">
+                                    <Badge variant="outline" className={`border h-6 ${getDifficultyColor(run.problem.difficulty)}`}>
+                                        {run.problem.difficulty}
+                                    </Badge>
+                                    <span className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
+                                        <Clock size={12} /> {run.solvedAt}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* 3. Time Stats */}
+                            <div className="flex flex-row md:flex-col items-center justify-between w-full md:w-auto gap-2 md:pl-8 md:border-l border-gray-100 dark:border-border/50">
+                                <div className="md:hidden text-sm font-semibold text-muted-foreground">Duration</div>
+                                <div className="flex flex-col items-end">
+                                    <div className="text-2xl font-black text-primary font-mono tracking-tight flex items-center gap-2">
+                                        <Timer size={20} className="text-lime-500" />
+                                        {run.duration}
+                                    </div>
+                                    <div className="text-[10px] font-bold text-lime-600 dark:text-lime-400 uppercase tracking-wide bg-lime-100 dark:bg-lime-900/30 px-2 py-0.5 rounded-full mt-1">
+                                        New PB 🔥
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Button (Desktop) */}
+                            <div className="hidden md:block pl-4">
+                                <Button size="icon" variant="ghost" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-primary">
+                                    <ArrowUpRight size={20} />
                                 </Button>
                             </div>
 
-                            <div className="hidden md:flex flex-col items-center justify-center w-32 h-32 bg-white/5 rounded-[2.5rem] backdrop-blur-md border border-black/10 dark:border-white/5">
-                                <span className="text-3xl">🔥</span>
-                                <span className="text-xs font-bold mt-2 text-white/50">200 XP</span>
-                            </div>
                         </div>
                     </div>
-
-                    {/* Weekly */}
-                    <div className="bg-white dark:bg-card p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 transition-all border border-gray-100 dark:border-border flex flex-col justify-between">
-                        <div>
-                            <Badge variant="secondary" className="mb-4 bg-gray-100 text-primary border-transparent">Weekly Contest</Badge>
-                            <h3 className="font-bold text-xl mb-3 text-primary">System Design: URL Shortener</h3>
-                            <p className="text-muted-foreground mb-6 leading-relaxed">Design a scalable URL shortening service like bit.ly. Focus on database schema and API.</p>
-                        </div>
-                        <Button variant="secondary" className="w-full rounded-full border-gray-200 hover:bg-gray-50 group">
-                            View Details <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    </div>
-
-                    {/* Coming Soon */}
-                    <div className="bg-gray-50 dark:bg-muted/50 p-8 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-border flex flex-col items-center justify-center text-center">
-                        <div className="w-16 h-16 bg-white dark:bg-card rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                            <Calendar size={28} className="text-gray-400" />
-                        </div>
-                        <h3 className="font-bold text-lg text-gray-500 mb-1">Weekend Hackathon</h3>
-                        <p className="text-sm text-gray-400 font-medium">Starts in 3 days</p>
-                    </div>
-                </div>
-            )}
-
-            {activeTab === 'leaderboard' && (
-                <div className="bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-gray-100 dark:border-border">
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Rank</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">User</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Score</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                                {leaderboard.map((entry) => {
-                                    const isCurrentUser = user?.id === entry.user.id;
-                                    return (
-                                        <tr
-                                            key={entry.rank}
-                                            className={`
-                                                group transition-colors
-                                                ${isCurrentUser
-                                                    ? 'bg-lime-50/80 dark:bg-lime-900/20 border-l-4 border-l-lime-500'
-                                                    : 'hover:bg-gray-50/80 dark:hover:bg-muted/50 border-l-4 border-l-transparent'
-                                                }
-                                            `}
-                                        >
-                                            <td className="px-6 py-5">
-                                                <div className={`
-                                                    w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm
-                                                    ${entry.rank === 1 ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
-                                                        entry.rank === 2 ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300' :
-                                                            entry.rank === 3 ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-800 dark:text-orange-300' : 'bg-white dark:bg-muted border border-gray-100 dark:border-border text-gray-500 dark:text-gray-400'}
-                                                `}>
-                                                    {entry.rank}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`
-                                                        w-10 h-10 rounded-full flex items-center justify-center text-lg
-                                                        ${isCurrentUser
-                                                            ? 'bg-lime-100 dark:bg-lime-900/40 text-lime-600 dark:text-lime-400 border-2 border-lime-200 dark:border-lime-700'
-                                                            : 'bg-gray-100 dark:bg-muted border border-gray-200 dark:border-border'}
-                                                    `}>
-                                                        {entry.user.avatarUrl ? (
-                                                            <img src={entry.user.avatarUrl} alt={entry.user.username} className="w-full h-full rounded-full object-cover" />
-                                                        ) : (
-                                                            <span>{entry.user.username.charAt(0).toUpperCase()}</span>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`font-bold block group-hover:text-lime-600 transition-colors ${isCurrentUser ? 'text-lime-700 dark:text-lime-400' : 'text-primary dark:text-white'}`}>
-                                                                {entry.user.username}
-                                                            </span>
-                                                            {isCurrentUser && (
-                                                                <Badge variant="success" size="sm" className="h-5 px-1.5 text-[10px]">YOU</Badge>
-                                                            )}
-                                                        </div>
-                                                        <span className="text-xs text-muted-foreground font-medium capitalize">{entry.user.rank} League</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-right">
-                                                <div className={`font-bold ${isCurrentUser ? 'text-lime-700 dark:text-lime-400' : 'text-primary dark:text-white'}`}>
-                                                    {entry.score.toLocaleString()} XP
-                                                </div>
-                                                <div className="text-xs text-muted-foreground">{entry.problemsSolved} Solved</div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                ))}
+            </div>
         </div>
     );
 };
