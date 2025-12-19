@@ -303,7 +303,7 @@ export const LearnPage: React.FC = () => {
                         {currentSection.type === 'code' && (
                             <div className="grid grid-cols-1 gap-8">
                                 <div className="prose prose-lg dark:prose-invert max-w-none text-muted-foreground">
-                                    <p className="whitespace-pre-line leading-relaxed">{currentSection.content}</p>
+                                    {renderMarkdown(currentSection.content)}
                                 </div>
 
                                 {currentSection.hints && currentSection.hints.length > 0 && (
