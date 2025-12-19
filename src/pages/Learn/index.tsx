@@ -11,7 +11,6 @@ import {
     ChevronLeft,
     Play,
     Terminal,
-    HelpCircle,
     Lightbulb
 } from 'lucide-react';
 import { Badge, Tabs, Button } from '../../components/ui';

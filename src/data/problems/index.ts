@@ -115,7 +115,7 @@ You may assume that each input would have exactly one solution, and you may not 
 - \`target\`: The integer sum to find.
 
 **Output**
-- An array containing the two indices `[index1, index2]`.
+- An array containing the two indices, e.g. [0, 1].
 
 **Constraints**
 - 2 <= nums.length <= 10^4

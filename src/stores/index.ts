@@ -109,7 +109,6 @@ interface UserState {
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
     updateStreak: () => void;
-    updateStreak: () => void;
     updateProfile: (updates: Partial<User>) => Promise<void>;
     addActivity: (activity: Omit<Activity, 'id' | 'timestamp'>) => void;
 }
@@ -119,7 +118,6 @@ export const useUserStore = create<UserState>()(
         (set, get) => ({
             user: null,
             isAuthenticated: false,
-            isGuest: false,
             isGuest: false,
             isLoading: true,
             selectedLanguage: 'python',
@@ -615,16 +613,16 @@ export const useProgressStore = create<ProgressState>()(
                                 if (problem) title = `Solved: ${problem.title}`;
 
                                 userStore.addActivity({
-                                    type: contentType === 'lesson' ? 'lesson_completed' : 'problem_solved',
+                                    type: 'problem_solved',
                                     title,
-                                    xpEarned: score || (contentType === 'lesson' ? 50 : 100)
+                                    xpEarned: score || 100
                                 });
                             });
                         } else {
                             userStore.addActivity({
-                                type: contentType === 'lesson' ? 'lesson_completed' : 'problem_solved',
+                                type: 'lesson_completed',
                                 title,
-                                xpEarned: score || (contentType === 'lesson' ? 50 : 100)
+                                xpEarned: score || 50
                             });
                         }
                     });
