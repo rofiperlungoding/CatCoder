@@ -31,6 +31,14 @@ export interface UserAchievement {
     unlockedAt: string;
 }
 
+export interface Activity {
+    id: string;
+    type: 'lesson_completed' | 'problem_solved' | 'level_up' | 'achievement_unlocked';
+    title: string;
+    xpEarned: number;
+    timestamp: string;
+}
+
 // Content types
 export type Language = 'python' | 'javascript' | 'cpp';
 export type Tier = 1 | 2 | 3 | 4 | 5;

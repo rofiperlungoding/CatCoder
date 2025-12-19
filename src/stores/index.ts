@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User, UserProgress, Language } from '../types';
+import type { User, UserProgress, Language, Activity } from '../types';
 import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../lib/utils';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
@@ -97,6 +97,7 @@ interface UserState {
     isGuest: boolean;
     isLoading: boolean;
     selectedLanguage: Language;
+    recentActivities: Activity[];
 
     // Actions
     setUser: (user: User | null) => void;
@@ -108,7 +109,9 @@ interface UserState {
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
     updateStreak: () => void;
+    updateStreak: () => void;
     updateProfile: (updates: Partial<User>) => Promise<void>;
+    addActivity: (activity: Omit<Activity, 'id' | 'timestamp'>) => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -117,8 +120,10 @@ export const useUserStore = create<UserState>()(
             user: null,
             isAuthenticated: false,
             isGuest: false,
+            isGuest: false,
             isLoading: true,
             selectedLanguage: 'python',
+            recentActivities: [],
 
             setUser: (user) => set({
                 user,
@@ -396,6 +401,12 @@ export const useUserStore = create<UserState>()(
                 // Check for level up
                 if (newLevel > user.level) {
                     useUIStore.getState().showLevelUp(newLevel);
+                    // Add Level Up Activity
+                    get().addActivity({
+                        type: 'level_up',
+                        title: `Reached Level ${newLevel}`,
+                        xpEarned: 0
+                    });
                 }
 
                 const updatedUser = {
@@ -474,6 +485,17 @@ export const useUserStore = create<UserState>()(
                 } else {
                     useUIStore.getState().addToast('success', 'Profile updated (Guest mode)');
                 }
+            },
+
+            addActivity: (activity) => {
+                const { recentActivities } = get();
+                const newActivity: Activity = {
+                    ...activity,
+                    id: Math.random().toString(36).substring(7),
+                    timestamp: new Date().toISOString()
+                };
+                // Keep only last 20 activities
+                set({ recentActivities: [newActivity, ...recentActivities].slice(0, 20) });
             }
         }),
         {
@@ -603,6 +625,37 @@ export const useProgressStore = create<ProgressState>()(
 
                 // Sync to Supabase
                 syncProgressToSupabase(userId, contentType, contentId, score);
+
+                // Add Activity
+                if (contentType === 'lesson' || contentType === 'problem') {
+                    // Fetch title (this is a bit hacky, ideally we pass it or look it up properly)
+                    // For now, let's look it up from data sets if possible, or pass generic title
+                    let title = contentType === 'lesson' ? 'Completed Lesson' : 'Solved Problem';
+                    import('../data/lessons').then(({ lessons }) => {
+                        const lesson = lessons.find(l => l.id === contentId);
+                        if (lesson) title = `Completed: ${lesson.title}`;
+
+                        // For problems we would need to dynamically import or having it passed
+                        if (contentType === 'problem') {
+                            import('../data/problems').then(({ problems }) => {
+                                const problem = problems.find(p => p.id === contentId);
+                                if (problem) title = `Solved: ${problem.title}`;
+
+                                userStore.addActivity({
+                                    type: contentType === 'lesson' ? 'lesson_completed' : 'problem_solved',
+                                    title,
+                                    xpEarned: score || (contentType === 'lesson' ? 50 : 100)
+                                });
+                            });
+                        } else {
+                            userStore.addActivity({
+                                type: contentType === 'lesson' ? 'lesson_completed' : 'problem_solved',
+                                title,
+                                xpEarned: score || (contentType === 'lesson' ? 50 : 100)
+                            });
+                        }
+                    });
+                }
             },
 
             isCompleted: (contentType, contentId) => {
