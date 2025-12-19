@@ -78,7 +78,7 @@ export const MainLayout: React.FC = () => {
                         value={email}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                         required
-                        className="bg-[#1a1a1a] border-[#262626] text-white focus:border-white/20"
+                        className="bg-[#1a1a1a] border-[#262626] text-white focus-visible:border-white/20"
                     />
                     <Input
                         label="Password"
@@ -87,7 +87,7 @@ export const MainLayout: React.FC = () => {
                         value={password}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                         required
-                        className="bg-[#1a1a1a] border-[#262626] text-white focus:border-white/20"
+                        className="bg-[#1a1a1a] border-[#262626] text-white focus-visible:border-white/20"
                     />
                     {authMode === 'signup' && (
                         <Input
@@ -96,7 +96,7 @@ export const MainLayout: React.FC = () => {
                             value={username}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
                             required
-                            className="bg-[#1a1a1a] border-[#262626] text-white focus:border-white/20"
+                            className="bg-[#1a1a1a] border-[#262626] text-white focus-visible:border-white/20"
                         />
                     )}
                     <Button type="submit" fullWidth disabled={isLoading} className="bg-white text-black hover:bg-gray-200">
@@ -107,7 +107,7 @@ export const MainLayout: React.FC = () => {
                         {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
                         <button
                             type="button"
-                            className="text-white hover:text-gray-300 font-semibold hover:underline"
+                            className="text-white hover:text-gray-300 font-semibold hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-sm"
                             onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
                         >
                             {authMode === 'login' ? 'Sign Up' : 'Log In'}

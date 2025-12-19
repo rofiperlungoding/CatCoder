@@ -28,6 +28,7 @@ export const fetchLeaderboard = async (limit: number = 10): Promise<LeaderboardE
         .from('profiles')
         .select('id, username, avatar_url, xp, rank')
         .order('xp', { ascending: false })
+        .order('username', { ascending: true })
         .limit(limit);
 
     if (error) {

@@ -111,7 +111,7 @@ export const ForgotPasswordPage: React.FC = () => {
                                             placeholder="name@example.com"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 transition-all duration-300 hover:bg-white/10"
+                                            className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
                                         />
                                     </div>
                                 </div>

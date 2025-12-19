@@ -29,7 +29,6 @@ export const LoginPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        console.log('[Login] handleSubmit called, isSignUp:', isSignUp);
 
         try {
             if (isSignUp) {
@@ -38,20 +37,12 @@ export const LoginPage: React.FC = () => {
                     addToast('success', 'Account created! Please check your email to confirm.');
                 }
             } else {
-                console.log('[Login] Calling signIn...');
                 const { error, user } = await signIn(email, password);
-                console.log('[Login] signIn returned, error:', error, 'user:', user?.id);
 
                 if (!error && user) {
-                    console.log('[Login] Login successful! Navigating to /home...');
-                    // Small delay to ensure state is updated before navigation
-                    setTimeout(() => {
-                        console.log('[Login] Executing navigate(/home)');
-                        navigate('/home', { replace: true });
-                    }, 100);
+                    // Navigate immediately - no delay needed
+                    navigate('/home', { replace: true });
                 } else if (!error) {
-                    // No error but also no user (shouldn't happen, but handle it)
-                    console.log('[Login] No error but no user returned');
                     navigate('/home', { replace: true });
                 }
             }
@@ -132,7 +123,7 @@ export const LoginPage: React.FC = () => {
                                         placeholder="Enter your name"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 transition-all duration-300 hover:bg-white/10"
+                                        className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
                                     />
                                 </div>
                             </div>
@@ -146,7 +137,7 @@ export const LoginPage: React.FC = () => {
                                         placeholder="name@example.com"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 transition-all duration-300 hover:bg-white/10 group-focus-within:ring-2 ring-lime-500/20"
+                                        className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
                                     />
                                 </div>
                             </div>
@@ -160,7 +151,7 @@ export const LoginPage: React.FC = () => {
                                         placeholder="••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 transition-all duration-300 hover:bg-white/10 group-focus-within:ring-2 ring-lime-500/20"
+                                        className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
                                     />
                                 </div>
                             </div>

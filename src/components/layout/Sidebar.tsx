@@ -29,7 +29,7 @@ export const Sidebar: React.FC = () => {
     };
 
     const navItems = [
-        { icon: Home, label: 'Home', path: '/' },
+        { icon: Home, label: 'Home', path: '/home' },
         { icon: BookOpen, label: 'Learn', path: '/learn' },
         { icon: Code2, label: 'Practice', path: '/practice' },
         { icon: Trophy, label: 'Compete', path: '/compete' },
@@ -47,10 +47,7 @@ export const Sidebar: React.FC = () => {
                     <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center shadow-lg shadow-white/10">
                         <Cat size={20} />
                     </div>
-                    <div>
-                        <h1 className="font-bold text-lg tracking-tight text-white">CatCoder</h1>
-                        <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">Enterprise</span>
-                    </div>
+                    <h1 className="font-bold text-lg tracking-tight text-white">CatCoder</h1>
                 </div>
             </div>
 
@@ -64,7 +61,7 @@ export const Sidebar: React.FC = () => {
                             to={item.path}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={`
-                                flex items-center gap-3 px-5 py-3.5 rounded-full transition-all duration-300 group
+                                flex items-center gap-3 px-5 py-3.5 rounded-full transition-all duration-300 group focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50
                                 ${isActive
                                     ? 'bg-white text-black shadow-lg shadow-white/5 translate-x-1'
                                     : 'text-gray-400 hover:bg-white/10 hover:text-white'

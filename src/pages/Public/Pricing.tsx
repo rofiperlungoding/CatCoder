@@ -68,7 +68,7 @@ export const PricingPage: React.FC = () => {
                 <div className="flex items-center justify-center gap-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-backwards">
                     <span className={`text-sm font-semibold ${!isAnnual ? 'text-white' : 'text-gray-500'}`}>Monthly</span>
                     <button
-                        className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${isAnnual ? 'bg-lime-500' : 'bg-white/20'}`}
+                        className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${isAnnual ? 'bg-lime-500' : 'bg-white/20'} focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50`}
                         onClick={() => setIsAnnual(!isAnnual)}
                     >
                         <div className={`w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`}></div>

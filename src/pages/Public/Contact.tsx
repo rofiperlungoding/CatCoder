@@ -100,7 +100,7 @@ export const ContactPage: React.FC = () => {
 
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-300 ml-1">Subject</label>
-                            <select className="w-full px-4 py-3 rounded-full bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-lime-500/20 focus:bg-white/10 [&>option]:bg-black">
+                            <select className="w-full px-4 py-3 rounded-full bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-lime-500/20 [&>option]:bg-black">
                                 <option>General Inquiry</option>
                                 <option>Support</option>
                                 <option>Billing</option>
@@ -113,7 +113,7 @@ export const ContactPage: React.FC = () => {
                             <textarea
                                 rows={4}
                                 placeholder="How can we help you?"
-                                className="w-full px-6 py-4 rounded-[2rem] bg-white/5 border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500/20 text-white placeholder:text-gray-600 resize-none font-sans focus:bg-white/10"
+                                className="w-full px-6 py-4 rounded-[2rem] bg-white/5 border border-white/10 text-sm focus:outline-none focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-lime-500/20 text-white placeholder:text-gray-600 resize-none font-sans"
                             ></textarea>
                         </div>
 

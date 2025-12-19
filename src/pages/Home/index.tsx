@@ -153,55 +153,92 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* 5. Leaderboard Snippet */}
-                <div className="bento-card md:col-span-1 lg:col-span-1 md:row-span-2 border-0 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-bold text-primary flex items-center gap-2">
-                            <Trophy size={18} className="text-yellow-500" />
-                            Top Rated
+                <div className="bento-card md:col-span-1 lg:col-span-1 md:row-span-2 border-0 shadow-sm flex flex-col relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-24 bg-yellow-500/10 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none"></div>
+
+                    <div className="flex items-center justify-between mb-6 relative z-10">
+                        <h3 className="font-bold text-primary dark:text-white flex items-center gap-2 text-lg">
+                            <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg text-yellow-600 dark:text-yellow-500">
+                                <Trophy size={18} />
+                            </div>
+                            Leaderboard
                         </h3>
                     </div>
-                    <div className="space-y-4">
+
+                    <div className="space-y-2 relative z-10 flex-1 overflow-y-auto pr-1">
                         {loadingLeaderboard ? (
                             // Simple Loading Skeleton
                             [1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="flex items-center gap-3 animate-pulse">
-                                    <div className="w-6 h-6 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
-                                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+                                <div key={i} className="flex items-center gap-3 animate-pulse py-2">
+                                    <div className="w-6 h-6 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
+                                    <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full"></div>
                                     <div className="flex-1 space-y-2">
-                                        <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-20"></div>
-                                        <div className="h-2 bg-gray-200 dark:bg-gray-800 rounded w-12"></div>
+                                        <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-20"></div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            leaderboardData.map((entry, index) => (
-                                <div key={entry.user.id} className="flex items-center gap-3">
-                                    <span className={`
-                                    w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold
-                                    ${index === 0 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                                            index === 1 ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400' :
-                                                index === 2 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
-                                                    'bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600'}
-                                `}>{index + 1}</span>
-                                    <Avatar
-                                        src={entry.user.avatarUrl}
-                                        fallback={entry.user.username.charAt(0).toUpperCase()}
-                                        size="sm"
-                                        className="h-8 w-8 border border-gray-100 dark:border-gray-800"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-bold text-primary truncate">{entry.user.username}</p>
-                                        <p className="text-[10px] text-muted-foreground">{entry.score.toLocaleString()} XP</p>
+                            leaderboardData.map((entry, index) => {
+                                const isCurrentUser = user?.id === entry.user.id;
+                                return (
+                                    <div
+                                        key={entry.user.id}
+                                        className={`
+                                            flex items-center gap-3 p-2 rounded-xl transition-all
+                                            ${isCurrentUser
+                                                ? 'bg-lime-50 dark:bg-lime-900/20 border border-lime-200 dark:border-lime-800 shadow-sm'
+                                                : 'hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent'
+                                            }
+                                        `}
+                                    >
+                                        <span className={`
+                                            w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0
+                                            ${index === 0 ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' :
+                                                index === 1 ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' :
+                                                    index === 2 ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400' :
+                                                        'text-muted-foreground font-semibold'}
+                                        `}>
+                                            {index + 1}
+                                        </span>
+
+                                        <div className="relative shrink-0">
+                                            <Avatar
+                                                src={entry.user.avatarUrl}
+                                                fallback={entry.user.username.charAt(0).toUpperCase()}
+                                                size="sm"
+                                                className={`h-8 w-8 ${isCurrentUser ? 'ring-2 ring-lime-400 dark:ring-lime-500 ring-offset-2 ring-offset-white dark:ring-offset-black' : ''}`}
+                                            />
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <p className={`text-sm font-bold truncate ${isCurrentUser ? 'text-lime-700 dark:text-lime-400' : 'text-primary dark:text-white'}`}>
+                                                    {isCurrentUser ? 'You' : entry.user.username}
+                                                </p>
+                                                {isCurrentUser && (
+                                                    <Badge variant="success" size="sm" className="px-1.5 py-0 h-4 text-[9px] uppercase tracking-wide">
+                                                        Me
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-[10px] text-muted-foreground font-medium">{entry.score.toLocaleString()} XP</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                         {!loadingLeaderboard && leaderboardData.length === 0 && (
-                            <p className="text-xs text-center text-muted-foreground py-4">No data available</p>
+                            <div className="text-center py-6 text-muted-foreground">
+                                <Trophy size={24} className="mx-auto mb-2 opacity-20" />
+                                <p className="text-xs">No pioneers yet.</p>
+                                <p className="text-[10px] opacity-60">Be the first to join!</p>
+                            </div>
                         )}
                     </div>
-                    <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-800 text-center">
-                        <Link to="/compete" className="text-xs font-bold text-primary hover:underline">View Leaderboard</Link>
+                    <div className="mt-6 pt-3 border-t border-gray-100 dark:border-white/5 text-center relative z-10">
+                        <Link to="/compete" className="inline-flex items-center gap-1 text-xs font-bold text-primary dark:text-white hover:text-lime-600 dark:hover:text-lime-400 transition-colors">
+                            View Full Standings <ArrowRight size={12} />
+                        </Link>
                     </div>
                 </div>
 

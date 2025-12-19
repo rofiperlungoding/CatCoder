@@ -73,7 +73,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     };
 
     return (
-        <div className="h-full w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-lime-500/30 shadow-sm bg-white dark:bg-gray-950 ring-offset-2 dark:ring-offset-zinc-950 focus-within:ring-2 focus-within:ring-lime-300 transition-all duration-200">
+        <div className="h-full w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-lime-500/30 shadow-sm bg-white dark:bg-gray-950 transition-all duration-200">
             <Editor
                 height="100%"
                 defaultLanguage={language}

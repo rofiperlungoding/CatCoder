@@ -17,6 +17,7 @@ import {
 import { Badge, Tabs, Button } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
+import { useCodeRunner } from '../../hooks';
 import type { Lesson, Language, Tier } from '../../types';
 import { lessons as lessonsData } from '../../data/lessons';
 
@@ -37,10 +38,20 @@ export const LearnPage: React.FC = () => {
 
     // Editor State
     const [code, setCode] = useState('');
-    const [output, setOutput] = useState<string | null>(null);
-    const [isRunning, setIsRunning] = useState(false);
-    const [codeValidated, setCodeValidated] = useState(false);
-    const [validationError, setValidationError] = useState<string | null>(null);
+    const {
+        terminalLogs,
+        isRunning,
+        isValidated: codeValidated,
+        // validationError, // Uncomment if needed for UI, currently alias implies we might use it but variable name matches
+        runCode,
+        clearLogs
+    } = useCodeRunner();
+
+    // const [output, setOutput] = useState<string | null>(null); // DEPRECATED
+    // const [terminalLogs, setTerminalLogs] = useState<{ type: 'command' | 'stdout' | 'stderr' | 'system' | 'success'; message: string; delay?: number }[]>([]);
+    // const [isRunning, setIsRunning] = useState(false);
+    // const [codeValidated, setCodeValidated] = useState(false);
+    // const [validationError, setValidationError] = useState<string | null>(null);
 
     // Load lesson when lessonId changes
     useEffect(() => {
@@ -62,9 +73,7 @@ export const LearnPage: React.FC = () => {
             if (currentSection && (currentSection.type === 'code' || currentSection.type === 'challenge')) {
                 const initialCode = currentSection.codeTemplate || getDefaultCode(activeLesson.language);
                 setCode(initialCode);
-                setOutput(null);
-                setCodeValidated(false);
-                setValidationError(null);
+                clearLogs();
             }
         }
     }, [activeLesson, currentStep]);
@@ -80,66 +89,12 @@ export const LearnPage: React.FC = () => {
     };
 
     // Simulate code execution and validate output
-    const handleRunCode = () => {
-        setIsRunning(true);
-        setOutput(null);
-        setValidationError(null);
-
+    const handleRunCode = async () => {
+        const lang = activeLesson?.language || 'python';
         const currentSection = activeLesson?.sections[currentStep];
         const expectedOutput = currentSection?.expectedOutput;
 
-        setTimeout(() => {
-            setIsRunning(false);
-            const simulatedOutput = simulateCodeExecution(code, activeLesson?.language || 'python');
-            setOutput(simulatedOutput);
-
-            if (expectedOutput) {
-                const normalizedExpected = expectedOutput.trim().toLowerCase();
-                const normalizedActual = simulatedOutput.trim().toLowerCase();
-
-                if (normalizedActual.includes(normalizedExpected) || normalizedExpected.includes(normalizedActual)) {
-                    setCodeValidated(true);
-                    setValidationError(null);
-                } else {
-                    setCodeValidated(false);
-                    setValidationError(`Expected: "${expectedOutput}" but got different output.`);
-                }
-            } else {
-                // If no expected output, just check if it executed without error
-                if (simulatedOutput.includes('Error executing')) {
-                    setCodeValidated(false);
-                    setValidationError('Fix the errors in your code to proceed.');
-                } else {
-                    setCodeValidated(true);
-                    setValidationError(null);
-                }
-            }
-        }, 1200);
-    };
-
-    // Simple code execution simulator
-    const simulateCodeExecution = (codeStr: string, lang: string): string => {
-        try {
-            if (lang === 'python') {
-                const printMatch = codeStr.match(/print\(['"](.+?)['"]\)/g);
-                if (printMatch) {
-                    return printMatch.map(p => p.replace(/print\(['"]|['"]\)/g, '')).join('\n');
-                }
-            } else if (lang === 'javascript') {
-                const logMatch = codeStr.match(/console\.log\(['"](.+?)['"]\)/g);
-                if (logMatch) {
-                    return logMatch.map(l => l.replace(/console\.log\(['"]|['"]\)/g, '')).join('\n');
-                }
-            } else if (lang === 'cpp') {
-                const coutMatch = codeStr.match(/cout\s*<<\s*['"](.+?)['"]/g);
-                if (coutMatch) {
-                    return coutMatch.map(c => c.replace(/cout\s*<<\s*['"]/g, '').replace(/['"]$/g, '')).join('\n');
-                }
-            }
-            return 'Executed successfully.';
-        } catch {
-            return 'Error executing code.';
-        }
+        await runCode(code, lang, expectedOutput);
     };
 
     // Helper to render content with markdown (bold and code blocks)
@@ -311,12 +266,20 @@ export const LearnPage: React.FC = () => {
                                 </div>
 
                                 {currentSection.hints && currentSection.hints.length > 0 && (
-                                    <div className="bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 p-5 rounded-r-lg">
-                                        <h4 className="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-200 mb-2 text-sm uppercase tracking-wide">
-                                            <Lightbulb size={16} /> Hint
-                                        </h4>
-                                        <div className="text-blue-800 dark:text-blue-200/80 text-sm leading-relaxed">
-                                            {currentSection.hints[0]}
+                                    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-6 rounded-2xl relative overflow-hidden group animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                        <div className="absolute top-0 left-0 w-1 bg-amber-500 h-full group-hover:w-1.5 transition-all shadow-[0_0_12px_rgba(245,158,11,0.5)]"></div>
+                                        <div className="flex gap-4">
+                                            <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm ring-1 ring-amber-500/20">
+                                                <Lightbulb size={20} className="fill-amber-500/20" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h4 className="font-bold text-amber-900 dark:text-amber-400 text-sm uppercase tracking-wide flex items-center gap-2">
+                                                    Hint
+                                                </h4>
+                                                <div className="text-amber-900/80 dark:text-amber-200/90 text-sm leading-relaxed font-medium">
+                                                    {currentSection.hints[0]}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -351,33 +314,68 @@ export const LearnPage: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Output */}
+                                    {/* Output Terminal */}
                                     <div className="flex flex-col">
-                                        {(output || validationError) ? (
-                                            <div className={`h-full rounded-xl p-5 font-mono text-sm border flex flex-col animate-in fade-in zoom-in-95 duration-200 ${codeValidated
-                                                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50'
-                                                : validationError
-                                                    ? 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50'
-                                                    : 'bg-card border-border'
-                                                }`}>
-                                                <div className="flex items-center justify-between mb-3 pb-3 border-b border-black/5 dark:border-white/5">
-                                                    <span className="font-bold text-xs uppercase tracking-wider opacity-70 flex items-center gap-2">
+                                        <div className={`h-full rounded-xl overflow-hidden border flex flex-col transition-all duration-300 ${terminalLogs.length > 0
+                                            ? 'bg-[#1e1e1e] border-gray-800'
+                                            : 'bg-muted/30 border-dashed border-border'
+                                            }`}>
+                                            {/* Terminal Header */}
+                                            {terminalLogs.length > 0 ? (
+                                                <div className="px-4 py-3 bg-[#1e1e1e] border-b border-white/5 flex items-center justify-between">
+                                                    <span className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
                                                         <Terminal size={14} />
-                                                        {codeValidated ? 'Passed' : 'Console'}
+                                                        Terminal
                                                     </span>
-                                                    {codeValidated && <CheckCircle2 size={16} className="text-emerald-500" />}
+                                                    {codeValidated && <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold animate-in fade-in"><CheckCircle2 size={14} /> Passed</div>}
                                                 </div>
+                                            ) : null}
 
-                                                <div className={`flex-1 whitespace-pre-wrap ${codeValidated ? 'text-emerald-700 dark:text-emerald-300' : validationError ? 'text-red-700 dark:text-red-300' : 'text-foreground'}`}>
-                                                    {validationError || output}
+                                            {/* Terminal Body */}
+                                            {terminalLogs.length > 0 ? (
+                                                <div className="flex-1 p-4 font-mono text-sm overflow-y-auto space-y-1">
+                                                    {terminalLogs.map((log, i) => (
+                                                        <div key={i} className="animate-in fade-in slide-in-from-left-1 duration-200">
+                                                            {log.type === 'command' && (
+                                                                <span className="text-cyan-400 font-bold flex gap-2">
+                                                                    <span className="opacity-50 select-none">$</span> {log.message}
+                                                                </span>
+                                                            )}
+                                                            {log.type === 'system' && (
+                                                                <span className="text-gray-500 italic block py-1">
+                                                                    {log.message}
+                                                                </span>
+                                                            )}
+                                                            {log.type === 'stdout' && (
+                                                                <span className="text-gray-200 whitespace-pre-wrap block ml-4 border-l-2 border-white/10 pl-2">
+                                                                    {log.message}
+                                                                </span>
+                                                            )}
+                                                            {log.type === 'stderr' && (
+                                                                <span className="text-red-400 block bg-red-950/20 p-2 rounded border border-red-900/50">
+                                                                    Error: {log.message}
+                                                                </span>
+                                                            )}
+                                                            {log.type === 'success' && (
+                                                                <span className="text-emerald-500 font-bold block mt-4 border-t border-white/10 pt-2">
+                                                                    ➜ {log.message}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    {/* Cursor Blinking */}
+                                                    {isRunning && (
+                                                        <div className="w-2 h-4 bg-gray-500/50 animate-pulse inline-block align-middle ml-1"></div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        ) : (
-                                            <div className="h-full rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/30">
-                                                <Terminal size={24} className="mb-3 opacity-30" />
-                                                <p className="text-sm">Output will appear here</p>
-                                            </div>
-                                        )}
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
+                                                    <Terminal size={24} className="mb-3 opacity-30" />
+                                                    <p className="text-sm">Ready to execute.</p>
+                                                    <p className="text-xs opacity-50 mt-1">Click "Run" to see logs.</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -401,11 +399,21 @@ export const LearnPage: React.FC = () => {
                                     </div>
 
                                     {currentSection.hints && (
-                                        <div className="bg-muted/50 rounded-xl p-6 border border-border mb-8 inline-block">
-                                            <p className="font-bold text-muted-foreground text-xs tracking-wider uppercase mb-2 flex items-center gap-2">
-                                                <HelpCircle size={14} /> Hint
-                                            </p>
-                                            <p className="text-foreground/80">{currentSection.hints[0]}</p>
+                                        <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-6 rounded-2xl relative overflow-hidden group mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                            <div className="absolute top-0 left-0 w-1 bg-amber-500 h-full group-hover:w-1.5 transition-all shadow-[0_0_12px_rgba(245,158,11,0.5)]"></div>
+                                            <div className="flex gap-4">
+                                                <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm ring-1 ring-amber-500/20">
+                                                    <Lightbulb size={20} className="fill-amber-500/20" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <h4 className="font-bold text-amber-900 dark:text-amber-400 text-sm uppercase tracking-wide flex items-center gap-2">
+                                                        Hint
+                                                    </h4>
+                                                    <div className="text-amber-900/80 dark:text-amber-200/90 text-sm leading-relaxed font-medium">
+                                                        {currentSection.hints[0]}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 
@@ -436,33 +444,43 @@ export const LearnPage: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Output */}
+                                        {/* Output Terminal for Challenge */}
                                         <div className="flex flex-col">
-                                            {(output || validationError) ? (
-                                                <div className={`h-full rounded-xl p-5 font-mono text-sm border flex flex-col animate-in fade-in zoom-in-95 duration-200 ${codeValidated
-                                                    ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50'
-                                                    : validationError
-                                                        ? 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50'
-                                                        : 'bg-card border-border'
-                                                    }`}>
-                                                    <div className="flex items-center justify-between mb-3 pb-3 border-b border-black/5 dark:border-white/5">
-                                                        <span className="font-bold text-xs uppercase tracking-wider opacity-70 flex items-center gap-2">
+                                            <div className={`h-full rounded-xl overflow-hidden border flex flex-col transition-all duration-300 ${terminalLogs.length > 0
+                                                ? 'bg-[#1e1e1e] border-gray-800'
+                                                : 'bg-muted/30 border-dashed border-border'
+                                                }`}>
+                                                {/* Terminal Header */}
+                                                {terminalLogs.length > 0 ? (
+                                                    <div className="px-4 py-3 bg-[#1e1e1e] border-b border-white/5 flex items-center justify-between">
+                                                        <span className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
                                                             <Terminal size={14} />
-                                                            {codeValidated ? 'Passed' : 'Console'}
+                                                            Test Runner
                                                         </span>
-                                                        {codeValidated && <CheckCircle2 size={16} className="text-emerald-500" />}
                                                     </div>
+                                                ) : null}
 
-                                                    <div className={`flex-1 whitespace-pre-wrap ${codeValidated ? 'text-emerald-700 dark:text-emerald-300' : validationError ? 'text-red-700 dark:text-red-300' : 'text-foreground'}`}>
-                                                        {validationError || output}
+                                                {/* Terminal Body */}
+                                                {terminalLogs.length > 0 ? (
+                                                    <div className="flex-1 p-4 font-mono text-sm overflow-y-auto space-y-1">
+                                                        {terminalLogs.map((log, i) => (
+                                                            <div key={i} className="animate-in fade-in slide-in-from-left-1 duration-200">
+                                                                {log.type === 'command' && <span className="text-cyan-400 font-bold">$ {log.message}</span>}
+                                                                {log.type === 'system' && <span className="text-gray-500 italic block py-1">{log.message}</span>}
+                                                                {log.type === 'stdout' && <span className="text-gray-200 block ml-4">{log.message}</span>}
+                                                                {log.type === 'stderr' && <span className="text-red-400">{log.message}</span>}
+                                                                {log.type === 'success' && <span className="text-emerald-500 font-bold block mt-4">➜ {log.message}</span>}
+                                                            </div>
+                                                        ))}
+                                                        {isRunning && <div className="w-2 h-4 bg-gray-500/50 animate-pulse inline-block align-middle ml-1"></div>}
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <div className="h-full rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground p-8 text-center bg-muted/30">
-                                                    <Terminal size={24} className="mb-3 opacity-30" />
-                                                    <p className="text-sm">Run your code to see output</p>
-                                                </div>
-                                            )}
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
+                                                        <Terminal size={24} className="mb-3 opacity-30" />
+                                                        <p className="text-sm">Run test cases.</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -566,11 +584,11 @@ export const LearnPage: React.FC = () => {
                             placeholder="Search lessons..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-6 py-3 bg-white dark:bg-card text-primary dark:text-white border border-gray-200 dark:border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-lime-100 dark:focus:ring-lime-900 focus:border-lime-500 transition-all font-sans shadow-sm"
+                            className="w-full pl-10 pr-6 py-3 bg-white dark:bg-card text-primary dark:text-white border border-gray-200 dark:border-border rounded-full text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-100 dark:focus-visible:ring-lime-900 focus-visible:border-lime-500 transition-all font-sans shadow-sm"
                         />
                     </div>
                     <select
-                        className="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 focus:outline-none focus:ring-2 focus:ring-lime-100 dark:focus:ring-lime-900 font-sans shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-muted text-primary dark:text-white transition-colors"
+                        className="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-100 dark:focus-visible:ring-lime-900 font-sans shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-muted text-primary dark:text-white transition-colors"
                         value={selectedTier.toString()}
                         onChange={(e) => setSelectedTier(e.target.value === 'all' ? 'all' : parseInt(e.target.value) as Tier)}
                     >

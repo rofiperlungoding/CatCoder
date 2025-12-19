@@ -14,7 +14,7 @@ import { fetchLeaderboard } from '../../lib/leaderboard';
 import type { LeaderboardEntry } from '../../types';
 
 export const CompetePage: React.FC = () => {
-    const { addXP, updateStreak } = useUserStore();
+    const { user, addXP, updateStreak } = useUserStore();
     const { addToast } = useUIStore();
 
     const [activeTab, setActiveTab] = useState<'challenges' | 'leaderboard'>('challenges');
@@ -136,35 +136,65 @@ export const CompetePage: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                                {leaderboard.map((entry) => (
-                                    <tr key={entry.rank} className="group hover:bg-gray-50/80 dark:hover:bg-muted/50 transition-colors">
-                                        <td className="px-6 py-5">
-                                            <div className={`
-                                                w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm
-                                                ${entry.rank === 1 ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
-                                                    entry.rank === 2 ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300' :
-                                                        entry.rank === 3 ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-800 dark:text-orange-300' : 'bg-white dark:bg-muted border border-gray-100 dark:border-border text-gray-500 dark:text-gray-400'}
-                                            `}>
-                                                {entry.rank}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-muted border border-gray-200 dark:border-border flex items-center justify-center text-lg">
-                                                    🐱
+                                {leaderboard.map((entry) => {
+                                    const isCurrentUser = user?.id === entry.user.id;
+                                    return (
+                                        <tr
+                                            key={entry.rank}
+                                            className={`
+                                                group transition-colors
+                                                ${isCurrentUser
+                                                    ? 'bg-lime-50/80 dark:bg-lime-900/20 border-l-4 border-l-lime-500'
+                                                    : 'hover:bg-gray-50/80 dark:hover:bg-muted/50 border-l-4 border-l-transparent'
+                                                }
+                                            `}
+                                        >
+                                            <td className="px-6 py-5">
+                                                <div className={`
+                                                    w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm
+                                                    ${entry.rank === 1 ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
+                                                        entry.rank === 2 ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300' :
+                                                            entry.rank === 3 ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-800 dark:text-orange-300' : 'bg-white dark:bg-muted border border-gray-100 dark:border-border text-gray-500 dark:text-gray-400'}
+                                                `}>
+                                                    {entry.rank}
                                                 </div>
-                                                <div>
-                                                    <span className="font-bold text-primary block group-hover:text-lime-600 transition-colors">{entry.user.username}</span>
-                                                    <span className="text-xs text-muted-foreground font-medium capitalize">{entry.user.rank} League</span>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`
+                                                        w-10 h-10 rounded-full flex items-center justify-center text-lg
+                                                        ${isCurrentUser
+                                                            ? 'bg-lime-100 dark:bg-lime-900/40 text-lime-600 dark:text-lime-400 border-2 border-lime-200 dark:border-lime-700'
+                                                            : 'bg-gray-100 dark:bg-muted border border-gray-200 dark:border-border'}
+                                                    `}>
+                                                        {entry.user.avatarUrl ? (
+                                                            <img src={entry.user.avatarUrl} alt={entry.user.username} className="w-full h-full rounded-full object-cover" />
+                                                        ) : (
+                                                            <span>{entry.user.username.charAt(0).toUpperCase()}</span>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`font-bold block group-hover:text-lime-600 transition-colors ${isCurrentUser ? 'text-lime-700 dark:text-lime-400' : 'text-primary dark:text-white'}`}>
+                                                                {entry.user.username}
+                                                            </span>
+                                                            {isCurrentUser && (
+                                                                <Badge variant="success" size="sm" className="h-5 px-1.5 text-[10px]">YOU</Badge>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-xs text-muted-foreground font-medium capitalize">{entry.user.rank} League</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5 text-right">
-                                            <div className="font-bold text-primary">{entry.score.toLocaleString()} XP</div>
-                                            <div className="text-xs text-muted-foreground">{entry.problemsSolved} Solved</div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td className="px-6 py-5 text-right">
+                                                <div className={`font-bold ${isCurrentUser ? 'text-lime-700 dark:text-lime-400' : 'text-primary dark:text-white'}`}>
+                                                    {entry.score.toLocaleString()} XP
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">{entry.problemsSolved} Solved</div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

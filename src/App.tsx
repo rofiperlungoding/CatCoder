@@ -14,7 +14,6 @@ import { LandingPage } from './pages/Landing';
 import {
   FeaturesPage,
   PricingPage,
-  CoursesPage,
   AboutPage,
   ContactPage
 } from './pages/Public';
@@ -79,7 +78,6 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
           <Route path="/features" element={<PublicRoute><FeaturesPage /></PublicRoute>} />
-          <Route path="/courses" element={<PublicRoute><CoursesPage /></PublicRoute>} />
           <Route path="/pricing" element={<PublicRoute><PricingPage /></PublicRoute>} />
           <Route path="/about" element={<PublicRoute><AboutPage /></PublicRoute>} />
           <Route path="/contact" element={<PublicRoute><ContactPage /></PublicRoute>} />

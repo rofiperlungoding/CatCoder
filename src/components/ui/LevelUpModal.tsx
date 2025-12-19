@@ -18,7 +18,7 @@ export const LevelUpModal: React.FC = () => {
                 {/* Close Button */}
                 <button
                     onClick={hideLevelUp}
-                    className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors z-20"
+                    className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors z-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50"
                 >
                     <X size={20} className="text-muted-foreground" />
                 </button>

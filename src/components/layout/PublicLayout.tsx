@@ -16,7 +16,6 @@ export const PublicLayout: React.FC = () => {
     const links = [
         { path: '/', label: 'Home' },
         { path: '/features', label: 'Features' },
-        { path: '/courses', label: 'Courses' },
         { path: '/pricing', label: 'Pricing' },
         { path: '/about', label: 'About' }
     ];
@@ -148,7 +147,6 @@ export const PublicLayout: React.FC = () => {
                     <div className="flex flex-col gap-2">
                         <Link to="/" className="text-2xl font-semibold text-white" onClick={() => setIsMenuOpen(false)}>Home</Link>
                         <Link to="/features" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>Features</Link>
-                        <Link to="/courses" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>Courses</Link>
                         <Link to="/pricing" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>Pricing</Link>
                         <Link to="/about" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>About</Link>
                         <Link to="/contact" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>Contact</Link>
@@ -186,7 +184,6 @@ export const PublicLayout: React.FC = () => {
                             </div>
                             <div className="flex flex-col gap-4">
                                 <h4 className="font-semibold text-sm text-gray-500">Services</h4>
-                                <Link to="/courses" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Courses</Link>
                                 <Link to="/features" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Features</Link>
                             </div>
                             <div className="flex flex-col gap-4">

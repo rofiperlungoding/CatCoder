@@ -150,21 +150,21 @@ export const useUserStore = create<UserState>()(
                 });
             },
 
-            logout: async () => {
-                if (isSupabaseConfigured()) {
-                    const { error } = await supabase.auth.signOut();
-                    if (error) {
-                        console.error('Error signing out of Supabase:', error);
-                        // Continue to clear local state anyway
-                    }
-                }
-
+            logout: () => {
+                // Clear local state IMMEDIATELY for instant feedback
                 set({
                     user: null,
                     isAuthenticated: false,
                     isGuest: false
                 });
                 useUIStore.getState().addToast('success', 'Signed out successfully');
+
+                // Sign out from Supabase in background (fire-and-forget)
+                if (isSupabaseConfigured()) {
+                    supabase.auth.signOut().catch(err => {
+                        console.error('Error signing out of Supabase:', err);
+                    });
+                }
             },
 
             signIn: async (email, password) => {
@@ -192,78 +192,51 @@ export const useUserStore = create<UserState>()(
                 }
 
                 try {
-                    console.log('[Auth] Attempting Supabase signIn...');
                     const { data, error } = await supabase.auth.signInWithPassword({
                         email,
                         password
                     });
 
                     if (error) {
-                        console.error('[Auth] SignIn error:', error.message);
                         useUIStore.getState().addToast('error', error.message);
                         return { user: null, error };
                     }
 
-                    console.log('[Auth] SignIn successful, user:', data.user?.id);
-
                     if (data.user) {
-                        // Try to fetch profile from profiles table
-                        console.log('[Auth] Fetching profile...');
-                        const profile = await fetchProfile(data.user.id);
+                        // Set authenticated state IMMEDIATELY with basic user data
+                        // This allows navigation to proceed without waiting for profile fetch
+                        const basicUser: User = {
+                            id: data.user.id,
+                            email: data.user.email || '',
+                            username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
+                            xp: 0,
+                            level: 1,
+                            rank: 'bronze',
+                            streakCurrent: 0,
+                            streakBest: 0,
+                            createdAt: data.user.created_at || new Date().toISOString()
+                        };
 
-                        if (profile) {
-                            console.log('[Auth] Profile found:', profile.username);
-                            profile.email = data.user.email || '';
-                            set({
-                                user: profile,
-                                isAuthenticated: true,
-                                isGuest: false
-                            });
-                            useUIStore.getState().addToast('success', 'Welcome back!');
-                        } else {
-                            console.log('[Auth] No profile found - creating basic user');
-                            // Profile doesn't exist yet - create basic user from auth data
-                            const basicUser: User = {
-                                id: data.user.id,
-                                email: data.user.email || '',
-                                username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
-                                xp: 0,
-                                level: 1,
-                                rank: 'bronze',
-                                streakCurrent: 0,
-                                streakBest: 0,
-                                createdAt: data.user.created_at || new Date().toISOString()
-                            };
-                            set({
-                                user: basicUser,
-                                isAuthenticated: true,
-                                isGuest: false
-                            });
-                            useUIStore.getState().addToast('success', 'Welcome!');
+                        set({
+                            user: basicUser,
+                            isAuthenticated: true,
+                            isGuest: false
+                        });
+                        useUIStore.getState().addToast('success', 'Welcome back!');
 
-                            // Try to create profile in database
-                            console.log('[Auth] Creating profile in database...');
-                            try {
-                                await supabase.from('profiles').upsert({
-                                    id: data.user.id,
-                                    username: basicUser.username,
-                                    xp: 0,
-                                    level: 1,
-                                    rank: 'bronze',
-                                    streak_current: 0,
-                                    streak_best: 0
-                                });
-                                console.log('[Auth] Profile created successfully');
-                            } catch (profileError) {
-                                console.warn('[Auth] Failed to create profile:', profileError);
+                        // Fetch full profile in background (non-blocking)
+                        fetchProfile(data.user.id).then(profile => {
+                            if (profile) {
+                                profile.email = data.user!.email || '';
+                                set({ user: profile });
                             }
-                        }
+                        }).catch(() => {
+                            // Profile fetch failed, but we already have basic user - that's fine
+                        });
                     }
 
-                    console.log('[Auth] SignIn complete, isAuthenticated:', true);
                     return { user: data.user, error: null };
                 } catch (err) {
-                    console.error('[Auth] Unexpected error during signIn:', err);
                     useUIStore.getState().addToast('error', 'An unexpected error occurred');
                     return { user: null, error: { message: 'Unexpected error' } };
                 }
