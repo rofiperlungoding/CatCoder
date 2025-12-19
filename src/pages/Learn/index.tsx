@@ -469,11 +469,8 @@ export const LearnPage: React.FC = () => {
                             </div>
                         )}
                     </div>
-                </div>
-
-                {/* Footer Navigation */}
-                <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-t border-gray-200 dark:border-white/5">
-                    <div className="max-w-6xl mx-auto flex justify-between items-center">
+                    {/* Navigation Controls (Inline) */}
+                    <div className="flex justify-between items-center pt-8 pb-12">
                         <Button
                             variant="secondary"
                             onClick={handlePrev}
