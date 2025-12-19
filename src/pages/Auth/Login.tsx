@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cat, ArrowRight, Mail, Lock } from 'lucide-react';
 import { Button, Input, Toaster } from '../../components/ui';
@@ -6,7 +6,7 @@ import { useUserStore, useUIStore } from '../../stores';
 
 export const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const { signIn, signUp } = useUserStore();
+    const { signIn, signUp, isAuthenticated } = useUserStore();
     const { addToast } = useUIStore();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -17,9 +17,19 @@ export const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
 
+    // Watch for authentication state changes and redirect
+    useEffect(() => {
+        console.log('[Login] isAuthenticated changed:', isAuthenticated);
+        if (isAuthenticated) {
+            console.log('[Login] User authenticated! Redirecting to /home...');
+            navigate('/home', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        console.log('[Login] handleSubmit called, isSignUp:', isSignUp);
 
         try {
             if (isSignUp) {
@@ -28,11 +38,25 @@ export const LoginPage: React.FC = () => {
                     addToast('success', 'Account created! Please check your email to confirm.');
                 }
             } else {
-                const { error } = await signIn(email, password);
-                if (!error) {
-                    navigate('/home');
+                console.log('[Login] Calling signIn...');
+                const { error, user } = await signIn(email, password);
+                console.log('[Login] signIn returned, error:', error, 'user:', user?.id);
+
+                if (!error && user) {
+                    console.log('[Login] Login successful! Navigating to /home...');
+                    // Small delay to ensure state is updated before navigation
+                    setTimeout(() => {
+                        console.log('[Login] Executing navigate(/home)');
+                        navigate('/home', { replace: true });
+                    }, 100);
+                } else if (!error) {
+                    // No error but also no user (shouldn't happen, but handle it)
+                    console.log('[Login] No error but no user returned');
+                    navigate('/home', { replace: true });
                 }
             }
+        } catch (err) {
+            console.error('[Login] Error during submit:', err);
         } finally {
             setIsLoading(false);
         }
