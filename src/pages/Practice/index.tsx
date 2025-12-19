@@ -92,7 +92,7 @@ export const PracticePage: React.FC = () => {
     // Render Detail View
     if (activeProblem) {
         return (
-            <div className="h-[calc(100vh-8rem)] flex flex-col gap-6">
+            <div className="max-w-7xl mx-auto px-6 h-[calc(100vh-2rem)] py-4 flex flex-col gap-6">
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" className="rounded-full" onClick={() => navigate('/practice')}>
                         <ChevronLeft size={20} /> Back

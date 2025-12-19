@@ -272,7 +272,7 @@ export const LearnPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="max-w-4xl mx-auto px-6">
+                <div className={`${['code', 'challenge'].includes(currentSection.type) ? 'max-w-6xl' : 'max-w-3xl'} mx-auto px-6 transition-all duration-500`}>
                     {/* Content Card */}
                     <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
 

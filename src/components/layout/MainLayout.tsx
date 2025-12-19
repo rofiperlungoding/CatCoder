@@ -58,8 +58,8 @@ export const MainLayout: React.FC = () => {
 
             {/* Main Content Area */}
             {/* Remove left padding when sidebar is hidden */}
-            <main className={`${isFocusMode ? 'lg:pl-0 p-4 md:p-8' : 'lg:pl-[22rem] p-4 lg:p-8'} min-h-screen transition-all duration-300`}>
-                <div className={`${isFocusMode ? 'max-w-4xl' : 'max-w-[1600px]'} mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+            <main className={`${isFocusMode ? 'lg:pl-0 p-0' : 'lg:pl-[22rem] p-4 lg:p-8'} min-h-screen transition-all duration-300`}>
+                <div className={`${isFocusMode ? 'w-full' : 'max-w-[1600px] mx-auto'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                     <Outlet />
                 </div>
             </main>
