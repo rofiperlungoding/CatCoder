@@ -183,6 +183,25 @@ export const useUserStore = create<UserState>()(
                             isGuest: false
                         });
                         useUIStore.getState().addToast('success', 'Welcome back!');
+                    } else {
+                        // Profile doesn't exist yet - create basic user from auth data
+                        const basicUser: User = {
+                            id: data.user.id,
+                            email: data.user.email || '',
+                            username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
+                            xp: 0,
+                            level: 1,
+                            rank: 'bronze',
+                            streakCurrent: 0,
+                            streakBest: 0,
+                            createdAt: data.user.created_at || new Date().toISOString()
+                        };
+                        set({
+                            user: basicUser,
+                            isAuthenticated: true,
+                            isGuest: false
+                        });
+                        useUIStore.getState().addToast('success', 'Welcome! Setting up your profile...');
                     }
                 }
 
