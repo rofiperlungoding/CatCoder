@@ -4,46 +4,67 @@ import type { User, UserProgress, Language } from '../types';
 import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../lib/utils';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-// Helper function to fetch profile from Supabase
+// Helper function to fetch profile from Supabase with timeout
 const fetchProfile = async (userId: string): Promise<User | null> => {
+    console.log('[fetchProfile] Called with userId:', userId);
+
     // Don't attempt to fetch if Supabase isn't configured
     if (!isSupabaseConfigured()) {
+        console.log('[fetchProfile] Supabase not configured, returning null');
         return null;
     }
 
     try {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .maybeSingle(); // Use maybeSingle to avoid 406 errors when no row exists
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise<null>((resolve) => {
+            setTimeout(() => {
+                console.warn('[fetchProfile] Timeout after 5 seconds');
+                resolve(null);
+            }, 5000);
+        });
 
-        if (error) {
-            // Only log if it's an unexpected error
-            if (error.code !== 'PGRST116') { // PGRST116 = no rows returned
-                console.error('Error fetching profile:', error);
+        const fetchPromise = (async () => {
+            console.log('[fetchProfile] Querying profiles table...');
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .maybeSingle();
+
+            console.log('[fetchProfile] Query result - data:', !!data, 'error:', error?.message || 'none');
+
+            if (error) {
+                if (error.code !== 'PGRST116') {
+                    console.error('[fetchProfile] Error:', error);
+                }
+                return null;
             }
-            return null;
-        }
 
-        if (!data) {
-            return null;
-        }
+            if (!data) {
+                console.log('[fetchProfile] No profile found');
+                return null;
+            }
 
-        return {
-            id: data.id,
-            email: '', // Will be filled from auth
-            username: data.username,
-            avatarUrl: data.avatar_url,
-            xp: data.xp || 0,
-            level: data.level || 1,
-            rank: (data.rank as User['rank']) || 'bronze',
-            streakCurrent: data.streak_current || 0,
-            streakBest: data.streak_best || 0,
-            createdAt: data.created_at
-        };
+            console.log('[fetchProfile] Profile found, username:', data.username);
+            return {
+                id: data.id,
+                email: '',
+                username: data.username,
+                avatarUrl: data.avatar_url,
+                xp: data.xp || 0,
+                level: data.level || 1,
+                rank: (data.rank as User['rank']) || 'bronze',
+                streakCurrent: data.streak_current || 0,
+                streakBest: data.streak_best || 0,
+                createdAt: data.created_at
+            };
+        })();
+
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+        console.log('[fetchProfile] Returning result:', result ? 'profile found' : 'null');
+        return result;
     } catch (err) {
-        // Silently fail for network errors in dev mode
+        console.error('[fetchProfile] Caught error:', err);
         return null;
     }
 };
