@@ -143,66 +143,76 @@ Contoh: \`print("Halo, Budi!")\``,
             {
                 id: 'intro',
                 type: 'text',
-                title: '📦 Apa itu Variabel?',
-                content: `Bayangkan variabel seperti **kotak berlabel** yang bisa menyimpan sesuatu.
+                title: 'Apa itu Variabel?',
+                content: `Bayangkan variabel seperti sebuah **kotak** yang memiliki label nama.
 
-Misalnya:
-- Kotak berlabel "nama" menyimpan "Budi"
-- Kotak berlabel "umur" menyimpan 17
-- Kotak berlabel "tinggi" menyimpan 170.5
+Di dalam kotak ini, kamu bisa menyimpan berbagai macam benda (data).
+- Kotak berlabel "nama" bisa menyimpan teks "Budi".
+- Kotak berlabel "umur" bisa menyimpan angka 17.
 
-Dalam programming, kita sering perlu menyimpan data untuk digunakan nanti. Variabel membantu kita melakukan itu!
-
-**Mengapa Variabel Penting?**
-- Menyimpan data untuk digunakan berkali-kali
-- Membuat kode lebih mudah dibaca
-- Memungkinkan data berubah selama program berjalan`
+Dalam programming, variabel adalah konsep paling dasar untuk menyimpan informasi.`
             },
             {
-                id: 'concept',
+                id: 'why-vars',
                 type: 'text',
-                title: '📝 Cara Membuat Variabel',
-                content: `Di Python, membuat variabel sangat mudah:
+                title: 'Mengapa Variabel Penting?',
+                content: `Kenapa tidak langsung tulis datanya saja?
 
-\`\`\`python
-nama_variabel = nilai
-\`\`\`
+Variabel membuat kodemu:
+1.  **Fleksibel**: Kamu bisa mengubah isi kotak tanpa mengubah kode lainnya.
+2.  **Mudah Dibaca**: \`luas = p * l\` lebih mudah dimengerti daripada \`50 = 10 * 5\`.
+3.  **Reusable**: Data yang disimpan bisa dipanggil berkali-kali.`
+            },
+            {
+                id: 'syntax',
+                type: 'text',
+                title: 'Cara Membuat Variabel',
+                content: `Di Python, membuat variabel itu sangat simpel. Kamu tidak perlu "deklarasi" tipe data (seperti di C++ atau Java).
+
+Cukup tulis nama variabel, tanda sama dengan, lalu nilainya.
+
+**Rumus:**
+\`nama_variabel = nilai\`
 
 **Contoh:**
 \`\`\`python
 nama = "Budi"
 umur = 17
 tinggi = 170.5
-\`\`\`
-
-**Aturan Penamaan Variabel:**
-✅ Boleh menggunakan huruf, angka, underscore
-✅ Harus diawali huruf atau underscore
-❌ Tidak boleh diawali angka
-❌ Tidak boleh mengandung spasi
-❌ Tidak boleh menggunakan kata khusus Python`
+\`\`\``
             },
             {
-                id: 'example',
+                id: 'naming-rules',
                 type: 'text',
-                title: '👀 Contoh Penggunaan',
-                content: `**Contoh 1:** Menyimpan dan menampilkan nama
+                title: 'Aturan Penamaan',
+                content: `Kamu tidak bisa sembarangan memberi nama variabel. Ada aturannya:
+
+**Boleh:**
+-   Huruf (a-z, A-Z)
+-   Angka (0-9)
+-   Underscore (_)
+
+**Tidak Boleh:**
+-   Diawali dengan angka (Contoh salah: \`1nama\`)
+-   Mengandung spasi (Contoh salah: \`nama saya\`)
+-   Menggunakan kata kunci Python (seperti \`print\`, \`if\`, \`for\`)
+
+**Tips:** Gunakan **snake_case** (huruf kecil semua dipisah underscore) agar mudah dibaca. Contoh: \`nama_lengkap\`.`
+            },
+            {
+                id: 'examples',
+                type: 'text',
+                title: 'Contoh Penggunaan',
+                content: `Lihat bagaimana kita menggunakan variabel dalam kode nyata.
+
+**Contoh 1: Menyapa dengan Nama**
 \`\`\`python
 nama = "Siti"
 print(nama)
 \`\`\`
 Output: \`Siti\`
 
-**Contoh 2:** Mengubah nilai variabel
-\`\`\`python
-skor = 100
-print(skor)
-skor = 150
-print(skor)
-\`\`\`
-Output: \`100\` lalu \`150\`
-
-**Contoh 3:** Menggunakan variabel dalam kalimat
+**Contoh 2: Menggabungkan dengan Teks**
 \`\`\`python
 nama = "Andi"
 print("Halo, " + nama)
@@ -212,15 +222,36 @@ Output: \`Halo, Andi\``
             {
                 id: 'guided',
                 type: 'code',
-                title: '🎯 Latihan Terbimbing',
-                content: `Buat variabel bernama "nama" dan isi dengan namamu, lalu tampilkan dengan print().
+                title: 'Coba Sendiri',
+                content: `Sekarang giliranmu.
 
-**Langkah-langkah:**
-1. Buat variabel: \`nama = "NamaMu"\`
-2. Tampilkan: \`print(nama)\``,
-                codeTemplate: 'nama = "CatCoder"\nprint(nama)',
-                expectedOutput: 'CatCoder',
-                hints: ['Ingat format: nama_variabel = "nilai"', 'Gunakan print(nama) tanpa tanda kutip di sekitar nama']
+Tugas:
+1.  Buat variabel bernama \`nama_hewan\`
+2.  Isi dengan nama hewan favoritmu (misal: "Kucing")
+3.  Tampilkan isi variabel tersebut.
+
+Kode dasar sudah disiapkan.`,
+                codeTemplate: 'nama_hewan = "..."\nprint(nama_hewan)',
+                expectedOutput: '...',
+                hints: ['Isi titik-titik dengan teks', 'Jangan lupa tanda kutip untuk teks']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan Variabel',
+                content: `Mari kita buat program perkenalan singkat.
+
+Buatlah dua variabel:
+1.  \`nama\` berisi namamu
+2.  \`hobi\` berisi hobimu
+
+Lalu tampilkan keduanya menggunakan \`print\`.
+
+Contoh Output:
+\`Budi\`
+\`Mancing\``,
+                codeTemplate: 'nama = "..."\nhobi = "..."\n\nprint(nama)\nprint(hobi)',
+                hints: ['Buat satu variabel per baris', 'Gunakan print terpisah untuk masing-masing variabel']
             }
         ],
         xpReward: 75,
@@ -236,55 +267,84 @@ Output: \`Halo, Andi\``
             {
                 id: 'intro',
                 type: 'text',
-                title: '🎨 Jenis-Jenis Data',
-                content: `Dalam programming, data memiliki "tipe" yang berbeda-beda. Ini penting karena komputer memperlakukan setiap tipe secara berbeda.
+                title: 'Jenis-Jenis Data',
+                content: `Komputer membedakan data berdasarkan jenisnya. Kamu tidak bisa menjumlahkan "Budi" + 10, kan?
 
-**3 Tipe Data Dasar di Python:**
-
-1. **String (str)** - Teks
-   Contoh: \`"Halo"\`, \`"123"\`, \`"Budi"\`
-
-2. **Integer (int)** - Angka Bulat
-   Contoh: \`10\`, \`-5\`, \`1000\`
-
-3. **Float** - Angka Desimal
-   Contoh: \`3.14\`, \`-2.5\`, \`99.99\``
+Di Python, ada 3 tipe data dasar yang wajib kamu tahu sekarang:
+1.  **String** (Teks)
+2.  **Integer** (Angka Bulat)
+3.  **Float** (Angka Desimal)`
             },
             {
-                id: 'detail',
+                id: 'string',
                 type: 'text',
-                title: '🔍 Perbedaan Penting',
-                content: `**String vs Number:**
+                title: 'String (Teks)',
+                content: `String adalah kumpulan karakter atau teks. Cirinya selalu diapit oleh **tanda kutip** (bisa satu \`'\` atau dua \`"\`).
+
+**Contoh:**
+\`"Halo Dunia"\`
+\`'Python itu asik'\`
+\`"12345"\` (Ini tetap dianggap teks karena ada kutipnya!)`
+            },
+            {
+                id: 'number',
+                type: 'text',
+                title: 'Integer & Float (Angka)',
+                content: `Untuk angka, kita punya dua jenis:
+
+**1. Integer (int)**
+Angka bulat tanpa koma. Bisa positif atau negatif.
+Contoh: \`10\`, \`0\`, \`-5\`, \`1000\`
+
+**2. Float**
+Angka pecahan atau desimal. Di programming, kita pakai **titik** \`.\` bukan koma.
+Contoh: \`3.14\`, \`2.5\`, \`-0.01\``
+            },
+            {
+                id: 'check-type',
+                type: 'text',
+                title: 'Mengecek Tipe Data',
+                content: `Kadang kita bingung, "ini data tipe apa ya?".
+
+Python punya alat bantu bernama \`type()\`.
+
 \`\`\`python
-# Ini string (teks)
-nomor_hp = "08123456789"
-
-# Ini integer (angka)
-umur = 17
-
-# Ini float (desimal)
-tinggi = 170.5
+print(type("Halo"))
+print(type(17))
 \`\`\`
 
-**Mengapa perbedaan ini penting?**
-- \`"5" + "3"\` menghasilkan \`"53"\` (gabungan teks)
-- \`5 + 3\` menghasilkan \`8\` (penjumlahan angka)
-
-**Cara mengecek tipe data:**
-\`\`\`python
-print(type("Halo"))  # <class 'str'>
-print(type(42))      # <class 'int'>
-print(type(3.14))    # <class 'float'>
-\`\`\``
+Output:
+\`<class 'str'>\` (artinya String)
+\`<class 'int'>\` (artinya Integer)`
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Buat 3 variabel dengan tipe data berbeda dan tampilkan!`,
-                codeTemplate: 'nama = "Python"\numur = 32\nrating = 4.9\nprint(nama)\nprint(umur)\nprint(rating)',
-                expectedOutput: 'Python',
-                hints: ['String menggunakan tanda kutip', 'Integer tidak perlu tanda kutip', 'Float adalah angka dengan titik desimal']
+                title: 'Eksperimen Tipe Data',
+                content: `Coba kita lihat bedanya String dan Integer saat dijumlahkan.
+
+Kode di bawah ini akan error jika kamu menjumlahkan string dengan integer secara langsung.
+
+Tugas:
+1. Perbaiki variabel \`angka_dua\` agar menjadi integer (hapus tanda kutipnya).
+2. Jalankan kode.`,
+                codeTemplate: 'angka_satu = 5\nangka_dua = "10" # Hapus tanda kutip ini!\n\nhasil = angka_satu + angka_dua\nprint(hasil)',
+                expectedOutput: '15',
+                hints: ['Hapus tanda kutip disekitar angka 10', 'Integer tidak memakai kutip']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan Biodata',
+                content: `Buatlah 3 variabel dengan tipe data yang tepat untuk menyimpan biodata ini:
+
+1.  \`nama\` (String): Isi dengan "CatCoder"
+2.  \`level\` (Integer): Isi dengan 1
+3.  \`rating\` (Float): Isi dengan 5.0
+
+Lalu print ketiganya berurutan.`,
+                codeTemplate: '# Tulis kodemu di sini\n',
+                hints: ['String pakai kutip, angka tidak', 'Float pakai titik']
             }
         ],
         xpReward: 75,
@@ -300,61 +360,81 @@ print(type(3.14))    # <class 'float'>
             {
                 id: 'intro',
                 type: 'text',
-                title: '⌨️ Program Interaktif',
-                content: `Sampai sekarang, program kita hanya menampilkan output. Tapi bagaimana jika kita ingin user bisa memberikan input?
-
-**Fungsi input()** memungkinkan program meminta data dari user.
-
-Bayangkan program seperti percakapan:
-- Program: "Siapa namamu?"
-- User: "Budi"
-- Program: "Halo, Budi!"`
+                title: 'Komunikasi Dua Arah',
+                content: `Sejauh ini, program kita hanya "berbicara" sendiri (output).
+                
+Agar lebih seru, program harus bisa "mendengar" (input) dari user.
+Bayangkan seperti chat bot:
+Bot: "Siapa namamu?"
+Kamu: "Budi"
+Bot: "Halo Budi!"`
             },
             {
                 id: 'syntax',
                 type: 'text',
-                title: '📝 Cara Menggunakan input()',
-                content: `**Sintaks Dasar:**
+                title: 'Fungsi input()',
+                content: `Kita menggunakan fungsi \`input()\` untuk meminta data.
+
+**Sintaks:**
 \`\`\`python
-variabel = input("Pesan untuk user: ")
+variabel_penampung = input("Pesan pertanyaan untuk user")
 \`\`\`
 
-**Contoh:**
-\`\`\`python
-nama = input("Siapa namamu? ")
-print("Halo, " + nama + "!")
-\`\`\`
-
-**Penting:** 
-- input() selalu mengembalikan STRING
-- Untuk angka, perlu dikonversi: \`int(input(...))\``
+Program akan **berhenti** sejenak dan menunggu user mengetik sesuatu lalu menekan Enter.`
             },
             {
                 id: 'example',
                 type: 'text',
-                title: '👀 Contoh Program',
-                content: `**Program Sapaan:**
+                title: 'Contoh Sederhana',
+                content: `Mari lihat kode program sapaan.
+
 \`\`\`python
-nama = input("Masukkan nama: ")
-print("Selamat datang, " + nama + "!")
+nama = input("Siapa namamu? ")
+print("Halo " + nama)
 \`\`\`
 
-**Program Kalkulator Sederhana:**
-\`\`\`python
-angka1 = int(input("Angka pertama: "))
-angka2 = int(input("Angka kedua: "))
-hasil = angka1 + angka2
-print("Hasil: " + str(hasil))
-\`\`\``
+Saat dijalankan:
+1. Muncul teks "Siapa namamu? "
+2. User ketik "Andi"
+3. Variabel \`nama\` sekarang berisi "Andi"
+4. Print menampilkan "Halo Andi"`
+            },
+            {
+                id: 'important',
+                type: 'text',
+                title: 'Penting: Input Selalu String',
+                content: `Ini aturan emas yang sering dilupakan pemula:
+**Apapun yang diketik user di input(), akan dianggap sebagai TEXT (String).**
+
+Meskipun user mengetik angka \`100\`, Python menganggapnya sebagai teks \`"100"\`.
+
+Jika kamu ingin menjumlahkannya, kamu harus mengubahnya menjadi angka dulu (Konversi).`
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Karena simulator kita tidak bisa menerima input real, kita akan simulasikan dengan variabel.`,
-                codeTemplate: '# Simulasi input\nnama = "CatCoder"\nprint("Halo, " + nama + "!")',
-                expectedOutput: 'Halo, CatCoder!',
-                hints: ['Gunakan + untuk menggabungkan string', 'Jangan lupa spasi dalam string jika perlu']
+                title: 'Simulasi Input',
+                content: `Karena ini adalah text editor, kita tidak bisa melakukan input interaktif secara langsung. Kita akan mensimulasikannya.
+
+Tugas:
+Gunakan variabel untuk menggabungkan kata sapaan.`,
+                codeTemplate: 'nama = "Programmer"\npesan = "Semangat belajar, " + nama\nprint(pesan)',
+                expectedOutput: 'Semangat belajar, Programmer',
+                hints: ['Gunakan operator + untuk menggabungkan string']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan Chatbot',
+                content: `Buatlah program chatbot sederhana.
+
+1.  Buat variabel \`nama\` isi dengan namamu.
+2.  Buat variabel \`makanan\` isi dengan makanan favoritmu.
+3.  Print kalimat: "Halo [nama], aku tahu kamu suka [makanan]"
+
+Gunakan teknik penggabungan string (+)`,
+                codeTemplate: 'nama = "..."\nmakanan = "..."\n\n# Gabungkan dan print di sini',
+                hints: ['Contoh: print("Halo " + nama + "...")']
             }
         ],
         xpReward: 75,
@@ -374,85 +454,88 @@ print("Hasil: " + str(hasil))
             {
                 id: 'intro',
                 type: 'text',
-                title: '🔀 Membuat Keputusan',
+                title: 'Membuat Keputusan',
                 content: `Dalam kehidupan nyata, kita sering membuat keputusan:
-- **Jika** hujan, bawa payung
-- **Jika** nilai >= 75, lulus. **Kalau tidak**, remedial.
+-   **Jika** hujan, bawa payung.
+-   **Jika** nilai ujian >= 75, lulus. **Jika tidak**, remedial.
 
-Program juga perlu membuat keputusan! Di Python, kita menggunakan **if, elif, else**.`
+Program komputer juga perlu kemampuan ini. Di Python, kita menggunakan percabangan (Branching) dengan \`if\`, \`elif\`, dan \`else\`.`
             },
             {
-                id: 'syntax',
+                id: 'syntax-if',
                 type: 'text',
-                title: '📝 Sintaks If/Else',
-                content: `**Struktur Dasar:**
+                title: 'Konsep Dasar: If',
+                content: `Kita mulai dari yang paling sederhana: \`if\` (jika).
+
+Kode di dalam blok \`if\` hanya akan dijalankan **JIKA** kondisinya benar (True).
+
+**Sintaks:**
 \`\`\`python
 if kondisi:
-    # kode jika kondisi True
-else:
-    # kode jika kondisi False
+    lakukan_sesuatu()
 \`\`\`
 
-**Dengan elif (else if):**
+**Contoh:**
 \`\`\`python
-if kondisi1:
-    # jika kondisi1 True
-elif kondisi2:
-    # jika kondisi2 True
-else:
-    # jika semua False
+nilai = 80
+if nilai > 75:
+    print("Selamat, kamu lulus!")
 \`\`\`
+Karena 80 > 75, maka pesan akan muncul.`
+            },
+            {
+                id: 'syntax-else',
+                type: 'text',
+                title: 'Pilihan Ganda: Else',
+                content: `Bagaimana jika kondisinya salah? Kita pakai \`else\` (selain itu).
 
-**PENTING:** Perhatikan indentasi (spasi 4x) setelah if/else!`
+\`\`\`python
+nilai = 50
+if nilai > 75:
+    print("Lulus")
+else:
+    print("Belum lulus")
+\`\`\`
+Karena 50 tidak lebih besar dari 75, program akan melompat ke bagian \`else\`.`
             },
             {
                 id: 'operators',
                 type: 'text',
-                title: '⚖️ Operator Perbandingan',
-                content: `Untuk membuat kondisi, gunakan operator ini:
+                title: 'Operator Perbandingan',
+                content: `Untuk membuat kondisi, gunakan simbol-simbol ini:
 
-| Operator | Arti |
-|----------|------|
-| \`==\` | Sama dengan |
-| \`!=\` | Tidak sama dengan |
-| \`>\` | Lebih besar |
-| \`<\` | Lebih kecil |
-| \`>=\` | Lebih besar atau sama |
-| \`<=\` | Lebih kecil atau sama |
-
-**Contoh:**
-\`\`\`python
-umur = 18
-if umur >= 17:
-    print("Boleh punya SIM")
-\`\`\``
-            },
-            {
-                id: 'example',
-                type: 'text',
-                title: '👀 Contoh Program',
-                content: `**Cek Nilai:**
-\`\`\`python
-nilai = 85
-if nilai >= 90:
-    print("A - Excellent!")
-elif nilai >= 80:
-    print("B - Good!")
-elif nilai >= 70:
-    print("C - Fair")
-else:
-    print("Perlu belajar lagi")
-\`\`\`
-Output: \`B - Good!\``
+-   \`==\` (Sama dengan) <- Hati-hati, beda dengan \`=\`
+-   \`!=\` (Tidak sama dengan)
+-   \`>\` (Lebih besar)
+-   \`<\` (Lebih kecil)
+-   \`>=\` (Lebih besar sama dengan)
+-   \`<=\` (Lebih kecil sama dengan)`
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Buat program yang mengecek apakah angka positif, negatif, atau nol.`,
-                codeTemplate: 'angka = 10\nif angka > 0:\n    print("Positif")\nelif angka < 0:\n    print("Negatif")\nelse:\n    print("Nol")',
-                expectedOutput: 'Positif',
-                hints: ['Gunakan > untuk lebih besar dari', 'Gunakan < untuk lebih kecil dari', 'Perhatikan indentasi!']
+                title: 'Cek Angka Positif',
+                content: `Coba buat logika sederhana untuk mengecek apakah sebuah angka positif atau negatif.
+
+Tugas:
+Lengkapi kode untuk mengecek jika \`angka\` kurang dari 0.`,
+                codeTemplate: 'angka = -5\n\nif angka > 0:\n    print("Positif")\nelif angka < 0:\n    # Tulis kodemu di sini\n    print("Negatif")',
+                expectedOutput: 'Negatif',
+                hints: ['Gunakan elif angka < 0:', 'Jangan lupa titik dua (:)']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan SIM',
+                content: `Buat sistem pengecekan umur untuk SIM.
+
+1.  Buat variabel \`umur\`.
+2.  Jika \`umur\` >= 17, print "Boleh buat SIM".
+3.  Jika tidak, print "Belum cukup umur".
+
+Coba set \`umur\` jadi 16 untuk melihat hasilnya.`,
+                codeTemplate: 'umur = 16\n# Tulis logika if/else di sini\n',
+                hints: ['Gunakan if umur >= 17:', 'Gunakan else: untuk kondisi lainnya']
             }
         ],
         xpReward: 100,
@@ -468,48 +551,65 @@ Output: \`B - Good!\``
             {
                 id: 'intro',
                 type: 'text',
-                title: '🔄 Mengapa Perlu Perulangan?',
-                content: `Bayangkan kamu harus menulis:
+                title: 'Mengapa Perlu Loop?',
+                content: `Bayangkan jika kamu harus menampilkan teks "Saya tidak akan telat lagi" sebanyak 100 kali.
+
+Capek kalau diketik manual kan?
 \`\`\`python
-print("1")
-print("2")
-print("3")
-... sampai 100
+print("Saya tidak akan telat lagi")
+print("Saya tidak akan telat lagi")
+# ... 98 baris lagi ...
 \`\`\`
 
-Capek, kan? Loop membuat ini mudah!`
+Programmer malas (dalam artian positif), jadi kita pakai **Loop** untuk mengulanginya otomatis!`
             },
             {
                 id: 'syntax',
                 type: 'text',
-                title: '📝 Sintaks For Loop',
-                content: `**With range():**
+                title: 'Konsep: for loop',
+                content: `Di Python, \`for\` loop digunakan untuk mengulangi kode sejumlah kali yang ditentukan.
+
+Kita biasanya menggunakan fungsi \`range(n)\` untuk membuat urutan angka.
+
+**Contoh:**
 \`\`\`python
 for i in range(5):
-    print(i)  # 0, 1, 2, 3, 4
+    print("Halo")
 \`\`\`
+Kode di atas akan menampilkan "Halo" sebanyak 5 kali (0 sampai 4).`
+            },
+            {
+                id: 'range-detail',
+                type: 'text',
+                title: 'Bedah range()',
+                content: `Fungsi \`range()\` itu unik.
 
-**range(start, end):**
-\`\`\`python
-for i in range(1, 6):
-    print(i)  # 1, 2, 3, 4, 5
-\`\`\`
+-   \`range(5)\` = 0, 1, 2, 3, 4 (5 angka, mulai dari 0)
+-   \`range(1, 4)\` = 1, 2, 3 (mulai dari 1, berhenti SEBELUM 4)
 
-**Iterasi list:**
-\`\`\`python
-buah = ["apel", "jeruk", "mangga"]
-for b in buah:
-    print(b)
-\`\`\``
+**Penting:** Batas atas (angka kedua) tidak pernah diikutsertakan.`
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Print angka 1 sampai 5 menggunakan for loop.`,
-                codeTemplate: 'for i in range(1, 6):\n    print(i)',
-                expectedOutput: '1',
-                hints: ['range(1, 6) menghasilkan 1,2,3,4,5', 'Batas akhir range tidak termasuk']
+                title: 'Hitung Mundur',
+                content: `Kita bisa menggunakan range dengan langkah mundur.
+
+Tugas: Jelajahi kode di bawah dan coba jalankan.`,
+                codeTemplate: 'print("Mulai hitung mundur...")\nfor i in range(3, 0, -1):\n    print(i)\nprint("Meluncur!")',
+                expectedOutput: 'Meluncur!',
+                hints: ['Parameter ketiga range adalah "langkah" (step)', '-1 artinya mundur']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan Kelipatan',
+                content: `Tampilkan angka kelipatan 5 dari 5 sampai 25.
+(Hasil: 5, 10, 15, 20, 25)
+
+Tips: Gunakan \`range(start, stop, step)\`. Ingat, *stop* tidak termasuk, jadi mungkin kamu perlu angka 26?`,
+                codeTemplate: '# Gunakan for loop dan range disini\n',
+                hints: ['range(5, 26, 5)', 'start=5, stop=26, step=5']
             }
         ],
         xpReward: 125,
@@ -517,7 +617,7 @@ for b in buah:
     },
     {
         id: 'py-t2-functions',
-        title: 'Fungsi: Kode yang Bisa Dipakai Ulang',
+        title: 'Fungsi: Kode Reusable',
         description: 'Buat blok kode yang bisa dipanggil berkali-kali.',
         tier: 2,
         language: 'python',
@@ -525,43 +625,85 @@ for b in buah:
             {
                 id: 'intro',
                 type: 'text',
-                title: '🧩 Apa itu Fungsi?',
-                content: `Fungsi adalah **blok kode yang diberi nama** dan bisa dipanggil kapan saja.
+                title: 'Apa itu Fungsi?',
+                content: `Fungsi (Function) adalah **blok kode yang diberi nama**.
 
-Bayangkan resep masakan - kamu tulis sekali, bisa dimasak berkali-kali!
-
-**Keuntungan Fungsi:**
-- Kode tidak perlu ditulis ulang
-- Program lebih terorganisir
-- Mudah di-debug dan diperbaiki`
+Bayangkan seperti resep masakan. Kamu tulis resepnya sekali (\`def\`), lalu kamu bisa memasaknya (\`call\`) berkali-kali kapanpun kamu mau tanpa harus mengingat detail setiap langkahnya.`
             },
             {
                 id: 'syntax',
                 type: 'text',
-                title: '📝 Cara Membuat Fungsi',
-                content: `**Sintaks:**
+                title: 'Cara Membuat Fungsi',
+                content: `Gunakan kata kunci \`def\` (definisi).
+
+**Sintaks:**
 \`\`\`python
-def nama_fungsi(parameter):
-    # kode fungsi
-    return hasil
+def nama_fungsi():
+    # kode di sini
+    print("Fungsi dijalankan")
 \`\`\`
 
-**Contoh:**
+**Cara Memanggil:**
+\`\`\`python
+nama_fungsi()
+\`\`\``
+            },
+            {
+                id: 'parameters',
+                type: 'text',
+                title: 'Parameter (Input)',
+                content: `Fungsi bisa menerima data agar lebih fleksibel. Data ini disebut **Parameter**.
+
 \`\`\`python
 def sapa(nama):
-    return "Halo, " + nama + "!"
+    print("Halo " + nama)
 
-print(sapa("Budi"))  # Halo, Budi!
+sapa("Budi")  # Output: Halo Budi
+sapa("Siti")  # Output: Halo Siti
+\`\`\`
+
+Di sini, \`nama\` adalah variabel spesial yang isinya berubah tergantung apa yang kita kirim saat memanggil fungsi.`
+            },
+            {
+                id: 'return',
+                type: 'text',
+                title: 'Return (Output)',
+                content: `Fungsi juga bisa **mengembalikan nilai** menggunakan \`return\`.
+
+Bedanya dengan print apa?
+-   \`print\` hanya menampilkan teks ke layar.
+-   \`return\` memberikan nilai kembali ke kode program, yang bisa disimpan di variabel.
+
+\`\`\`python
+def tambah(a, b):
+    return a + b
+
+hasil = tambah(5, 3)
+print(hasil) # 8
 \`\`\``
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Buat fungsi greet yang mengembalikan sapaan.`,
-                codeTemplate: 'def greet(nama):\n    return "Halo, " + nama + "!"\n\nprint(greet("CatCoder"))',
-                expectedOutput: 'Halo, CatCoder!',
-                hints: ['Gunakan def untuk mendefinisikan fungsi', 'return untuk mengembalikan nilai']
+                title: 'Latihan Fungsi',
+                content: `Buatlah fungsi sederhana bernama \`kuadrat\` yang menerima satu angka, dan mengembalikan hasil pangkat duanya.`,
+                codeTemplate: 'def kuadrat(angka):\n    # Tulis kodemu disini\n    return ...\n\nprint(kuadrat(4))',
+                expectedOutput: '16',
+                hints: ['Gunakan operator ** 2 untuk pangkat dua']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan Diskon',
+                content: `Buat fungsi bernama \`hitung_diskon\`.
+1.  Menerima parameter \`harga\`.
+2.  Mengembalikan harga setelah didiskon 10%.
+
+Rumus: \`harga - (harga * 0.1)\`
+
+Contoh: \`hitung_diskon(10000)\` harusnya return \`9000\`.`,
+                codeTemplate: 'def hitung_diskon(harga):\n    # Return harga akhir\n    pass\n\nprint(hitung_diskon(10000))',
+                hints: ['Gunakan return harga * 0.9 atau rumus di atas']
             }
         ],
         xpReward: 150,
@@ -581,37 +723,63 @@ print(sapa("Budi"))  # Halo, Budi!
             {
                 id: 'intro',
                 type: 'text',
-                title: '🌐 JavaScript: Bahasa Web',
-                content: `JavaScript adalah bahasa yang membuat website menjadi interaktif!
+                title: 'JavaScript: Bahasa Web',
+                content: `JavaScript (JS) adalah bahasa yang membuat website menjadi **hidup**!
 
-Setiap tombol yang kamu klik, animasi yang kamu lihat, sebagian besar digerakkan oleh JavaScript.
+HTML hanya membuat struktur (seperti tulang).
+CSS mempercantik tampilan (seperti baju).
+JavaScript memberikan "otak" dan kemampuan bergerak.
 
-**Di mana JavaScript digunakan?**
-- Website interaktif
-- Mobile apps (React Native)
-- Server (Node.js)
-- Game browser`
+Setiap tombol yang kamu klik, notifikasi yang muncul, animasi di website... itu semua kerjaan JavaScript.`
             },
             {
                 id: 'console',
                 type: 'text',
-                title: '📝 console.log()',
-                content: `Di JavaScript, kita menggunakan **console.log()** untuk menampilkan output.
+                title: 'Menampilkan Pesan',
+                content: `Langkah pertama: Bagaimana cara JS menampilkan pesan?
+
+Kita menggunakan \`console.log()\`.
+Perintah ini mengirim pesan rahasia ke "Console" browser (tempat spesial untuk programmer melihat log).
 
 \`\`\`javascript
 console.log("Hello, World!");
 \`\`\`
 
-Ini seperti \`print()\` di Python!`
+Mirip \`print()\` di Python, tapi lebih panjang sedikit.`
+            },
+            {
+                id: 'syntax-details',
+                type: 'text',
+                title: 'Detail Sintaks',
+                content: `Perhatikan beberapa hal penting di JS:
+
+1.  **Kurung** \`()\`: Mengapit isi pesan.
+2.  **Kutip** \`""\` atau \`''\`: Menandakan teks.
+3.  **Titik Koma** \`;\`: Menandakan akhir baris perintah (seperti titik dalam kalimat).
+
+Meskipun JS modern sering membolehkan kita menghapus \`;\`, sebagai pemula, **biasakan pakai titik koma** agar rapi.`
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Tampilkan "Hello, World!" menggunakan console.log()`,
+                title: 'Coba Sendiri',
+                content: `Tampilkan "Hello, World!" menggunakan console.log().
+
+Jangan lupa titik komanya ya!`,
                 codeTemplate: 'console.log("Hello, World!");',
                 expectedOutput: 'Hello, World!',
-                hints: ['Gunakan console.log() dengan teks dalam kutip', 'Jangan lupa titik koma di akhir!']
+                hints: ['Gunakan console.log() dengan teks dalam kutip', 'Akhiri dengan titik koma ;']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan Web Developer',
+                content: `Sebagai calon Web Developer, tugas pertamamu adalah menyapa pengunjung.
+
+Tulis kode untuk menampilkan:
+**"Selamat datang di websiteku!"**`,
+                codeTemplate: '// Tulis kodemu di sini\n',
+                hints: ['Gunakan console.log(...)', 'Pastikan teksnya sama persis']
             }
         ],
         xpReward: 50,
@@ -619,49 +787,61 @@ Ini seperti \`print()\` di Python!`
     },
     {
         id: 'js-t1-variables',
-        title: 'Variables: let, const, var',
-        description: 'Pelajari cara mendeklarasikan variabel di JavaScript.',
+        title: 'Variables: let, const',
+        description: 'Pelajari cara modern mendeklarasikan variabel di JavaScript.',
         tier: 1,
         language: 'javascript',
         sections: [
             {
                 id: 'intro',
                 type: 'text',
-                title: '📦 Variabel di JavaScript',
-                content: `JavaScript punya 3 cara mendeklarasikan variabel:
+                title: 'Variabel di JavaScript',
+                content: `Dulu, JS hanya punya satu cara membuat variabel: \`var\`.
+Tapi \`var\` punya banyak masalah dan membingungkan.
 
-1. **let** - Variabel yang bisa diubah
-2. **const** - Konstanta (tidak bisa diubah)
-3. **var** - Cara lama (hindari!)
-
-**Rekomendasi:**
-- Gunakan \`const\` sebagai default
-- Gunakan \`let\` jika nilai perlu berubah`
+Di Javascript Modern (ES6+), kita punya 2 teman baru yang lebih baik:
+1.  **const** (Constant)
+2.  **let**`
             },
             {
-                id: 'syntax',
+                id: 'const-vs-let',
                 type: 'text',
-                title: '📝 Sintaks',
-                content: `\`\`\`javascript
-// const - tidak bisa diubah
+                title: 'const vs let',
+                content: `**1. const (Gunakan ini DULU!)**
+Buat variabel yang nilainya **TIDAK AKAN** berubah.
+\`\`\`javascript
 const nama = "Budi";
+const tgl_lahir = "1 Januari";
+\`\`\`
 
-// let - bisa diubah
-let skor = 100;
-skor = 150; // OK!
-
-// var - hindari
-var umur = 17;
+**2. let (Gunakan jika perlu berubah)**
+Buat variabel yang nilainya **MUNGKIN** berubah nanti.
+\`\`\`javascript
+let skor = 0;
+skor = 10;
 \`\`\``
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Buat variabel dengan const dan tampilkan.`,
+                title: 'Latihan Variabel',
+                content: `Buat variabel \`nama\` menggunakan \`const\`, lalu tampilkan.`,
                 codeTemplate: 'const nama = "CatCoder";\nconsole.log(nama);',
                 expectedOutput: 'CatCoder',
-                hints: ['const untuk nilai yang tidak berubah', 'Jangan lupa titik koma!']
+                hints: ['const nama = "..."', 'Jangan lupa titik koma']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan Update Skor',
+                content: `Kita simulasi skor game.
+
+1.  Buat variabel \`skor\` pakai \`let\`, isi dengan 0.
+2.  Print \`skor\`.
+3.  Ubah \`skor\` jadi 100.
+4.  Print \`skor\` lagi.`,
+                codeTemplate: 'let skor = 0;\n// Lanjutkan...\n',
+                hints: ['Jangan pakai const karena nilainya berubah', 'Pakai console.log untuk print']
             }
         ],
         xpReward: 75,
@@ -681,44 +861,59 @@ var umur = 17;
             {
                 id: 'intro',
                 type: 'text',
-                title: '⚡ C++: Bahasa yang Powerful',
-                content: `C++ adalah bahasa yang sangat cepat dan powerful!
+                title: 'C++: Bahasa High Performance',
+                content: `C++ adalah rajanya kecepatan.
 
-**Digunakan untuk:**
-- Game (Unreal Engine)
-- Sistem Operasi
+Bahasa ini dipakai untuk membuat:
+- Game Engine besar (Unreal Engine)
 - Browser (Chrome, Firefox)
-- Aplikasi kinerja tinggi
+- Sistem Operasi (Windows)
 
-C++ lebih kompleks dari Python, tapi sangat worth it untuk dipelajari!`
+C++ sedikit lebih rumit dari Python, tapi memberimu kontrol penuh atas komputer.`
             },
             {
                 id: 'structure',
                 type: 'text',
-                title: '📝 Struktur Program C++',
-                content: `\`\`\`cpp
-#include <iostream>  // Library untuk input/output
+                title: 'Anatomi C++',
+                content: `Program C++ punya struktur wajib. Tidak bisa langsung tulis perintah.
 
-int main() {         // Fungsi utama
-    std::cout << "Hello, World!";
-    return 0;        // Program selesai
+\`\`\`cpp
+#include <iostream>
+
+int main() {
+    std::cout << "Hello";
+    return 0;
 }
 \`\`\`
 
-**Penjelasan:**
-- \`#include\` - menyertakan library
-- \`int main()\` - titik awal program
-- \`std::cout\` - untuk output
-- \`return 0\` - program sukses`
+**Apa itu??**
+1.  \`#include <iostream>\`: Import alat input-output.
+2.  \`int main() { ... }\`: Fungsi utama. Kode dimulai dari sini.
+3.  \`std::cout\`: Perintah print ("Character Output").
+4.  \`return 0\`: Memberitahu OS bahwa program sukses.`
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Tulis program Hello World di C++.`,
+                title: 'Latihan Hello World',
+                content: `Tulis ulang program Hello World C++ dengan benar.`,
                 codeTemplate: '#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!";\n    return 0;\n}',
                 expectedOutput: 'Hello, World!',
-                hints: ['Gunakan std::cout << untuk output', 'Jangan lupa return 0; di akhir main()']
+                hints: ['Jangan lupa std::cout', 'Perhatikan tanda << (arah panah ke kiri)', 'Titik koma wajib!']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Tantangan C++',
+                content: `Buat program C++ yang menampilkan namamu sendiri.
+
+Ingat strukturnya:
+1. Include library
+2. Main function
+3. Cout namamu
+4. Return 0`,
+                codeTemplate: '#include <iostream>\n\nint main() {\n    // Tulis kodemu di sini\n}',
+                hints: ['std::cout << "Namamu";', 'Jangan lupa return 0;']
             }
         ],
         xpReward: 50,
@@ -734,40 +929,62 @@ int main() {         // Fungsi utama
             {
                 id: 'intro',
                 type: 'text',
-                title: '📊 Tipe Data C++',
-                content: `C++ adalah bahasa **statically typed** - kamu harus mendeklarasikan tipe variabel!
+                title: 'Statically Typed',
+                content: `C++ itu "Statically Typed".
 
-**Tipe Data Umum:**
-| Tipe | Deskripsi | Contoh |
-|------|-----------|--------|
-| int | Angka bulat | 42 |
-| double | Angka desimal | 3.14 |
-| char | Satu karakter | 'A' |
-| string | Teks | "Hello" |
-| bool | True/False | true |`
+Artinya: **Kamu harus bilang ke komputer, tipe data apa yang mau disimpan.**
+
+-   Kalau mau simpan angka, harus bilang "Ini Integer".
+-   Kalau mau simpan teks, harus bilang "Ini String".
+
+Tidak boleh asal ganti-ganti di tengah jalan!`
+            },
+            {
+                id: 'types',
+                type: 'text',
+                title: 'Kamus Tipe Data',
+                content: `Hafalkan tipe data dasar ini:
+
+-   \`int\`: Angka bulat (42)
+-   \`double\`: Angka desimal (3.14)
+-   \`char\`: Satu hurud ('A')
+-   \`string\`: Teks ("Halo") -> Perlu \`#include <string>\`
+-   \`bool\`: True/False`
             },
             {
                 id: 'syntax',
                 type: 'text',
-                title: '📝 Deklarasi Variabel',
-                content: `\`\`\`cpp
+                title: 'Deklarasi Variabel',
+                content: `**Rumus:**
+\`TipeData namaVariabel = Nilai;\`
+
+**Contoh:**
+\`\`\`cpp
 int umur = 17;
 double tinggi = 170.5;
-char nilai = 'A';
-string nama = "Budi";
-bool lulus = true;
-\`\`\`
-
-**Penting:** Setiap variabel HARUS punya tipe!`
+std::string nama = "Budi";
+\`\`\``
             },
             {
                 id: 'practice',
                 type: 'code',
-                title: '🎯 Latihan',
-                content: `Buat beberapa variabel dan tampilkan.`,
+                title: 'Latihan Variabel',
+                content: `Lengkapi kode berikut untuk menampilkan umur.`,
                 codeTemplate: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int umur = 17;\n    cout << "Umur: " << umur;\n    return 0;\n}',
                 expectedOutput: 'Umur: 17',
-                hints: ['Gunakan cout << untuk output', 'Bisa chain dengan << untuk multiple output']
+                hints: ['Gunakan cout << "Teks" << variabel', 'using namespace std; agar tidak perlu tulis std:: terus']
+            },
+            {
+                id: 'challenge',
+                type: 'challenge',
+                title: 'Biodata C++',
+                content: `Buat 2 variabel di dalam main():
+1.  \`int level\` dengan nilai 5.
+2.  \`double exp\` dengan nilai 50.5.
+
+Tampilkan keduanya. Gunakan \`std::endl\` atau \`\\n\` untuk baris baru.`,
+                codeTemplate: '#include <iostream>\nusing namespace std;\n\nint main() {\n    // Buat variabel dan print\n    return 0;\n}',
+                hints: ['cout << level << endl;', 'cout << exp << endl;']
             }
         ],
         xpReward: 75,
