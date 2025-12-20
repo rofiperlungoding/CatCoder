@@ -1,7 +1,6 @@
 import type { Problem } from '../../types';
 
 export const problems: Problem[] = [
-    // ===== EASY PROBLEMS =====
     {
         id: 'palindrome-check',
         title: 'Palindrome Check',
@@ -9,32 +8,55 @@ export const problems: Problem[] = [
         tier: 1,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Determine whether a given string is a palindrome. A palindrome reads the same backward as forward.
-
-**Input**
-- A string \`s\` consisting of alphanumeric characters.
+Determine whether a given string is a palindrome.
 
 **Output**
-- Return \`true\` if the string is a palindrome, otherwise \`false\`.
-
-**Constraints**
-- The string length will be between 1 and 1000.`,
-        examples: [
-            { input: 's = "racecar"', output: 'true', explanation: 'Reads the same forward and backward.' },
-            { input: 's = "hello"', output: 'false', explanation: '"hello" backwards is "olleh".' }
-        ],
-        hints: ['Try comparing the string with its reverse.', 'You can also use two pointers, one at the start and one at the end.'],
+- Print \`True\` (Python) or \`true\` (JS/C++) if palindrome.`,
+        examples: [{ input: 's = "racecar"', output: 'True' }],
+        hints: ['Compare the string with its reverse.'],
         solution: {
-            python: 'def solution(s):\n    return s == s[::-1]',
-            javascript: 'function solution(s) {\n    return s === s.split("").reverse().join("");\n}',
-            cpp: 'bool solution(string s) {\n    string r = s;\n    reverse(r.begin(), r.end());\n    return s == r;\n}'
+            python: `def is_palindrome(s):
+    return s == s[::-1]`,
+            javascript: `function isPalindrome(s) {
+    return s === s.split("").reverse().join("");
+}`,
+            cpp: `bool isPalindrome(string s) {
+    string r = s;
+    reverse(r.begin(), r.end());
+    return s == r;
+}`
         },
-        explanation: 'The simplest approach is to reverse the string and compare it to the original.',
-        testCases: [
-            { input: 'racecar', expectedOutput: 'true' },
-            { input: 'hello', expectedOutput: 'false' },
-            { input: 'madam', expectedOutput: 'true' }
-        ],
+        explanation: 'Reverse the string and compare.',
+        starterCode: {
+            python: `def is_palindrome(s):
+    # Write your code here
+    pass
+
+print(is_palindrome("racecar"))`,
+            javascript: `function isPalindrome(s) {
+    // Write your code here
+}
+
+console.log(isPalindrome("racecar"));`,
+            cpp: `#include <iostream>
+#include <algorithm>
+using namespace std;
+
+bool isPalindrome(string s) {
+    // Write your code here
+    return false;
+}
+
+int main() {
+    cout << (isPalindrome("racecar") ? "true" : "false") << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: 'racecar', expectedOutput: 'True' }],
+            javascript: [{ input: 'racecar', expectedOutput: 'true' }],
+            cpp: [{ input: 'racecar', expectedOutput: 'true' }]
+        },
         xpReward: 50,
         tags: ['String']
     },
@@ -45,27 +67,56 @@ Determine whether a given string is a palindrome. A palindrome reads the same ba
         tier: 1,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Write a function that reverses a string. You should do this by modifying the input array in-place with O(1) extra memory if possible (though for this exercise, returning a new string is acceptable).
-
-**Input**
-- A character array or string \`s\`.
+Write a function that reverses a string.
 
 **Output**
-- Return the reversed string or array.
-
-**Constraints**
-- 1 <= s.length <= 10^5`,
-        examples: [{ input: 's = ["h","e","l","l","o"]', output: '["o","l","l","e","h"]' }],
-        hints: ['Use two pointers: one at the beginning, one at the end.', 'Swap elements and move pointers towards the center.'],
+- Print the reversed string.`,
+        examples: [{ input: 's = "hello"', output: 'olleh' }],
+        hints: ['Use slicing in Python: s[::-1]'],
         solution: {
-            python: 'def solution(s):\n    if isinstance(s, list): s.reverse(); return s\n    return s[::-1]',
-            javascript: 'function solution(s) {\n    return s.slice().reverse();\n}',
-            cpp: 'void solution(vector<char>& s) {\n    reverse(s.begin(), s.end());\n}'
+            python: `def reverse_string(s):
+    return s[::-1]`,
+            javascript: `function reverseString(s) {
+    return s.split("").reverse().join("");
+}`,
+            cpp: `string reverseString(string s) {
+    reverse(s.begin(), s.end());
+    return s;
+}`
         },
-        explanation: 'Swapping characters from both ends towards the middle achieves the reverse effect.',
-        testCases: [{ input: '["h","e","l","l","o"]', expectedOutput: '["o","l","l","e","h"]' }],
+        explanation: 'Reverse using built-in methods.',
+        starterCode: {
+            python: `def reverse_string(s):
+    # Write your code here
+    pass
+
+print(reverse_string("hello"))`,
+            javascript: `function reverseString(s) {
+    // Write your code here
+}
+
+console.log(reverseString("hello"));`,
+            cpp: `#include <iostream>
+#include <algorithm>
+using namespace std;
+
+string reverseString(string s) {
+    // Write your code here
+    return "";
+}
+
+int main() {
+    cout << reverseString("hello") << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: 'hello', expectedOutput: 'olleh' }],
+            javascript: [{ input: 'hello', expectedOutput: 'olleh' }],
+            cpp: [{ input: 'hello', expectedOutput: 'olleh' }]
+        },
         xpReward: 50,
-        tags: ['String', 'Two Pointers']
+        tags: ['String']
     },
     {
         id: 'fizzbuzz',
@@ -74,31 +125,64 @@ Write a function that reverses a string. You should do this by modifying the inp
         tier: 1,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given an integer \`n\`, return a string array answer (1-indexed) where:
-- \`answer[i] == "FizzBuzz"\` if \`i\` is divisible by 3 and 5.
-- \`answer[i] == "Fizz"\` if \`i\` is divisible by 3.
-- \`answer[i] == "Buzz"\` if \`i\` is divisible by 5.
-- \`answer[i] == i\` (as a string) if none of the above conditions are true.
-
-**Input**
-- An integer \`n\`.
-
-**Output**
-- An array of strings representing the sequence from 1 to \`n\`.
-
-**Constraints**
-- 1 <= n <= 10^4`,
-        examples: [{ input: 'n = 3', output: '["1","2","Fizz"]' }, { input: 'n = 5', output: '["1","2","Fizz","4","Buzz"]' }],
-        hints: ['Check divisibility by 15 first, or check 3 and 5 separately.', 'Use the modulo operator %.'],
+Print numbers 1 to n. For multiples of 3 print "Fizz", for 5 print "Buzz", for both print "FizzBuzz".`,
+        examples: [{ input: 'n = 5', output: '1\\n2\\nFizz\\n4\\nBuzz' }],
+        hints: ['Check divisibility by 15 first.'],
         solution: {
-            python: 'def solution(n):\n    return ["FizzBuzz" if i%15==0 else "Fizz" if i%3==0 else "Buzz" if i%5==0 else str(i) for i in range(1, n+1)]',
-            javascript: 'function solution(n) {\n    const res = [];\n    for(let i=1; i<=n; i++) {\n        if(i%15===0) res.push("FizzBuzz");\n        else if(i%3===0) res.push("Fizz");\n        else if(i%5===0) res.push("Buzz");\n        else res.push(String(i));\n    }\n    return res;\n}',
-            cpp: 'vector<string> solution(int n) {\n    vector<string> r;\n    for(int i=1; i<=n; i++) {\n        if(i%15==0) r.push_back("FizzBuzz");\n        else if(i%3==0) r.push_back("Fizz");\n        else if(i%5==0) r.push_back("Buzz");\n        else r.push_back(to_string(i));\n    }\n    return r;\n}'
+            python: `def fizzbuzz(n):
+    for i in range(1, n+1):
+        if i % 15 == 0: print("FizzBuzz")
+        elif i % 3 == 0: print("Fizz")
+        elif i % 5 == 0: print("Buzz")
+        else: print(i)`,
+            javascript: `function fizzbuzz(n) {
+    for(let i = 1; i <= n; i++) {
+        if(i % 15 === 0) console.log("FizzBuzz");
+        else if(i % 3 === 0) console.log("Fizz");
+        else if(i % 5 === 0) console.log("Buzz");
+        else console.log(i);
+    }
+}`,
+            cpp: `void fizzbuzz(int n) {
+    for(int i = 1; i <= n; i++) {
+        if(i % 15 == 0) cout << "FizzBuzz" << endl;
+        else if(i % 3 == 0) cout << "Fizz" << endl;
+        else if(i % 5 == 0) cout << "Buzz" << endl;
+        else cout << i << endl;
+    }
+}`
         },
-        explanation: 'Iterate from 1 to n and apply the divisibility rules in order.',
-        testCases: [{ input: '3', expectedOutput: '["1","2","Fizz"]' }],
+        explanation: 'Check divisibility conditions.',
+        starterCode: {
+            python: `def fizzbuzz(n):
+    # Print 1 to n with FizzBuzz rules
+    pass
+
+fizzbuzz(5)`,
+            javascript: `function fizzbuzz(n) {
+    // Print 1 to n with FizzBuzz rules
+}
+
+fizzbuzz(5);`,
+            cpp: `#include <iostream>
+using namespace std;
+
+void fizzbuzz(int n) {
+    // Print 1 to n with FizzBuzz rules
+}
+
+int main() {
+    fizzbuzz(5);
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '5', expectedOutput: 'Fizz' }],
+            javascript: [{ input: '5', expectedOutput: 'Fizz' }],
+            cpp: [{ input: '5', expectedOutput: 'Fizz' }]
+        },
         xpReward: 50,
-        tags: ['Math', 'Simulation']
+        tags: ['Math']
     },
     {
         id: 'two-sum',
@@ -107,29 +191,65 @@ Given an integer \`n\`, return a string array answer (1-indexed) where:
         tier: 2,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to \`target\`.
-You may assume that each input would have exactly one solution, and you may not use the same element twice.
-
-**Input**
-- \`nums\`: An array of integers.
-- \`target\`: The integer sum to find.
-
-**Output**
-- An array containing the two indices, e.g. [0, 1].
-
-**Constraints**
-- 2 <= nums.length <= 10^4
-- -10^9 <= nums[i] <= 10^9
-- -10^9 <= target <= 10^9`,
-        examples: [{ input: 'nums = [2,7,11,15], target = 9', output: '[0,1]', explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].' }],
-        hints: ['A brute force approach is O(n^2). Can you do better?', 'Use a hash map to store numbers you have seen so far.'],
+Find two numbers in array that add up to target. Print their indices.`,
+        examples: [{ input: 'nums = [2,7,11,15], target = 9', output: '[0, 1]' }],
+        hints: ['Use a hash map.'],
         solution: {
-            python: 'def solution(nums, target):\n    seen = {}\n    for i, n in enumerate(nums):\n        diff = target - n\n        if diff in seen:\n            return [seen[diff], i]\n        seen[n] = i\n    return []',
-            javascript: 'function solution(nums, target) {\n    const map = new Map();\n    for (let i = 0; i < nums.length; i++) {\n        const diff = target - nums[i];\n        if (map.has(diff)) return [map.get(diff), i];\n        map.set(nums[i], i);\n    }\n}',
-            cpp: 'vector<int> solution(vector<int>& nums, int target) {\n    unordered_map<int, int> m;\n    for (int i = 0; i < nums.size(); i++) {\n        if (m.count(target - nums[i])) return {m[target - nums[i]], i};\n        m[nums[i]] = i;\n    }\n    return {};\n}'
+            python: `def two_sum(nums, target):
+    seen = {}
+    for i, n in enumerate(nums):
+        if target - n in seen:
+            return [seen[target-n], i]
+        seen[n] = i`,
+            javascript: `function twoSum(nums, target) {
+    const map = new Map();
+    for(let i = 0; i < nums.length; i++) {
+        if(map.has(target - nums[i])) return [map.get(target - nums[i]), i];
+        map.set(nums[i], i);
+    }
+}`,
+            cpp: `vector<int> twoSum(vector<int>& nums, int target) {
+    unordered_map<int, int> m;
+    for(int i = 0; i < nums.size(); i++) {
+        if(m.count(target - nums[i])) return {m[target - nums[i]], i};
+        m[nums[i]] = i;
+    }
+    return {};
+}`
         },
-        explanation: 'We use a hash map to store values and their indices. For each number, checking if the complement exists in the map takes O(1).',
-        testCases: [{ input: '[2,7,11,15], 9', expectedOutput: '[0,1]' }],
+        explanation: 'Hash map for O(n) lookup.',
+        starterCode: {
+            python: `def two_sum(nums, target):
+    # Return indices of two numbers
+    pass
+
+print(two_sum([2, 7, 11, 15], 9))`,
+            javascript: `function twoSum(nums, target) {
+    // Return indices of two numbers
+}
+
+console.log(twoSum([2, 7, 11, 15], 9));`,
+            cpp: `#include <iostream>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+vector<int> twoSum(vector<int>& nums, int target) {
+    return {};
+}
+
+int main() {
+    vector<int> nums = {2, 7, 11, 15};
+    auto r = twoSum(nums, 9);
+    cout << "[" << r[0] << ", " << r[1] << "]" << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '[2,7,11,15], 9', expectedOutput: '[0, 1]' }],
+            javascript: [{ input: '[2,7,11,15], 9', expectedOutput: '[ 0, 1 ]' }],
+            cpp: [{ input: '[2,7,11,15], 9', expectedOutput: '[0, 1]' }]
+        },
         xpReward: 50,
         tags: ['Array', 'Hash Table']
     },
@@ -140,28 +260,70 @@ You may assume that each input would have exactly one solution, and you may not 
         tier: 2,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given an array of integers \`nums\` which is sorted in ascending order, and an integer \`target\`, write a function to search \`target\` in \`nums\`. If \`target\` exists, then return its index. Otherwise, return \`-1\`.
-
-**Input**
-- \`nums\`: A sorted integer array.
-- \`target\`: The value to search for.
-
-**Output**
-- Integer index of \`target\` or \`-1\`.
-
-**Constraints**
-- 1 <= nums.length <= 10^4
-- All integers in \`nums\` are unique.
-- \`nums\` is sorted in ascending order.`,
-        examples: [{ input: 'nums = [-1,0,3,5,9,12], target = 9', output: '4' }, { input: 'nums = [-1,0,3,5,9,12], target = 2', output: '-1' }],
-        hints: ['Because the array is sorted, you can check the middle element.', 'If the target is smaller than the middle, verify the left half. Otherwise, verify the right half.'],
+Find index of target in sorted array, or -1 if not found.`,
+        examples: [{ input: 'nums = [-1,0,3,5,9,12], target = 9', output: '4' }],
+        hints: ['Compare middle element with target.'],
         solution: {
-            python: 'def solution(nums, target):\n    l, r = 0, len(nums) - 1\n    while l <= r:\n        mid = (l + r) // 2\n        if nums[mid] == target: return mid\n        elif nums[mid] < target: l = mid + 1\n        else: r = mid - 1\n    return -1',
-            javascript: 'function solution(nums, target) {\n    let l = 0, r = nums.length - 1;\n    while (l <= r) {\n        const mid = Math.floor((l + r) / 2);\n        if (nums[mid] === target) return mid;\n        if (nums[mid] < target) l = mid + 1;\n        else r = mid - 1;\n    }\n    return -1;\n}',
-            cpp: 'int solution(vector<int>& nums, int target) {\n    int l = 0, r = nums.size() - 1;\n    while (l <= r) {\n        int mid = l + (r - l) / 2;\n        if (nums[mid] == target) return mid;\n        if (nums[mid] < target) l = mid + 1;\n        else r = mid - 1;\n    }\n    return -1;\n}'
+            python: `def binary_search(nums, target):
+    l, r = 0, len(nums) - 1
+    while l <= r:
+        mid = (l + r) // 2
+        if nums[mid] == target: return mid
+        elif nums[mid] < target: l = mid + 1
+        else: r = mid - 1
+    return -1`,
+            javascript: `function binarySearch(nums, target) {
+    let l = 0, r = nums.length - 1;
+    while(l <= r) {
+        const mid = Math.floor((l + r) / 2);
+        if(nums[mid] === target) return mid;
+        if(nums[mid] < target) l = mid + 1;
+        else r = mid - 1;
+    }
+    return -1;
+}`,
+            cpp: `int binarySearch(vector<int>& nums, int target) {
+    int l = 0, r = nums.size() - 1;
+    while(l <= r) {
+        int mid = l + (r - l) / 2;
+        if(nums[mid] == target) return mid;
+        if(nums[mid] < target) l = mid + 1;
+        else r = mid - 1;
+    }
+    return -1;
+}`
         },
-        explanation: 'We divide the search interval in half each time (Divide and Conquer). O(log n) time complexity.',
-        testCases: [{ input: '[-1,0,3,5,9,12], 9', expectedOutput: '4' }],
+        explanation: 'Divide and conquer O(log n).',
+        starterCode: {
+            python: `def binary_search(nums, target):
+    # Return index or -1
+    pass
+
+print(binary_search([-1, 0, 3, 5, 9, 12], 9))`,
+            javascript: `function binarySearch(nums, target) {
+    // Return index or -1
+}
+
+console.log(binarySearch([-1, 0, 3, 5, 9, 12], 9));`,
+            cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+int binarySearch(vector<int>& nums, int target) {
+    return -1;
+}
+
+int main() {
+    vector<int> nums = {-1, 0, 3, 5, 9, 12};
+    cout << binarySearch(nums, 9) << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '[-1,0,3,5,9,12], 9', expectedOutput: '4' }],
+            javascript: [{ input: '[-1,0,3,5,9,12], 9', expectedOutput: '4' }],
+            cpp: [{ input: '[-1,0,3,5,9,12], 9', expectedOutput: '4' }]
+        },
         xpReward: 75,
         tags: ['Binary Search']
     },
@@ -172,26 +334,65 @@ Given an array of integers \`nums\` which is sorted in ascending order, and an i
         tier: 2,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given an integer array \`nums\`, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.
-
-**Input**
-- \`nums\`: An array of integers.
-
-**Output**
-- The maximum subarray sum (integer).
-
-**Constraints**
-- 1 <= nums.length <= 10^5
-- -10^4 <= nums[i] <= 10^4`,
-        examples: [{ input: 'nums = [-2,1,-3,4,-1,2,1,-5,4]', output: '6', explanation: 'The subarray [4,-1,2,1] has the largest sum = 6.' }],
-        hints: ['Kadanes Algorithm is the optimal approach.', 'Keep a running sum. If the running sum becomes negative, reset it to 0.'],
+Find the contiguous subarray with the largest sum.`,
+        examples: [{ input: 'nums = [-2,1,-3,4,-1,2,1,-5,4]', output: '6' }],
+        hints: ['Use Kadane Algorithm.'],
         solution: {
-            python: 'def solution(nums):\n    max_sum = cur_sum = nums[0]\n    for n in nums[1:]:\n        cur_sum = max(n, cur_sum + n)\n        max_sum = max(max_sum, cur_sum)\n    return max_sum',
-            javascript: 'function solution(nums) {\n    let maxSum = nums[0];\n    let curSum = nums[0];\n    for (let i = 1; i < nums.length; i++) {\n        curSum = Math.max(nums[i], curSum + nums[i]);\n        maxSum = Math.max(maxSum, curSum);\n    }\n    return maxSum;\n}',
-            cpp: 'int solution(vector<int>& nums) {\n    int maxSum = nums[0], curSum = nums[0];\n    for (int i = 1; i < nums.size(); i++) {\n        curSum = max(nums[i], curSum + nums[i]);\n        maxSum = max(maxSum, curSum);\n    }\n    return maxSum;\n}'
+            python: `def max_subarray(nums):
+    max_sum = cur_sum = nums[0]
+    for n in nums[1:]:
+        cur_sum = max(n, cur_sum + n)
+        max_sum = max(max_sum, cur_sum)
+    return max_sum`,
+            javascript: `function maxSubarray(nums) {
+    let maxSum = nums[0], curSum = nums[0];
+    for(let i = 1; i < nums.length; i++) {
+        curSum = Math.max(nums[i], curSum + nums[i]);
+        maxSum = Math.max(maxSum, curSum);
+    }
+    return maxSum;
+}`,
+            cpp: `int maxSubarray(vector<int>& nums) {
+    int maxSum = nums[0], curSum = nums[0];
+    for(int i = 1; i < nums.size(); i++) {
+        curSum = max(nums[i], curSum + nums[i]);
+        maxSum = max(maxSum, curSum);
+    }
+    return maxSum;
+}`
         },
-        explanation: 'We iterate through the array, deciding at each position whether to extend the current subarray or start a new one (Dynamic Programming).',
-        testCases: [{ input: '[-2,1,-3,4,-1,2,1,-5,4]', expectedOutput: '6' }],
+        explanation: 'Kadane algorithm O(n).',
+        starterCode: {
+            python: `def max_subarray(nums):
+    # Return max sum
+    pass
+
+print(max_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]))`,
+            javascript: `function maxSubarray(nums) {
+    // Return max sum
+}
+
+console.log(maxSubarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]));`,
+            cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int maxSubarray(vector<int>& nums) {
+    return 0;
+}
+
+int main() {
+    vector<int> nums = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
+    cout << maxSubarray(nums) << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '[-2,1,-3,4,-1,2,1,-5,4]', expectedOutput: '6' }],
+            javascript: [{ input: '[-2,1,-3,4,-1,2,1,-5,4]', expectedOutput: '6' }],
+            cpp: [{ input: '[-2,1,-3,4,-1,2,1,-5,4]', expectedOutput: '6' }]
+        },
         xpReward: 75,
         tags: ['Array', 'DP']
     },
@@ -202,25 +403,50 @@ Given an integer array \`nums\`, find the contiguous subarray (containing at lea
         tier: 1,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given an integer array \`nums\`, return \`true\` if any value appears at least twice in the array, and return \`false\` if every element is distinct.
-
-**Input**
-- \`nums\`: An array of integers.
-
-**Output**
-- Boolean \`true\` or \`false\`.
-
-**Constraints**
-- 1 <= nums.length <= 10^5`,
-        examples: [{ input: 'nums = [1,2,3,1]', output: 'true' }, { input: 'nums = [1,2,3,4]', output: 'false' }],
-        hints: ['Use a hash set to track elements you have already seen.'],
+Check if any value appears at least twice.`,
+        examples: [{ input: 'nums = [1,2,3,1]', output: 'True' }],
+        hints: ['Use a set.'],
         solution: {
-            python: 'def solution(nums):\n    return len(nums) != len(set(nums))',
-            javascript: 'function solution(nums) {\n    return new Set(nums).size !== nums.length;\n}',
-            cpp: 'bool solution(vector<int>& nums) {\n    unordered_set<int> s(nums.begin(), nums.end());\n    return s.size() != nums.size();\n}'
+            python: `def contains_duplicate(nums):
+    return len(nums) != len(set(nums))`,
+            javascript: `function containsDuplicate(nums) {
+    return new Set(nums).size !== nums.length;
+}`,
+            cpp: `bool containsDuplicate(vector<int>& nums) {
+    unordered_set<int> s(nums.begin(), nums.end());
+    return s.size() != nums.size();
+}`
         },
-        explanation: 'Comparing the size of the set (unique elements) with the array length reveals if duplicates existed.',
-        testCases: [{ input: '[1,2,3,1]', expectedOutput: 'true' }],
+        explanation: 'Set comparison.',
+        starterCode: {
+            python: `def contains_duplicate(nums):
+    pass
+
+print(contains_duplicate([1, 2, 3, 1]))`,
+            javascript: `function containsDuplicate(nums) {
+}
+
+console.log(containsDuplicate([1, 2, 3, 1]));`,
+            cpp: `#include <iostream>
+#include <vector>
+#include <unordered_set>
+using namespace std;
+
+bool containsDuplicate(vector<int>& nums) {
+    return false;
+}
+
+int main() {
+    vector<int> nums = {1, 2, 3, 1};
+    cout << (containsDuplicate(nums) ? "true" : "false") << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '[1,2,3,1]', expectedOutput: 'True' }],
+            javascript: [{ input: '[1,2,3,1]', expectedOutput: 'true' }],
+            cpp: [{ input: '[1,2,3,1]', expectedOutput: 'true' }]
+        },
         xpReward: 50,
         tags: ['Array', 'Hash Table']
     },
@@ -231,32 +457,52 @@ Given an integer array \`nums\`, return \`true\` if any value appears at least t
         tier: 1,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise. An anagram is a word formed by rearranging the letters of another word.
-
-**Input**
-- \`s\`: Source string.
-- \`t\`: Target string.
-
-**Output**
-- Boolean \`true\` or \`false\`.
-
-**Constraints**
-- 1 <= s.length, t.length <= 5 * 10^4
-- Strings consist of lowercase English letters.`,
-        examples: [{ input: 's = "anagram", t = "nagaram"', output: 'true' }, { input: 's = "rat", t = "car"', output: 'false' }],
-        hints: ['Count the frequency of each char in both strings.', 'If lengths differ, they cannot be anagrams.'],
+Check if two strings are anagrams.`,
+        examples: [{ input: 's = "anagram", t = "nagaram"', output: 'True' }],
+        hints: ['Sort both strings.'],
         solution: {
-            python: 'def solution(s, t):\n    return sorted(s) == sorted(t)',
-            javascript: 'function solution(s, t) {\n    return s.split("").sort().join("") === t.split("").sort().join("");\n}',
-            cpp: 'bool solution(string s, string t) {\n    sort(s.begin(), s.end());\n    sort(t.begin(), t.end());\n    return s == t;\n}'
+            python: `def is_anagram(s, t):
+    return sorted(s) == sorted(t)`,
+            javascript: `function isAnagram(s, t) {
+    return s.split("").sort().join("") === t.split("").sort().join("");
+}`,
+            cpp: `bool isAnagram(string s, string t) {
+    sort(s.begin(), s.end());
+    sort(t.begin(), t.end());
+    return s == t;
+}`
         },
-        explanation: 'Sorting both strings determines if they contain the exact same characters.',
-        testCases: [{ input: 'anagram, nagaram', expectedOutput: 'true' }],
+        explanation: 'Sort and compare.',
+        starterCode: {
+            python: `def is_anagram(s, t):
+    pass
+
+print(is_anagram("anagram", "nagaram"))`,
+            javascript: `function isAnagram(s, t) {
+}
+
+console.log(isAnagram("anagram", "nagaram"));`,
+            cpp: `#include <iostream>
+#include <algorithm>
+using namespace std;
+
+bool isAnagram(string s, string t) {
+    return false;
+}
+
+int main() {
+    cout << (isAnagram("anagram", "nagaram") ? "true" : "false") << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: 'anagram, nagaram', expectedOutput: 'True' }],
+            javascript: [{ input: 'anagram, nagaram', expectedOutput: 'true' }],
+            cpp: [{ input: 'anagram, nagaram', expectedOutput: 'true' }]
+        },
         xpReward: 50,
         tags: ['String', 'Sorting']
     },
-
-    // ===== MEDIUM PROBLEMS =====
     {
         id: 'valid-parentheses',
         title: 'Valid Parentheses',
@@ -264,28 +510,74 @@ Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s
         tier: 3,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given a string \`s\` containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.
-An input string is valid if:
-1. Open brackets must be closed by the same type of brackets.
-2. Open brackets must be closed in the correct order.
-
-**Input**
-- A string \`s\`.
-
-**Output**
-- Boolean \`true\` or \`false\`.
-
-**Constraints**
-- 1 <= s.length <= 10^4`,
-        examples: [{ input: 's = "()[]{}"', output: 'true' }, { input: 's = "(]"', output: 'false' }],
-        hints: ['Use a stack to keep track of opening brackets.', 'When you see a closing bracket, check if it matches the top of the stack.'],
+Check if parentheses string is valid.`,
+        examples: [{ input: 's = "()"', output: 'True' }],
+        hints: ['Use a stack.'],
         solution: {
-            python: 'def solution(s):\n    stack = []\n    mapping = {")":"(", "}":"{", "]":"["}\n    for char in s:\n        if char in mapping:\n            top = stack.pop() if stack else "#"\n            if mapping[char] != top:\n                return False\n        else:\n            stack.append(char)\n    return not stack',
-            javascript: 'function solution(s) {\n    const stack = [];\n    const map = {")":"(", "}":"{", "]":"["};\n    for(const c of s) {\n        if(map[c]) {\n            if(stack.pop() !== map[c]) return false;\n        } else stack.push(c);\n    }\n    return stack.length === 0;\n}',
-            cpp: 'bool solution(string s) {\n    stack<char> st;\n    for(char c : s) {\n        if(c == \'(\' || c == \'{\' || c == \'[\') st.push(c);\n        else {\n            if(st.empty()) return false;\n            if(c == \')\' && st.top() != \'(\') return false;\n            if(c == \'}\' && st.top() != \'{\') return false;\n            if(c == \']\' && st.top() != \'[\') return false;\n            st.pop();\n        }\n    }\n    return st.empty();\n}'
+            python: `def is_valid(s):
+    stack = []
+    pairs = {")": "(", "}": "{", "]": "["}
+    for c in s:
+        if c in pairs:
+            if not stack or stack.pop() != pairs[c]:
+                return False
+        else:
+            stack.append(c)
+    return not stack`,
+            javascript: `function isValid(s) {
+    const stack = [];
+    const map = {")": "(", "}": "{", "]": "["};
+    for(const c of s) {
+        if(map[c]) {
+            if(stack.pop() !== map[c]) return false;
+        } else {
+            stack.push(c);
+        }
+    }
+    return stack.length === 0;
+}`,
+            cpp: `bool isValid(string s) {
+    stack<char> st;
+    for(char c : s) {
+        if(c == '(' || c == '{' || c == '[') st.push(c);
+        else {
+            if(st.empty()) return false;
+            char top = st.top(); st.pop();
+            if((c == ')' && top != '(') || (c == '}' && top != '{') || (c == ']' && top != '['))
+                return false;
+        }
+    }
+    return st.empty();
+}`
         },
-        explanation: 'Using a stack allows us to verify LIFO order validity.',
-        testCases: [{ input: '()[]{}', expectedOutput: 'true' }],
+        explanation: 'Stack-based matching.',
+        starterCode: {
+            python: `def is_valid(s):
+    pass
+
+print(is_valid("()[]{}"))`,
+            javascript: `function isValid(s) {
+}
+
+console.log(isValid("()[]{}"));`,
+            cpp: `#include <iostream>
+#include <stack>
+using namespace std;
+
+bool isValid(string s) {
+    return false;
+}
+
+int main() {
+    cout << (isValid("()[]{}") ? "true" : "false") << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '()[]{}', expectedOutput: 'True' }],
+            javascript: [{ input: '()[]{}', expectedOutput: 'true' }],
+            cpp: [{ input: '()[]{}', expectedOutput: 'true' }]
+        },
         xpReward: 100,
         tags: ['Stack', 'String']
     },
@@ -296,25 +588,69 @@ An input string is valid if:
         tier: 3,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given a string \`s\`, find the length of the longest substring without repeating characters.
-
-**Input**
-- A string \`s\`.
-
-**Output**
-- Integer length of the longest substring.
-
-**Constraints**
-- 0 <= s.length <= 5 * 10^4`,
-        examples: [{ input: 's = "abcabcbb"', output: '3', explanation: 'The answer is "abc", with the length of 3.' }, { input: 's = "bbbbb"', output: '1' }],
-        hints: ['Use a sliding window.', 'Keep a set or map of characters in the current window to detect duplicates.'],
+Find length of longest substring without repeating characters.`,
+        examples: [{ input: 's = "abcabcbb"', output: '3' }],
+        hints: ['Use sliding window.'],
         solution: {
-            python: 'def solution(s):\n    l = 0\n    res = 0\n    seen = set()\n    for r in range(len(s)):\n        while s[r] in seen:\n            seen.remove(s[l])\n            l += 1\n        seen.add(s[r])\n        res = max(res, r - l + 1)\n    return res',
-            javascript: 'function solution(s) {\n    let l = 0, res = 0;\n    const seen = new Set();\n    for(let r = 0; r < s.length; r++) {\n        while(seen.has(s[r])) {\n            seen.delete(s[l]);\n            l++;\n        }\n        seen.add(s[r]);\n        res = Math.max(res, r - l + 1);\n    }\n    return res;\n}',
-            cpp: 'int solution(string s) {\n    int l = 0, res = 0;\n    unordered_set<char> seen;\n    for(int r = 0; r < s.size(); r++) {\n        while(seen.count(s[r])) {\n            seen.erase(s[l]);\n            l++;\n        }\n        seen.insert(s[r]);\n        res = max(res, r - l + 1);\n    }\n    return res;\n}'
+            python: `def length_of_longest(s):
+    seen = set()
+    l = res = 0
+    for r in range(len(s)):
+        while s[r] in seen:
+            seen.remove(s[l])
+            l += 1
+        seen.add(s[r])
+        res = max(res, r - l + 1)
+    return res`,
+            javascript: `function lengthOfLongest(s) {
+    let l = 0, res = 0;
+    const seen = new Set();
+    for(let r = 0; r < s.length; r++) {
+        while(seen.has(s[r])) { seen.delete(s[l]); l++; }
+        seen.add(s[r]);
+        res = Math.max(res, r - l + 1);
+    }
+    return res;
+}`,
+            cpp: `int lengthOfLongest(string s) {
+    unordered_set<char> seen;
+    int l = 0, res = 0;
+    for(int r = 0; r < s.size(); r++) {
+        while(seen.count(s[r])) { seen.erase(s[l]); l++; }
+        seen.insert(s[r]);
+        res = max(res, r - l + 1);
+    }
+    return res;
+}`
         },
-        explanation: 'The sliding window expands to the right and shrinks from the left whenever a duplicate is encountered.',
-        testCases: [{ input: 'abcabcbb', expectedOutput: '3' }],
+        explanation: 'Sliding window O(n).',
+        starterCode: {
+            python: `def length_of_longest(s):
+    pass
+
+print(length_of_longest("abcabcbb"))`,
+            javascript: `function lengthOfLongest(s) {
+}
+
+console.log(lengthOfLongest("abcabcbb"));`,
+            cpp: `#include <iostream>
+#include <unordered_set>
+using namespace std;
+
+int lengthOfLongest(string s) {
+    return 0;
+}
+
+int main() {
+    cout << lengthOfLongest("abcabcbb") << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: 'abcabcbb', expectedOutput: '3' }],
+            javascript: [{ input: 'abcabcbb', expectedOutput: '3' }],
+            cpp: [{ input: 'abcabcbb', expectedOutput: '3' }]
+        },
         xpReward: 150,
         tags: ['Sliding Window', 'Hash Table']
     },
@@ -325,31 +661,70 @@ Given a string \`s\`, find the length of the longest substring without repeating
         tier: 3,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-You are given an integer array \`height\` of length \`n\`. There are \`n\` vertical lines drawn such that the two endpoints of the ith line are \`(i, 0)\` and \`(i, height[i])\`.
-Find two lines that together with the x-axis form a container, such that the container contains the most water. Return the maximum amount of water a container can store.
-
-**Input**
-- \`height\`: Info array of integers.
-
-**Output**
-- Integer max area.
-
-**Constraints**
-- 2 <= height.length <= 10^5`,
+Find two lines that form a container with most water.`,
         examples: [{ input: '[1,8,6,2,5,4,8,3,7]', output: '49' }],
-        hints: ['The width is the distance between lines.', 'The height is limited by the shorter line.', 'Start with the widest container and shrink inwards.'],
+        hints: ['Use two pointers.'],
         solution: {
-            python: 'def solution(height):\n    l, r = 0, len(height) - 1\n    max_area = 0\n    while l < r:\n        w = r - l\n        h = min(height[l], height[r])\n        max_area = max(max_area, w * h)\n        if height[l] < height[r]:\n            l += 1\n        else:\n            r -= 1\n    return max_area',
-            javascript: 'function solution(height) {\n    let l = 0, r = height.length - 1, maxArea = 0;\n    while(l < r) {\n        const w = r - l;\n        const h = Math.min(height[l], height[r]);\n        maxArea = Math.max(maxArea, w * h);\n        if(height[l] < height[r]) l++;\n        else r--;\n    }\n    return maxArea;\n}',
-            cpp: 'int solution(vector<int>& height) {\n    int l = 0, r = height.size() - 1, maxArea = 0;\n    while(l < r) {\n        int w = r - l;\n        int h = min(height[l], height[r]);\n        maxArea = max(maxArea, w * h);\n        if(height[l] < height[r]) l++;\n        else r--;\n    }\n    return maxArea;\n}'
+            python: `def max_area(height):
+    l, r = 0, len(height) - 1
+    max_a = 0
+    while l < r:
+        max_a = max(max_a, (r - l) * min(height[l], height[r]))
+        if height[l] < height[r]: l += 1
+        else: r -= 1
+    return max_a`,
+            javascript: `function maxArea(height) {
+    let l = 0, r = height.length - 1, maxA = 0;
+    while(l < r) {
+        maxA = Math.max(maxA, (r - l) * Math.min(height[l], height[r]));
+        if(height[l] < height[r]) l++;
+        else r--;
+    }
+    return maxA;
+}`,
+            cpp: `int maxArea(vector<int>& height) {
+    int l = 0, r = height.size() - 1, maxA = 0;
+    while(l < r) {
+        maxA = max(maxA, (r - l) * min(height[l], height[r]));
+        if(height[l] < height[r]) l++;
+        else r--;
+    }
+    return maxA;
+}`
         },
-        explanation: 'Greedy approach using two pointers from the outside in.',
-        testCases: [{ input: '[1,8,6,2,5,4,8,3,7]', expectedOutput: '49' }],
+        explanation: 'Greedy two-pointer.',
+        starterCode: {
+            python: `def max_area(height):
+    pass
+
+print(max_area([1, 8, 6, 2, 5, 4, 8, 3, 7]))`,
+            javascript: `function maxArea(height) {
+}
+
+console.log(maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]));`,
+            cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int maxArea(vector<int>& height) {
+    return 0;
+}
+
+int main() {
+    vector<int> height = {1, 8, 6, 2, 5, 4, 8, 3, 7};
+    cout << maxArea(height) << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '[1,8,6,2,5,4,8,3,7]', expectedOutput: '49' }],
+            javascript: [{ input: '[1,8,6,2,5,4,8,3,7]', expectedOutput: '49' }],
+            cpp: [{ input: '[1,8,6,2,5,4,8,3,7]', expectedOutput: '49' }]
+        },
         xpReward: 125,
         tags: ['Two Pointers', 'Greedy']
     },
-
-    // ===== HARD PROBLEMS =====
     {
         id: 'trapping-rain',
         title: 'Trapping Rain Water',
@@ -357,25 +732,82 @@ Find two lines that together with the x-axis form a container, such that the con
         tier: 5,
         languages: ['python', 'javascript', 'cpp'],
         description: `**Description**
-Given \`n\` non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.
-
-**Input**
-- \`height\`: A list of non-negative integers.
-
-**Output**
-- Integer total water trapped.
-
-**Constraints**
-- 1 <= height.length <= 2 * 10^4`,
-        examples: [{ input: 'height = [0,1,0,2,1,0,1,3,2,1,2,1]', output: '6' }],
-        hints: ['For each element, find the max height to its left and right.', 'Water trapped at index i = min(maxLeft, maxRight) - height[i].', 'Can you optimize space usage with two pointers?'],
+Given elevation map, compute water trapped after raining.`,
+        examples: [{ input: '[0,1,0,2,1,0,1,3,2,1,2,1]', output: '6' }],
+        hints: ['Use two pointers.'],
         solution: {
-            python: 'def solution(height):\n    if not height: return 0\n    l, r = 0, len(height) - 1\n    leftMax, rightMax = height[l], height[r]\n    res = 0\n    while l < r:\n        if leftMax < rightMax:\n            l += 1\n            leftMax = max(leftMax, height[l])\n            res += leftMax - height[l]\n        else:\n            r -= 1\n            rightMax = max(rightMax, height[r])\n            res += rightMax - height[r]\n    return res',
-            javascript: 'function solution(height) {\n    let l = 0, r = height.length - 1;\n    let leftMax = 0, rightMax = 0, res = 0;\n    while (l < r) {\n        if (height[l] < height[r]) {\n            height[l] >= leftMax ? (leftMax = height[l]) : (res += leftMax - height[l]);\n            l++;\n        } else {\n            height[r] >= rightMax ? (rightMax = height[r]) : (res += rightMax - height[r]);\n            r--;\n        }\n    }\n    return res;\n}',
-            cpp: 'int solution(vector<int>& height) {\n    int l = 0, r = height.size() - 1;\n    int leftMax = 0, rightMax = 0, res = 0;\n    while (l < r) {\n        if (height[l] < height[r]) {\n            height[l] >= leftMax ? (leftMax = height[l]) : (res += leftMax - height[l]);\n            l++;\n        } else {\n            height[r] >= rightMax ? (rightMax = height[r]) : (res += rightMax - height[r]);\n            r--;\n        }\n    }\n    return res;\n}'
+            python: `def trap(height):
+    if not height: return 0
+    l, r = 0, len(height) - 1
+    lmax, rmax, res = height[l], height[r], 0
+    while l < r:
+        if lmax < rmax:
+            l += 1
+            lmax = max(lmax, height[l])
+            res += lmax - height[l]
+        else:
+            r -= 1
+            rmax = max(rmax, height[r])
+            res += rmax - height[r]
+    return res`,
+            javascript: `function trap(height) {
+    let l = 0, r = height.length - 1;
+    let lmax = 0, rmax = 0, res = 0;
+    while(l < r) {
+        if(height[l] < height[r]) {
+            height[l] >= lmax ? (lmax = height[l]) : (res += lmax - height[l]);
+            l++;
+        } else {
+            height[r] >= rmax ? (rmax = height[r]) : (res += rmax - height[r]);
+            r--;
+        }
+    }
+    return res;
+}`,
+            cpp: `int trap(vector<int>& height) {
+    int l = 0, r = height.size() - 1;
+    int lmax = 0, rmax = 0, res = 0;
+    while(l < r) {
+        if(height[l] < height[r]) {
+            height[l] >= lmax ? (lmax = height[l]) : (res += lmax - height[l]);
+            l++;
+        } else {
+            height[r] >= rmax ? (rmax = height[r]) : (res += rmax - height[r]);
+            r--;
+        }
+    }
+    return res;
+}`
         },
-        explanation: 'Using two pointers allows us to compute trapped water in one pass O(n) with O(1) space.',
-        testCases: [{ input: '[0,1,0,2,1,0,1,3,2,1,2,1]', expectedOutput: '6' }],
+        explanation: 'Two pointers O(n) O(1).',
+        starterCode: {
+            python: `def trap(height):
+    pass
+
+print(trap([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]))`,
+            javascript: `function trap(height) {
+}
+
+console.log(trap([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]));`,
+            cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+int trap(vector<int>& height) {
+    return 0;
+}
+
+int main() {
+    vector<int> height = {0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1};
+    cout << trap(height) << endl;
+    return 0;
+}`
+        },
+        testCases: {
+            python: [{ input: '[0,1,0,2,1,0,1,3,2,1,2,1]', expectedOutput: '6' }],
+            javascript: [{ input: '[0,1,0,2,1,0,1,3,2,1,2,1]', expectedOutput: '6' }],
+            cpp: [{ input: '[0,1,0,2,1,0,1,3,2,1,2,1]', expectedOutput: '6' }]
+        },
         xpReward: 275,
         tags: ['Two Pointers', 'DP', 'Stack']
     },
@@ -386,30 +818,59 @@ Given \`n\` non-negative integers representing an elevation map where the width 
         tier: 5,
         languages: ['python', 'javascript'],
         description: `**Description**
-A transformation sequence from word \`beginWord\` to word \`endWord\` using a dictionary \`wordList\` is a sequence of words such that:
-- Every adjacent pair differs by exactly one letter.
-- Every intermediate word must exist in \`wordList\`.
-- Return the number of words in the shortest transformation sequence, or 0 if no such sequence exists.
-
-**Input**
-- \`beginWord\`: String.
-- \`endWord\`: String.
-- \`wordList\`: List of strings.
-
-**Output**
-- Integer length of shortest sequence.
-
-**Constraints**
-- 1 <= wordList.length <= 5000`,
-        examples: [{ input: 'beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]', output: '5', explanation: '"hit" -> "hot" -> "dot" -> "dog" -> "cog"' }],
-        hints: ['This is a Shortest Path problem on a Graph.', 'Each word is a node, edges exist between words differing by 1 char.', 'Use BFS.'],
+Find shortest transformation from beginWord to endWord.`,
+        examples: [{ input: 'hit -> cog', output: '5' }],
+        hints: ['Use BFS.'],
         solution: {
-            python: 'from collections import deque\ndef solution(beginWord, endWord, wordList):\n    wordSet = set(wordList)\n    if endWord not in wordSet: return 0\n    q = deque([(beginWord, 1)])\n    while q:\n        word, length = q.popleft()\n        if word == endWord: return length\n        for i in range(len(word)):\n            for c in "abcdefghijklmnopqrstuvwxyz":\n                next_word = word[:i] + c + word[i+1:]\n                if next_word in wordSet:\n                    wordSet.remove(next_word)\n                    q.append((next_word, length + 1))\n    return 0',
-            javascript: 'function solution(beginWord, endWord, wordList) {\n    const wordSet = new Set(wordList);\n    if (!wordSet.has(endWord)) return 0;\n    const queue = [[beginWord, 1]];\n    while (queue.length) {\n        const [word, len] = queue.shift();\n        if (word === endWord) return len;\n        for (let i = 0; i < word.length; i++) {\n            for (let c = 97; c <= 122; c++) {\n                const next = word.slice(0, i) + String.fromCharCode(c) + word.slice(i + 1);\n                if (wordSet.has(next)) {\n                    wordSet.delete(next);\n                    queue.push([next, len + 1]);\n                }\n            }\n        }\n    }\n    return 0;\n}',
-            cpp: '// Simplified signature for demo\nint solution(string beginWord, string endWord, vector<string>& wordList) {\n    unordered_set<string> wordSet(wordList.begin(), wordList.end());\n    if (!wordSet.count(endWord)) return 0;\n    queue<pair<string, int>> q;\n    q.push({beginWord, 1});\n    while (!q.empty()) {\n        auto [word, len] = q.front(); q.pop();\n        if (word == endWord) return len;\n        for (int i = 0; i < word.size(); i++) {\n            char original = word[i];\n            for (char c = \'a\'; c <= \'z\'; c++) {\n                word[i] = c;\n                if (wordSet.count(word)) {\n                    wordSet.erase(word);\n                    q.push({word, len + 1});\n                }\n            }\n            word[i] = original;\n        }\n    }\n    return 0;\n}'
+            python: `from collections import deque
+def ladder_length(begin, end, wordList):
+    wordSet = set(wordList)
+    if end not in wordSet: return 0
+    q = deque([(begin, 1)])
+    while q:
+        word, length = q.popleft()
+        if word == end: return length
+        for i in range(len(word)):
+            for c in "abcdefghijklmnopqrstuvwxyz":
+                next_word = word[:i] + c + word[i+1:]
+                if next_word in wordSet:
+                    wordSet.remove(next_word)
+                    q.append((next_word, length + 1))
+    return 0`,
+            javascript: `function ladderLength(beginWord, endWord, wordList) {
+    const wordSet = new Set(wordList);
+    if(!wordSet.has(endWord)) return 0;
+    const queue = [[beginWord, 1]];
+    while(queue.length) {
+        const [word, len] = queue.shift();
+        if(word === endWord) return len;
+        for(let i = 0; i < word.length; i++) {
+            for(let c = 97; c <= 122; c++) {
+                const next = word.slice(0, i) + String.fromCharCode(c) + word.slice(i + 1);
+                if(wordSet.has(next)) { wordSet.delete(next); queue.push([next, len + 1]); }
+            }
+        }
+    }
+    return 0;
+}`
         },
-        explanation: 'BFS is suitable for finding the shortest path in an unweighted graph where words are nodes.',
-        testCases: [{ input: 'hit, cog, [hot,dot,dog,lot,log,cog]', expectedOutput: '5' }],
+        explanation: 'BFS shortest path.',
+        starterCode: {
+            python: `from collections import deque
+
+def ladder_length(begin, end, wordList):
+    pass
+
+print(ladder_length("hit", "cog", ["hot", "dot", "dog", "lot", "log", "cog"]))`,
+            javascript: `function ladderLength(beginWord, endWord, wordList) {
+}
+
+console.log(ladderLength("hit", "cog", ["hot", "dot", "dog", "lot", "log", "cog"]));`
+        },
+        testCases: {
+            python: [{ input: 'hit, cog', expectedOutput: '5' }],
+            javascript: [{ input: 'hit, cog', expectedOutput: '5' }]
+        },
         xpReward: 300,
         tags: ['BFS', 'Graph']
     }

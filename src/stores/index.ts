@@ -105,6 +105,9 @@ interface UserState {
     logout: () => void;
     signIn: (email: string, password: string) => Promise<{ user: any; error: any }>;
     signUp: (email: string, password: string, username: string) => Promise<{ user: any; error: any }>;
+    resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
+    magicLinkLogin: (email: string) => Promise<{ error: any }>;
+    updateEmail: (newEmail: string) => Promise<{ error: any }>;
     initializeSession: () => Promise<void>;
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
@@ -227,6 +230,8 @@ export const useUserStore = create<UserState>()(
                             if (profile) {
                                 profile.email = data.user!.email || '';
                                 set({ user: profile });
+                                // Fetch user progress from database
+                                useProgressStore.getState().fetchProgress(data.user!.id);
                             }
                         }).catch(() => {
                             // Profile fetch failed, but we already have basic user - that's fine
@@ -237,6 +242,49 @@ export const useUserStore = create<UserState>()(
                 } catch (err) {
                     useUIStore.getState().addToast('error', 'An unexpected error occurred');
                     return { user: null, error: { message: 'Unexpected error' } };
+                }
+            },
+
+            resetPasswordForEmail: async (email) => {
+                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } };
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) useUIStore.getState().addToast('error', error.message);
+                    else useUIStore.getState().addToast('success', 'Password reset email sent!');
+                    return { error };
+                } catch (err: any) {
+                    return { error: err };
+                }
+            },
+
+            magicLinkLogin: async (email) => {
+                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } };
+                try {
+                    const { error } = await supabase.auth.signInWithOtp({
+                        email,
+                        options: {
+                            emailRedirectTo: `${window.location.origin}/home`,
+                        },
+                    });
+                    if (error) useUIStore.getState().addToast('error', error.message);
+                    else useUIStore.getState().addToast('success', 'Magic link sent! Check your email.');
+                    return { error };
+                } catch (err: any) {
+                    return { error: err };
+                }
+            },
+
+            updateEmail: async (newEmail) => {
+                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } };
+                try {
+                    const { error } = await supabase.auth.updateUser({ email: newEmail });
+                    if (error) useUIStore.getState().addToast('error', error.message);
+                    else useUIStore.getState().addToast('success', 'Confirmation sent to new email!');
+                    return { error };
+                } catch (err: any) {
+                    return { error: err };
                 }
             },
 
@@ -337,6 +385,8 @@ export const useUserStore = create<UserState>()(
                         if (profile) {
                             profile.email = session.user.email || '';
                             set({ user: profile, isAuthenticated: true, isGuest: false, isLoading: false });
+                            // Fetch user progress from database
+                            useProgressStore.getState().fetchProgress(session.user.id);
                         } else {
                             set({ isLoading: false });
                         }
@@ -350,6 +400,8 @@ export const useUserStore = create<UserState>()(
                             if (profile) {
                                 profile.email = session.user.email || '';
                                 set({ user: profile, isAuthenticated: true, isGuest: false });
+                                // Fetch user progress from database
+                                useProgressStore.getState().fetchProgress(session.user.id);
                             }
                         } else {
                             set({ user: null, isAuthenticated: false, isGuest: false });
@@ -484,13 +536,15 @@ interface ProgressState {
 
     // Actions
     fetchProgress: (userId: string) => Promise<void>;
-    markComplete: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string, score?: number) => void;
+    markComplete: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string, score?: number, durationSeconds?: number) => void;
     isCompleted: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string) => boolean;
     getProgress: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string) => UserProgress | undefined;
+    // Secure server-side validation
+    validateAndComplete: (contentType: 'problem' | 'lesson', contentId: string, language: string, userOutput: string, durationSeconds?: number) => Promise<{ success: boolean; xp_awarded?: number; error?: string; message?: string }>;
 }
 
 // Helper to sync progress to Supabase
-const syncProgressToSupabase = async (userId: string, contentType: string, contentId: string, score?: number) => {
+const syncProgressToSupabase = async (userId: string, contentType: string, contentId: string, score?: number, durationSeconds?: number) => {
     if (!isSupabaseConfigured()) return;
     if (userId.startsWith('guest-') || userId.startsWith('mock-')) return;
 
@@ -502,6 +556,7 @@ const syncProgressToSupabase = async (userId: string, contentType: string, conte
             content_id: contentId,
             status: 'completed',
             score: score,
+            duration_seconds: durationSeconds,
             completed_at: new Date().toISOString()
         }, {
             onConflict: 'user_id,content_type,content_id'
@@ -564,7 +619,7 @@ export const useProgressStore = create<ProgressState>()(
                 set({ progress, completedLessons, completedProblems, isLoaded: true });
             },
 
-            markComplete: (contentType, contentId, score) => {
+            markComplete: (contentType, contentId, score, durationSeconds) => {
                 const { progress, completedLessons, completedProblems } = get();
                 const userStore = useUserStore.getState();
                 const userId = userStore.user?.id || 'current';
@@ -594,8 +649,8 @@ export const useProgressStore = create<ProgressState>()(
                     completedProblems: newCompletedProblems
                 });
 
-                // Sync to Supabase
-                syncProgressToSupabase(userId, contentType, contentId, score);
+                // Sync to Supabase (with duration for problems)
+                syncProgressToSupabase(userId, contentType, contentId, score, durationSeconds);
 
                 // Add Activity
                 if (contentType === 'lesson' || contentType === 'problem') {
@@ -645,6 +700,87 @@ export const useProgressStore = create<ProgressState>()(
                 return progress.find(
                     p => p.contentType === contentType && p.contentId === contentId
                 );
+            },
+
+            validateAndComplete: async (contentType, contentId, language, userOutput, durationSeconds) => {
+                if (!isSupabaseConfigured()) {
+                    return { success: false, error: 'Supabase not configured' };
+                }
+
+                const userStore = useUserStore.getState();
+                if (!userStore.user || userStore.user.id.startsWith('guest-') || userStore.user.id.startsWith('mock-')) {
+                    return { success: false, error: 'Not authenticated or guest user' };
+                }
+
+                try {
+                    const { data, error } = await supabase.rpc('validate_and_complete', {
+                        p_content_type: contentType,
+                        p_content_id: contentId,
+                        p_language: language,
+                        p_user_output: userOutput,
+                        p_duration_seconds: durationSeconds || null
+                    });
+
+                    if (error) {
+                        console.error('Validation RPC error:', error);
+                        return { success: false, error: error.message };
+                    }
+
+                    const result = data as { success: boolean; xp_awarded?: number; error?: string; message?: string };
+
+                    if (result.success) {
+                        // Update local state
+                        const { completedLessons, completedProblems, progress } = get();
+                        const newCompletedLessons = new Set(completedLessons);
+                        const newCompletedProblems = new Set(completedProblems);
+
+                        if (contentType === 'lesson') {
+                            newCompletedLessons.add(contentId);
+                        } else if (contentType === 'problem') {
+                            newCompletedProblems.add(contentId);
+                        }
+
+                        const newProgress: UserProgress = {
+                            id: `${contentType}-${contentId}-${Date.now()}`,
+                            userId: userStore.user.id,
+                            contentType,
+                            contentId,
+                            status: 'completed',
+                            completedAt: new Date().toISOString()
+                        };
+
+                        set({
+                            progress: [...progress, newProgress],
+                            completedLessons: newCompletedLessons,
+                            completedProblems: newCompletedProblems
+                        });
+
+                        // Refresh user profile to get updated XP from server
+                        if (result.xp_awarded && result.xp_awarded > 0) {
+                            // Fetch updated profile from server
+                            const { data: profileData } = await supabase
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', userStore.user.id)
+                                .single();
+
+                            if (profileData) {
+                                const updatedUser = {
+                                    ...userStore.user,
+                                    xp: profileData.xp,
+                                    level: profileData.level,
+                                    rank: profileData.rank
+                                };
+                                useUserStore.setState({ user: updatedUser });
+                            }
+                        }
+                    }
+
+                    return result;
+                } catch (err) {
+                    console.error('validateAndComplete error:', err);
+                    return { success: false, error: 'Unexpected error' };
+                }
             }
         }),
         {

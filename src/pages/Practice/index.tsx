@@ -12,10 +12,12 @@ import {
     Zap,
     ChevronLeft,
     Lightbulb,
+    ChevronDown,
+    RotateCw
 } from 'lucide-react';
-import { Badge, Button, Input, Select } from '../../components/ui';
+import { Badge, Button, Input } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
-import { useProgressStore, useUserStore, useUIStore } from '../../stores';
+import { useProgressStore, useUIStore } from '../../stores';
 import { useCodeRunner } from '../../hooks';
 import type { Problem } from '../../types';
 import { problems as problemsData } from '../../data/problems';
@@ -24,16 +26,17 @@ export const PracticePage: React.FC = () => {
     const { problemId } = useParams();
     const navigate = useNavigate();
     const { isCompleted, markComplete } = useProgressStore();
-    const { addXP, updateStreak } = useUserStore();
     const { addToast } = useUIStore();
 
     // List State
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('python');
+    const [isLanguageOpen, setIsLanguageOpen] = useState(false);
 
     // Detail State
     const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
     const [code, setCode] = useState<string>('');
+    const [startTime, setStartTime] = useState<number | null>(null); // Track when user started
     const {
         terminalLogs,
         isRunning,
@@ -51,19 +54,20 @@ export const PracticePage: React.FC = () => {
                 setActiveProblem(problem);
                 setCode(getDefaultCode(selectedLanguage));
                 clearLogs();
+                setStartTime(Date.now()); // Start the timer!
             }
         } else {
             setActiveProblem(null);
+            setStartTime(null);
         }
     }, [problemId, selectedLanguage]);
 
-    const getDefaultCode = (lang: string) => {
-        if (activeProblem?.solution && activeProblem.solution[lang as keyof typeof activeProblem.solution]) {
-            if (lang === 'python') return 'def solution():\n    # Write your code here\n    pass';
-            if (lang === 'javascript') return 'function solution() {\n    // Write your code here\n}';
-            if (lang === 'cpp') return '#include <iostream>\nusing namespace std;\n\nvoid solution() {\n    // Write your code here\n}';
+    const getDefaultCode = (lang: string): string => {
+        // Use per-language starter code from problem data
+        if (activeProblem?.starterCode?.[lang as keyof typeof activeProblem.starterCode]) {
+            return activeProblem.starterCode[lang as keyof typeof activeProblem.starterCode] || '';
         }
-
+        // Fallback
         const defaults: Record<string, string> = {
             python: '# Write your code here\n',
             javascript: '// Write your code here\n',
@@ -77,24 +81,32 @@ export const PracticePage: React.FC = () => {
         navigate(`/practice/${problem.id}`);
     };
 
-    const handleRunAndCheck = () => {
+    const handleRunAndCheck = async () => {
         if (!activeProblem) return;
-        const testCase = activeProblem.testCases[0];
-        runCode(code, selectedLanguage, testCase.expectedOutput);
-    };
 
-    useEffect(() => {
-        if (isValidated && activeProblem) {
+        // Get per-language test case
+        const langKey = selectedLanguage as 'python' | 'javascript' | 'cpp';
+        const langTestCases = activeProblem.testCases[langKey];
+        const expectedOutput = langTestCases?.[0]?.expectedOutput;
+
+        // Run the code with expected output for validation
+        const passed = await runCode(code, selectedLanguage, expectedOutput);
+
+        // Auto-submit if passed
+        if (passed) {
+            const solveTimeSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+            const minutes = Math.floor(solveTimeSeconds / 60);
+            const seconds = solveTimeSeconds % 60;
+            const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
             if (!isCompleted('problem', activeProblem.id)) {
-                markComplete('problem', activeProblem.id);
-                addXP(activeProblem.xpReward);
-                updateStreak();
-                addToast('success', `Correct Answer! +${activeProblem.xpReward} XP`);
+                markComplete('problem', activeProblem.id, undefined, solveTimeSeconds);
+                addToast('success', `✓ Solved in ${timeStr}!`);
             } else {
-                addToast('success', 'Correct Answer! (Already Solved)');
+                addToast('success', `✓ Solved again in ${timeStr}!`);
             }
         }
-    }, [isValidated]);
+    };
 
     const filteredProblems = problemsData.filter(problem => {
         const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -135,6 +147,50 @@ export const PracticePage: React.FC = () => {
         { id: 'cpp', label: 'C++', icon: <Code size={16} /> }
     ];
 
+    // Helper to render content with markdown (bold and code blocks)
+    const renderMarkdown = (content: string) => (
+        <div className="whitespace-pre-line">
+            {content.split('```').map((part, i) => {
+                if (i % 2 === 1) {
+                    const lines = part.split('\n');
+                    const codeContent = lines.slice(1).join('\n');
+                    return (
+                        <div key={i} className="not-prose my-6 rounded-xl overflow-hidden bg-zinc-950 border border-white/5 shadow-2xl">
+                            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border-b border-white/5">
+                                <div className="flex gap-2 opacity-20">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                </div>
+                                <div className="ml-auto text-xs font-mono text-gray-500">code</div>
+                            </div>
+                            <div className="p-4 overflow-x-auto">
+                                <code className="font-mono text-sm text-gray-300 leading-relaxed block whitespace-pre">{codeContent}</code>
+                            </div>
+                        </div>
+                    );
+                }
+                return (
+                    <span key={i}>
+                        {part.split(/(\*\*.*?\*\*|`[^`]+`)/).map((chunk, j) => {
+                            if (chunk.startsWith('**') && chunk.endsWith('**')) {
+                                return <strong key={j} className="text-foreground font-black">{chunk.slice(2, -2)}</strong>;
+                            }
+                            if (chunk.startsWith('`') && chunk.endsWith('`')) {
+                                return (
+                                    <code key={j} className="bg-secondary/50 border border-border px-1.5 py-0.5 rounded-md text-sm font-mono text-primary font-bold mx-0.5">
+                                        {chunk.slice(1, -1)}
+                                    </code>
+                                );
+                            }
+                            return chunk;
+                        })}
+                    </span>
+                );
+            })}
+        </div>
+    );
+
     if (activeProblem) {
         return (
             <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] pb-24">
@@ -146,12 +202,51 @@ export const PracticePage: React.FC = () => {
                         <h1 className="font-bold text-lg truncate px-4">{activeProblem.title}</h1>
                         <div className="flex items-center gap-4">
                             <div className="w-40">
-                                <Select
-                                    options={languageTabs.map(t => ({ value: t.id, label: t.label }))}
-                                    value={selectedLanguage}
-                                    onChange={(e) => setSelectedLanguage(e.target.value)}
-                                    className="scale-90 text-sm py-2 px-4 shadow-sm border-gray-200 dark:border-white/10 dark:bg-white/5 dark:text-gray-200"
-                                />
+                                {/* Custom Language Dropdown */}
+                                <div className="relative min-w-[150px]">
+                                    <button
+                                        onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                                        className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-full text-sm px-4 py-2 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-foreground"
+                                    >
+                                        <span className="font-medium truncate flex items-center gap-2">
+                                            {languageTabs.find(t => t.id === selectedLanguage)?.label}
+                                        </span>
+                                        <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {isLanguageOpen && (
+                                        <div className="absolute top-full right-0 mt-2 w-full min-w-[180px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-xl shadow-xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200 z-50">
+                                            {languageTabs.map((tab) => (
+                                                <button
+                                                    key={tab.id}
+                                                    onClick={() => {
+                                                        setSelectedLanguage(tab.id);
+                                                        setIsLanguageOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between
+                                                        ${selectedLanguage === tab.id
+                                                            ? 'bg-primary/5 text-primary font-bold'
+                                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                                                        }
+                                                    `}
+                                                >
+                                                    <span>{tab.label}</span>
+                                                    {selectedLanguage === tab.id && (
+                                                        <CheckCircle2 size={14} className="text-primary" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Backdrop */}
+                                    {isLanguageOpen && (
+                                        <div
+                                            className="fixed inset-0 z-40 bg-transparent"
+                                            onClick={() => setIsLanguageOpen(false)}
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -176,9 +271,9 @@ export const PracticePage: React.FC = () => {
                             </div>
 
                             <h2 className="text-3xl font-black mb-4">{activeProblem.title}</h2>
-                            <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                                {activeProblem.description}
-                            </p>
+                            <div className="text-lg text-muted-foreground leading-relaxed">
+                                {renderMarkdown(activeProblem.description)}
+                            </div>
                         </div>
 
                         <div className="space-y-4">
@@ -242,14 +337,6 @@ export const PracticePage: React.FC = () => {
                                 >
                                     {isRunning ? <Sparkles size={16} className="mr-2 animate-spin" /> : <Play size={16} className="mr-2" />}
                                     Run Code
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={handleRunAndCheck}
-                                    disabled={isRunning}
-                                    className="rounded-full font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
-                                >
-                                    {isValidated ? "Submitted" : "Submit"}
                                 </Button>
                             </div>
                         </div>
@@ -361,39 +448,77 @@ export const PracticePage: React.FC = () => {
                                             key={problem.id}
                                             onClick={(e) => handleSolveProblem(e, problem)}
                                             className={`
-                                                group relative bg-white dark:bg-[#0e0e0e] border border-gray-100 dark:border-white/5 p-6 rounded-[2rem]
-                                                hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer
-                                                flex flex-col h-full min-h-[200px]
+                                            group relative overflow-hidden
+                                            bg-white dark:bg-[#0e0e0e] 
+                                            border-2 border-gray-100 dark:border-white/5 
+                                            p-0 rounded-[1.5rem]
+                                            hover:-translate-y-1 transition-all duration-300 cursor-pointer
+                                            flex flex-col h-full min-h-[220px]
+                                            ${completed ? 'border-emerald-500/50 dark:border-emerald-500/30' : 'hover:border-primary/50'}
                                             `}
                                         >
-                                            <div className="flex justify-between items-start mb-4">
-                                                <Badge className={`${getDifficultyColor(problem.difficulty)} border bg-opacity-50`}>
-                                                    {problem.difficulty}
-                                                </Badge>
-                                                {completed && <CheckCircle2 size={18} className="text-emerald-500" />}
-                                            </div>
+                                            {/* Main Subtle Gradient Background */}
+                                            <div className={`absolute inset-0 bg-gradient-to-br ${problem.difficulty === 'easy' ? 'from-emerald-500/10 dark:from-emerald-500/20' :
+                                                    problem.difficulty === 'medium' ? 'from-amber-500/10 dark:from-amber-500/20' :
+                                                        'from-rose-500/10 dark:from-rose-500/20'
+                                                } via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                                            <div className="mb-6 flex-1">
-                                                <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                                                    {problem.title}
-                                                </h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {problem.tags.slice(0, 3).map(tag => (
-                                                        <span key={tag} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-gray-50 dark:bg-white/5 px-2 py-1 rounded-md">
-                                                            {tag}
-                                                        </span>
-                                                    ))}
+                                            {/* Top Right Glow Blob (Retained for accent) */}
+                                            <div className={`absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br ${problem.difficulty === 'easy' ? 'from-emerald-500/30' :
+                                                    problem.difficulty === 'medium' ? 'from-amber-500/30' :
+                                                        'from-rose-500/30'
+                                                } to-transparent blur-3xl rounded-full transition-all duration-500 opacity-0 group-hover:opacity-100`} />
+
+                                            {/* Content Container */}
+                                            <div className="relative z-10 flex flex-col h-full p-6">
+                                                {/* Header */}
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <Badge className={`${getDifficultyColor(problem.difficulty)} border bg-opacity-50 backdrop-blur-sm`}>
+                                                        {problem.difficulty}
+                                                    </Badge>
+                                                    {completed && (
+                                                        <div className="bg-emerald-500/10 p-1.5 rounded-full ring-1 ring-emerald-500/20">
+                                                            <CheckCircle2 size={16} className="text-emerald-500" />
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </div>
 
-                                            <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-white/5">
-                                                <span className="text-xs font-bold text-amber-500 flex items-center gap-1">
-                                                    <Zap size={12} className="fill-amber-500" />
-                                                    {problem.xpReward} XP
-                                                </span>
-                                                <Button size="sm" variant="ghost" className="rounded-full w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity -mr-2 text-primary">
-                                                    <ArrowRight size={16} />
-                                                </Button>
+                                                {/* Title & Tags */}
+                                                <div className="flex-1 mb-6">
+                                                    <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100 group-hover:text-primary transition-colors leading-tight">
+                                                        {problem.title}
+                                                    </h3>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {problem.tags.slice(0, 3).map(tag => (
+                                                            <span key={tag} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-gray-100 dark:bg-white/5 px-2 py-1 rounded-md border border-transparent dark:border-white/5">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Footer: Languages & Action */}
+                                                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
+                                                    <div className="flex gap-2">
+                                                        {['Py', 'JS', 'C++'].map(lang => (
+                                                            <span key={lang} className="text-[10px] font-mono font-medium text-muted-foreground/60 bg-gray-50 dark:bg-white/5 px-1.5 py-0.5 rounded">
+                                                                {lang}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className={`
+                                                        rounded-full w-8 h-8 p-0 
+                                                        ${completed ? 'bg-emerald-500/10 text-emerald-500 opacity-100' : 'opacity-0 group-hover:opacity-100'} 
+                                                        transition-all -mr-2
+                                                    `}
+                                                    >
+                                                        {completed ? <RotateCw size={14} /> : <ArrowRight size={16} />}
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     );

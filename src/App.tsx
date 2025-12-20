@@ -7,7 +7,7 @@ import { Toaster } from './components/ui';
 import { HomePage } from './pages/Home';
 import { LearnPage } from './pages/Learn';
 import { PracticePage } from './pages/Practice';
-import { CompetePage } from './pages/Compete';
+import { CompetePage, SpeedRunDetail } from './pages/Compete';
 import { RoadmapPage } from './pages/Roadmap';
 import { ProfilePage } from './pages/Profile';
 import { LandingPage } from './pages/Landing';
@@ -96,6 +96,7 @@ function App() {
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/practice/:problemId" element={<PracticePage />} />
           <Route path="/compete" element={<CompetePage />} />
+          <Route path="/compete/:runId" element={<SpeedRunDetail />} />
           <Route path="/roadmap" element={<RoadmapPage />} />
           <Route path="/roadmap/:pathId" element={<RoadmapPage />} />
           <Route path="/profile" element={<ProfilePage />} />

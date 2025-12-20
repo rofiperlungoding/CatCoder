@@ -11,6 +11,8 @@ export const LoginPage: React.FC = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSignUp, setIsSignUp] = useState(false);
+    const [isMagicLink, setIsMagicLink] = useState(false);
+    const { magicLinkLogin } = useUserStore();
 
     // Form state
     const [email, setEmail] = useState('');
@@ -40,7 +42,6 @@ export const LoginPage: React.FC = () => {
                 const { error, user } = await signIn(email, password);
 
                 if (!error && user) {
-                    // Navigate immediately - no delay needed
                     navigate('/home', { replace: true });
                 } else if (!error) {
                     navigate('/home', { replace: true });
@@ -52,6 +53,17 @@ export const LoginPage: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+    const handleMagicLinkSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            await magicLinkLogin(email);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
 
     return (
         <>
@@ -85,7 +97,6 @@ export const LoginPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Right Side - Form */}
                 <div className="flex items-center justify-center p-8 lg:p-24 bg-[#0a0a0a] relative">
                     {/* Background Decor for Mobile */}
                     <div className="lg:hidden absolute top-0 right-0 w-64 h-64 bg-lime-500/10 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none"></div>
@@ -101,105 +112,176 @@ export const LoginPage: React.FC = () => {
 
                             {/* Animated Mode Switch Text */}
                             <div className="relative h-16 overflow-hidden">
-                                <div className={`transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] transform ${isSignUp ? '-translate-y-full opacity-50 blur-sm' : 'translate-y-0 opacity-100 blur-0'}`}>
+                                <div className={`transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] transform ${isSignUp || isMagicLink ? '-translate-y-full opacity-50 blur-sm' : 'translate-y-0 opacity-100 blur-0'}`}>
                                     <h2 className="text-3xl font-bold text-white mb-2">Welcome back</h2>
                                     <p className="text-gray-400">Please enter your details to sign in.</p>
                                 </div>
-                                <div className={`absolute top-0 left-0 w-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] transform ${isSignUp ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-full opacity-50 blur-sm'}`}>
+
+                                <div className={`absolute top-0 left-0 w-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] transform ${isSignUp && !isMagicLink ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-full opacity-50 blur-sm'}`}>
                                     <h2 className="text-3xl font-bold text-white mb-2">Create an account</h2>
                                     <p className="text-gray-400">Start your coding journey for free today.</p>
+                                </div>
+
+                                <div className={`absolute top-0 left-0 w-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] transform ${isMagicLink ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-full opacity-50 blur-sm'}`}>
+                                    <h2 className="text-3xl font-bold text-white mb-2">Magic Link Login</h2>
+                                    <p className="text-gray-400">Sign in with just your email.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Collapsible Name Field */}
-                            <div
-                                className={`grid transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSignUp ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0 mb-0'}`}
-                            >
-                                <div className="min-h-0 space-y-2">
-                                    <label className="text-sm font-bold text-gray-300 ml-1">Full Name</label>
-                                    <Input
-                                        placeholder="Enter your name"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
-                                    />
+                        {!isMagicLink ? (
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                {/* Collapsible Name Field for SignUp */}
+                                <div
+                                    className={`grid transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSignUp ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0 mb-0'}`}
+                                >
+                                    <div className="min-h-0 space-y-2">
+                                        <label className="text-sm font-bold text-gray-300 ml-1">Full Name</label>
+                                        <Input
+                                            placeholder="Enter your name"
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-300 ml-1">Email</label>
-                                <div className="relative group">
-                                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
-                                    <Input
-                                        type="email"
-                                        placeholder="name@example.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
-                                    />
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-300 ml-1">Email</label>
+                                    <div className="relative group">
+                                        <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Input
+                                            type="email"
+                                            placeholder="name@example.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-300 ml-1">Password</label>
-                                <div className="relative group">
-                                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
-                                    <Input
-                                        type="password"
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
-                                    />
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-300 ml-1">Password</label>
+                                    <div className="relative group">
+                                        <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Input
+                                            type="password"
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className={`flex items-center justify-end transition-all duration-300 ${isSignUp ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
-                                <button type="button" onClick={() => navigate('/forgot-password')} className="text-sm font-semibold text-lime-400 hover:text-lime-300 hover:underline">
-                                    Forgot password?
+                                <div className={`flex items-center justify-end transition-all duration-300 ${isSignUp ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'}`}>
+                                    <button type="button" onClick={() => navigate('/forgot-password')} className="text-sm font-semibold text-lime-400 hover:text-lime-300 hover:underline">
+                                        Forgot password?
+                                    </button>
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    disabled={isLoading}
+                                    variant="primary"
+                                    className="h-14 text-base rounded-full shadow-lg shadow-lime-500/20 hover:shadow-lime-500/40 relative overflow-hidden group bg-lime-400 text-black hover:bg-lime-300"
+                                >
+                                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
+                                    <span className="relative flex items-center gap-2">
+                                        {isLoading ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                                                <span>Processing...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>{isSignUp ? "Create Account" : "Sign in"}</span>
+                                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </span>
+                                </Button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleMagicLinkSubmit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-300 ml-1">Email Address</label>
+                                    <div className="relative group">
+                                        <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="name@example.com"
+                                            required
+                                            className="h-12 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:bg-white/10 transition-all duration-300 hover:bg-white/10"
+                                        />
+                                    </div>
+                                </div>
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    disabled={isLoading}
+                                    className="h-14 text-base rounded-full shadow-lg shadow-lime-500/20 hover:shadow-lime-500/40 relative overflow-hidden group bg-lime-400 text-black hover:bg-lime-300"
+                                >
+                                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
+                                    <span className="relative z-10 flex items-center justify-center gap-2">
+                                        {isLoading ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                                Sending...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Send Magic Link <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </span>
+                                </Button>
+                            </form>
+                        )}
+
+                        <div className="text-center space-y-4">
+                            {!isSignUp && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMagicLink(!isMagicLink)}
+                                    className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+                                >
+                                    {isMagicLink ? 'Sign in with Password' : 'Or sign in with Magic Link ✨'}
+                                </button>
+                            )}
+
+                            <div className="flex items-center justify-center gap-2 pt-4 border-t border-white/10">
+                                <span className="text-zinc-500">{isSignUp ? 'Already have an account?' : "Don't have an account?"}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsSignUp(!isSignUp);
+                                        setIsMagicLink(false);
+                                    }}
+                                    className="font-bold text-white hover:text-lime-500 transition-colors"
+                                >
+                                    {isSignUp ? 'Sign in' : 'Create account'}
                                 </button>
                             </div>
 
-                            <Button
-                                type="submit"
-                                fullWidth
-                                disabled={isLoading}
-                                variant="primary"
-                                className="h-14 text-base rounded-full shadow-lg shadow-lime-500/20 hover:shadow-lime-500/40 relative overflow-hidden group bg-lime-400 text-black hover:bg-lime-300"
-                            >
-                                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
-                                <span className="relative flex items-center gap-2">
-                                    {isLoading ? (
-                                        <>
-                                            <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                                            <span>Processing...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>{isSignUp ? "Create Account" : "Sign in"}</span>
-                                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                        </>
-                                    )}
-                                </span>
-                            </Button>
-                        </form>
-
-                        <p className="text-center text-sm text-gray-400">
-                            {isSignUp ? "Already have an account?" : "Don't have an account?"}
-                            <button
-                                onClick={() => setIsSignUp(!isSignUp)}
-                                className="ml-1 text-lime-400 font-bold hover:underline relative inline-block group"
-                            >
-                                {isSignUp ? "Sign in" : "Sign up"}
-                                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-lime-400 transition-all duration-300 group-hover:w-full"></span>
-                            </button>
-                        </p>
+                            {!isSignUp && !isMagicLink && (
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/forgot-password')}
+                                    className="text-xs text-zinc-500 hover:text-white transition-colors block mx-auto"
+                                >
+                                    Forgot your password?
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </div >
             <Toaster />
         </>
     );
 };
+

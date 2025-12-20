@@ -11,7 +11,8 @@ import {
     ChevronLeft,
     Play,
     Terminal,
-    Lightbulb
+    Lightbulb,
+    ChevronDown
 } from 'lucide-react';
 import { Badge, Tabs, Button } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
@@ -53,6 +54,7 @@ export const LearnPage: React.FC = () => {
     // const [validationError, setValidationError] = useState<string | null>(null);
 
     // Load lesson when lessonId changes
+    // Load lesson when lessonId changes
     useEffect(() => {
         if (lessonId) {
             const lesson = lessonsData.find(l => l.id === lessonId);
@@ -64,6 +66,17 @@ export const LearnPage: React.FC = () => {
             setActiveLesson(null);
         }
     }, [lessonId]);
+
+    const [isTierOpen, setIsTierOpen] = useState(false);
+    const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+    const tierOptions = [
+        { value: 'all', label: 'All Tiers' },
+        { value: '1', label: 'Tier 1: Seedling' },
+        { value: '2', label: 'Tier 2: Sprout' },
+        { value: '3', label: 'Tier 3: Growing' },
+        { value: '4', label: 'Tier 4: Mature' },
+        { value: '5', label: 'Tier 5: Expert' }
+    ];
 
     // Reset code when step changes to a code section
     useEffect(() => {
@@ -121,9 +134,16 @@ export const LearnPage: React.FC = () => {
                 }
                 return (
                     <span key={i}>
-                        {part.split(/(\*\*.*?\*\*)/).map((chunk, j) => {
+                        {part.split(/(\*\*.*?\*\*|`[^`]+`)/).map((chunk, j) => {
                             if (chunk.startsWith('**') && chunk.endsWith('**')) {
                                 return <strong key={j} className="text-foreground font-black">{chunk.slice(2, -2)}</strong>;
+                            }
+                            if (chunk.startsWith('`') && chunk.endsWith('`')) {
+                                return (
+                                    <code key={j} className="bg-secondary/50 border border-border px-1.5 py-0.5 rounded-md text-sm font-mono text-primary font-bold mx-0.5">
+                                        {chunk.slice(1, -1)}
+                                    </code>
+                                );
                             }
                             return chunk;
                         })}
@@ -570,12 +590,57 @@ export const LearnPage: React.FC = () => {
 
             {/* Controls Row */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <Tabs
-                    tabs={languageTabs}
-                    activeTab={selectedLanguage}
-                    onTabChange={(id) => setSelectedLanguage(id as Language)}
-                />
-                <div className="flex gap-3 w-full md:w-auto">
+                <div className="flex gap-3 w-full md:w-auto z-30">
+                    {/* Language Dropdown */}
+                    <div className="relative min-w-[160px]">
+                        <button
+                            onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                            className="w-full h-full bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-muted/50 transition-all text-primary dark:text-white"
+                        >
+                            <span className="font-medium truncate flex items-center gap-2">
+                                {languageTabs.find(t => t.id === selectedLanguage)?.label}
+                            </span>
+                            <ChevronDown size={16} className={`text-muted-foreground transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isLanguageOpen && (
+                            <div className="absolute top-full left-0 mt-2 w-full min-w-[200px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                                {languageTabs.map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => {
+                                            setSelectedLanguage(tab.id as Language);
+                                            setIsLanguageOpen(false);
+                                        }}
+                                        className={`w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between
+                                                ${selectedLanguage === tab.id
+                                                ? 'bg-primary/5 text-primary font-bold'
+                                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                                            }
+                                            `}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            {/* tab.icon is present in data but we might just use text to keep it simple or use it if available */}
+                                            {tab.label}
+                                        </span>
+                                        {selectedLanguage === tab.id && (
+                                            <CheckCircle2 size={14} className="text-primary" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Backdrop to close */}
+                        {isLanguageOpen && (
+                            <div
+                                className="fixed inset-0 z-40 bg-transparent"
+                                onClick={() => setIsLanguageOpen(false)}
+                            />
+                        )}
+                    </div>
+                </div>
+                <div className="flex gap-3 w-full md:w-auto z-20">
                     <div className="relative flex-1 md:w-64">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <input
@@ -586,18 +651,52 @@ export const LearnPage: React.FC = () => {
                             className="w-full pl-10 pr-6 py-3 bg-white dark:bg-card text-primary dark:text-white border border-gray-200 dark:border-border rounded-full text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-100 dark:focus-visible:ring-lime-900 focus-visible:border-lime-500 transition-all font-sans shadow-sm"
                         />
                     </div>
-                    <select
-                        className="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-100 dark:focus-visible:ring-lime-900 font-sans shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-muted text-primary dark:text-white transition-colors"
-                        value={selectedTier.toString()}
-                        onChange={(e) => setSelectedTier(e.target.value === 'all' ? 'all' : parseInt(e.target.value) as Tier)}
-                    >
-                        <option value="all">All Tiers</option>
-                        <option value="1">Tier 1: Seedling</option>
-                        <option value="2">Tier 2: Sprout</option>
-                        <option value="3">Tier 3: Growing</option>
-                        <option value="4">Tier 4: Mature</option>
-                        <option value="5">Tier 5: Expert</option>
-                    </select>
+
+                    {/* Custom Dropdown */}
+                    <div className="relative min-w-[200px]">
+                        <button
+                            onClick={() => setIsTierOpen(!isTierOpen)}
+                            className="w-full h-full bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-muted/50 transition-all text-primary dark:text-white"
+                        >
+                            <span className="font-medium truncate">
+                                {tierOptions.find(o => o.value === selectedTier.toString())?.label || 'All Tiers'}
+                            </span>
+                            <ChevronDown size={16} className={`text-muted-foreground transition-transform duration-200 ${isTierOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isTierOpen && (
+                            <div className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                                {tierOptions.map((option) => (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => {
+                                            setSelectedTier(option.value === 'all' ? 'all' : parseInt(option.value) as Tier);
+                                            setIsTierOpen(false);
+                                        }}
+                                        className={`w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between
+                                            ${(option.value === 'all' && selectedTier === 'all') || parseInt(option.value) === selectedTier
+                                                ? 'bg-primary/5 text-primary font-bold'
+                                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                                            }
+                                        `}
+                                    >
+                                        {option.label}
+                                        {((option.value === 'all' && selectedTier === 'all') || parseInt(option.value) === selectedTier) && (
+                                            <CheckCircle2 size={14} className="text-primary" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Backdrop to close */}
+                        {isTierOpen && (
+                            <div
+                                className="fixed inset-0 z-40 bg-transparent"
+                                onClick={() => setIsTierOpen(false)}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
 

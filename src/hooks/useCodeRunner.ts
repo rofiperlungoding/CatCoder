@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export type LogType = 'command' | 'stdout' | 'stderr' | 'system' | 'success';
 
@@ -13,11 +13,38 @@ interface UseCodeRunnerProps {
     onError?: (error: string) => void;
 }
 
+declare global {
+    interface Window {
+        loadPyodide: any;
+    }
+}
+
 export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     const [terminalLogs, setTerminalLogs] = useState<LogEntry[]>([]);
     const [isRunning, setIsRunning] = useState(false);
     const [isValidated, setIsValidated] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
+
+    // Pyodide ref
+    const pyodideRef = useRef<any>(null);
+    const [isPyodideLoading, setIsPyodideLoading] = useState(false);
+
+    useEffect(() => {
+        const loadPyodideInstance = async () => {
+            if (window.loadPyodide && !pyodideRef.current && !isPyodideLoading) {
+                setIsPyodideLoading(true);
+                try {
+                    pyodideRef.current = await window.loadPyodide();
+                    console.log("Pyodide loaded");
+                } catch (e) {
+                    console.error("Failed to load Pyodide:", e);
+                } finally {
+                    setIsPyodideLoading(false);
+                }
+            }
+        };
+        loadPyodideInstance();
+    }, []);
 
     // Helper to add log with delay
     const addLog = useCallback((log: LogEntry, delay = 300) => {
@@ -35,54 +62,59 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
         setValidationError(null);
     }, []);
 
-    const simulateCodeExecution = (codeStr: string, lang: string): string => {
+    const executeJs = (codeStr: string): string => {
         try {
-            if (lang === 'python') {
-                const printMatch = codeStr.match(/print\s*\(['"](.*?)['"]\)/g);
-                if (printMatch) {
-                    return printMatch.map(p => p.replace(/print\s*\(['"]|['"]\)/g, '')).join('\n');
+            const logs: string[] = [];
+            const consoleMock = {
+                log: (...args: any[]) => {
+                    logs.push(args.map(arg =>
+                        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+                    ).join(' '));
+                },
+                error: (...args: any[]) => {
+                    logs.push('Error: ' + args.map(arg => String(arg)).join(' '));
+                },
+                warn: (...args: any[]) => {
+                    logs.push('Warning: ' + args.map(arg => String(arg)).join(' '));
                 }
-                const numberMatch = codeStr.match(/print\s*\(([\d\s+\-*/]+)\)/g);
-                if (numberMatch) {
-                    return numberMatch.map(p => {
-                        const expression = p.replace(/print\s*\(|\)/g, '');
-                        try { return String(new Function(`return ${expression}`)()); } catch { return ''; }
-                    }).join('\n');
-                }
-            } else if (lang === 'javascript') {
-                const logMatch = codeStr.match(/console\.log\(['"](.*?)['"]\)/g);
-                if (logMatch) {
-                    return logMatch.map(l => l.replace(/console\.log\(['"]|['"]\)/g, '')).join('\n');
-                }
-                const numberMatch = codeStr.match(/console\.log\(([\d\s+\-*/]+)\)/g);
-                if (numberMatch) {
-                    return numberMatch.map(p => {
-                        const expression = p.replace(/console\.log\(|\)/g, '');
-                        try { return String(new Function(`return ${expression}`)()); } catch { return ''; }
-                    }).join('\n');
-                }
-
-            } else if (lang === 'cpp') {
-                const coutMatch = codeStr.match(/cout\s*<<\s*['"](.*?)['"]/g);
-                if (coutMatch) {
-                    return coutMatch.map(c => c.replace(/cout\s*<<\s*['"]/g, '').replace(/['"]$/g, '')).join('\n');
-                }
-            }
-
-            // Fallback for "execution" without output
-            if ((codeStr.includes('print(') || codeStr.includes('console.log') || codeStr.includes('cout')) && codeStr.length > 10) {
-                // Simple semantic check passed but no regex match
-                return ""; // Empty output is valid if code runs
-            }
-
-            // Return empty if no output commands found, possibly just logic
-            return '';
-        } catch {
-            return 'Error executing code.';
+            };
+            new Function('console', codeStr)(consoleMock);
+            return logs.join('\n');
+        } catch (e: any) {
+            return `Error: ${e.message}`;
         }
     };
 
-    const runCode = async (code: string, language: string, expectedOutput?: string) => {
+    const executePython = async (codeStr: string): Promise<string> => {
+        if (!pyodideRef.current) {
+            // Try load again if missing
+            if (window.loadPyodide) {
+                try {
+                    pyodideRef.current = await window.loadPyodide();
+                } catch {
+                    return "Error: Python engine not loaded. Please refresh.";
+                }
+            } else {
+                return "Error: Python engine not found.";
+            }
+        }
+
+        try {
+            // Redirect stdout to capture output
+            pyodideRef.current.runPython(`
+import sys
+import io
+sys.stdout = io.StringIO()
+`);
+            await pyodideRef.current.runPythonAsync(codeStr);
+            const stdout = pyodideRef.current.runPython("sys.stdout.getvalue()");
+            return stdout;
+        } catch (e: any) {
+            return `Error: ${e.message}`;
+        }
+    };
+
+    const runCode = async (code: string, language: string, expectedOutput?: string): Promise<boolean> => {
         setIsRunning(true);
         clearLogs();
 
@@ -105,48 +137,77 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
         // 2. Run
         await addLog({ type: 'command', message: runCommand }, 400);
 
-        // 3. Execution (Simulated)
-        const simulatedOutput = simulateCodeExecution(code, language);
-
-        // 4. Output Logs
-        if (simulatedOutput === 'Error executing code.') {
-            await addLog({ type: 'stderr', message: 'SyntaxError: Unexpected token' }, 500);
-        } else {
-            const lines = simulatedOutput.split('\n');
-            for (const line of lines) {
-                if (line.trim()) await addLog({ type: 'stdout', message: line }, 200);
+        // 3. Execution (Real JS or Pyodide or Mock C++)
+        let output = '';
+        if (language === 'javascript') {
+            output = executeJs(code);
+        } else if (language === 'python') {
+            await addLog({ type: 'system', message: 'Initializing Python Environment...' }, 100);
+            output = await executePython(code);
+        } else if (language === 'cpp') {
+            // C++ Mock Fallback (Regex)
+            const coutMatch = code.match(/cout\s*<<\s*['"](.*?)['"]/g);
+            if (coutMatch) {
+                output = coutMatch.map(c => c.replace(/cout\s*<<\s*['"]/g, '').replace(/['"]$/g, '')).join('\n');
             }
         }
 
-        // 5. Validation
-        setTimeout(() => {
-            setIsRunning(false);
-            let isValid = false;
-
-            if (expectedOutput) {
-                const normalizedExpected = expectedOutput.trim().toLowerCase();
-                const normalizedActual = simulatedOutput.trim().toLowerCase();
-                if (normalizedActual.includes(normalizedExpected) || normalizedExpected.includes(normalizedActual)) {
-                    isValid = true;
-                } else {
-                    const errorMsg = `Expected output: "${expectedOutput}"`;
-                    setValidationError(errorMsg);
-                    if (props?.onError) props.onError(errorMsg);
+        // 4. Output Logs
+        if (output.startsWith('Error:')) {
+            await addLog({ type: 'stderr', message: output }, 500);
+        } else {
+            const lines = output.split('\n');
+            let hasOutput = false;
+            for (const line of lines) {
+                if (line !== '') {
+                    await addLog({ type: 'stdout', message: line }, 200);
+                    hasOutput = true;
                 }
-            } else {
-                // Generic check: Pass if no "Error" in output
-                isValid = !simulatedOutput.includes('Error');
             }
+        }
 
-            if (isValid) {
-                setTerminalLogs(prev => [...prev, { type: 'success', message: 'Process exited with code 0' }]);
-                setIsValidated(true);
-                if (props?.onSuccess) props.onSuccess();
+        // 5. Validation - return result immediately
+        setIsRunning(false);
+        let isValid = false;
+        const hasError = output.startsWith('Error:');
+        const actualOutput = output.replace(/^Error:.*$/gm, '').trim();
+
+        if (expectedOutput) {
+            // Challenge requires specific output
+            const normalizedExpected = expectedOutput.trim().toLowerCase();
+            const normalizedActual = actualOutput.replace(/\r\n/g, '\n').trim().toLowerCase();
+
+            if (normalizedActual && normalizedActual.includes(normalizedExpected)) {
+                isValid = true;
             } else {
-                setTerminalLogs(prev => [...prev, { type: 'system', message: 'Process exited with code 1' }]);
-                setIsValidated(false);
+                let errorMsg = '';
+                if (!normalizedActual) {
+                    errorMsg = `No output. Call your function and print!`;
+                    setTerminalLogs(prev => [...prev, {
+                        type: 'stderr',
+                        message: '⚠️ No output. Call your function and print!'
+                    }]);
+                } else {
+                    errorMsg = `Expected: "${expectedOutput}" Got: "${normalizedActual}"`;
+                }
+                setValidationError(errorMsg);
+                if (props?.onError) props.onError(errorMsg);
             }
-        }, 500);
+        } else {
+            // No expected output - just check code runs without errors
+            isValid = !hasError;
+        }
+
+        if (isValid) {
+            setTerminalLogs(prev => [...prev, { type: 'success', message: '✓ Passed!' }]);
+            setIsValidated(true);
+            if (props?.onSuccess) props.onSuccess();
+        } else {
+            setTerminalLogs(prev => [...prev, { type: 'system', message: 'Process exited with code 1' }]);
+            setIsValidated(false);
+        }
+
+        return isValid;
     };
 
     return {

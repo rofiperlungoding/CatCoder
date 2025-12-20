@@ -17,8 +17,11 @@ export const ProfilePage: React.FC = () => {
     const { user } = useUserStore();
     const { completedLessons, completedProblems } = useProgressStore();
     const { addToast } = useUIStore();
+    const { updateEmail } = useUserStore();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [newEmail, setNewEmail] = useState('');
+    const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
     if (!user) return null;
 
@@ -171,6 +174,42 @@ export const ProfilePage: React.FC = () => {
                             <div className="w-4 h-4 bg-lime-500 rounded-md"></div>
                         </div>
                         <span>More</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Account Settings Section */}
+            <div className="bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border">
+                <h3 className="font-bold text-lg text-primary dark:text-white mb-6">Account Settings</h3>
+
+                <div className="max-w-md space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-muted-foreground">Change Email Address</label>
+                        <div className="flex gap-3">
+                            <input
+                                type="email"
+                                value={newEmail}
+                                onChange={(e) => setNewEmail(e.target.value)}
+                                placeholder="new.email@example.com"
+                                className="flex-1 bg-gray-50 dark:bg-muted/50 border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            />
+                            <Button
+                                onClick={async () => {
+                                    if (!newEmail) return;
+                                    setIsUpdatingEmail(true);
+                                    await updateEmail(newEmail);
+                                    setIsUpdatingEmail(false);
+                                    setNewEmail('');
+                                }}
+                                disabled={isUpdatingEmail || !newEmail}
+                                className="whitespace-nowrap"
+                            >
+                                {isUpdatingEmail ? 'Updating...' : 'Update Email'}
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            You will receive a confirmation link at your new email address.
+                        </p>
                     </div>
                 </div>
             </div>

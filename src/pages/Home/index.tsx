@@ -6,7 +6,9 @@ import {
     Flame,
     ArrowRight,
     Code,
-    Zap
+    Zap,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import { Button, ProgressBar, Badge, Avatar } from '../../components/ui';
 import { useUserStore } from '../../stores';
@@ -17,6 +19,7 @@ export const HomePage: React.FC = () => {
     const { user, isGuest, recentActivities } = useUserStore();
     const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardEntry[]>([]);
     const [loadingLeaderboard, setLoadingLeaderboard] = React.useState(true);
+    const [isActivityExpanded, setIsActivityExpanded] = React.useState(false);
 
     React.useEffect(() => {
         const loadLeaderboard = async () => {
@@ -255,33 +258,86 @@ export const HomePage: React.FC = () => {
                                 <p className="text-xs mt-1">Start learning or solving problems to see your progress!</p>
                             </div>
                         ) : (
-                            recentActivities.slice(0, 5).map((activity) => (
-                                <div key={activity.id} className="group flex items-center justify-between py-4 border-b border-gray-100 dark:border-white/5 last:border-0 hover:bg-gray-50/50 dark:hover:bg-white/5 rounded-xl px-2 -mx-2 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-2.5 rounded-xl group-hover:scale-110 transition-transform ${activity.type === 'lesson_completed' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' :
-                                            activity.type === 'problem_solved' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
-                                                activity.type === 'level_up' ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
-                                                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
-                                            }`}>
-                                            {activity.type === 'lesson_completed' ? <Play size={18} /> :
-                                                activity.type === 'problem_solved' ? <Code size={18} /> :
-                                                    activity.type === 'level_up' ? <Zap size={18} /> :
-                                                        <Trophy size={18} />}
+                            <>
+                                {recentActivities.slice(0, 3).map((activity) => (
+                                    <div key={activity.id} className="group flex items-center justify-between py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0 hover:bg-gray-50/50 dark:hover:bg-white/5 rounded-xl px-2 -mx-2 transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2.5 rounded-xl group-hover:scale-110 transition-transform ${activity.type === 'lesson_completed' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' :
+                                                activity.type === 'problem_solved' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
+                                                    activity.type === 'level_up' ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
+                                                        'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+                                                }`}>
+                                                {activity.type === 'lesson_completed' ? <Play size={18} /> :
+                                                    activity.type === 'problem_solved' ? <Code size={18} /> :
+                                                        activity.type === 'level_up' ? <Zap size={18} /> :
+                                                            <Trophy size={18} />}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-primary dark:text-white">{activity.title}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {new Date(activity.timestamp).toLocaleDateString()} • {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-primary dark:text-white">{activity.title}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {new Date(activity.timestamp).toLocaleDateString()} • {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </p>
-                                        </div>
+                                        {activity.xpEarned > 0 && (
+                                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${activity.type === 'problem_solved' ? 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400' :
+                                                'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400'
+                                                }`}>+{activity.xpEarned} XP</span>
+                                        )}
                                     </div>
-                                    {activity.xpEarned > 0 && (
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${activity.type === 'problem_solved' ? 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400' :
-                                            'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400'
-                                            }`}>+{activity.xpEarned} XP</span>
-                                    )}
+                                ))}
+
+                                {/* Collapsible Section */}
+                                <div className={`grid transition-all duration-500 ease-in-out ${isActivityExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                    <div className="overflow-hidden">
+                                        {recentActivities.slice(3).map((activity) => (
+                                            <div key={activity.id} className="group flex items-center justify-between py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0 hover:bg-gray-50/50 dark:hover:bg-white/5 rounded-xl px-2 -mx-2 transition-colors">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`p-2.5 rounded-xl group-hover:scale-110 transition-transform ${activity.type === 'lesson_completed' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' :
+                                                        activity.type === 'problem_solved' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
+                                                            activity.type === 'level_up' ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
+                                                                'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+                                                        }`}>
+                                                        {activity.type === 'lesson_completed' ? <Play size={18} /> :
+                                                            activity.type === 'problem_solved' ? <Code size={18} /> :
+                                                                activity.type === 'level_up' ? <Zap size={18} /> :
+                                                                    <Trophy size={18} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-primary dark:text-white">{activity.title}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {new Date(activity.timestamp).toLocaleDateString()} • {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {activity.xpEarned > 0 && (
+                                                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${activity.type === 'problem_solved' ? 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400' :
+                                                        'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400'
+                                                        }`}>+{activity.xpEarned} XP</span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            ))
+
+                                {/* Toggle Button */}
+                                {recentActivities.length > 3 && (
+                                    <div className="pt-2 text-center border-t border-gray-50 dark:border-white/5 mt-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setIsActivityExpanded(!isActivityExpanded)}
+                                            className="text-xs font-bold text-muted-foreground hover:text-primary gap-2"
+                                        >
+                                            {isActivityExpanded ? (
+                                                <>Show Less <ChevronUp size={14} /></>
+                                            ) : (
+                                                <>View All Activity <ChevronDown size={14} /></>
+                                            )}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

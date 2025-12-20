@@ -75,9 +75,12 @@ export interface Problem {
     description: string;
     examples: Example[];
     hints: string[];
-    solution: Record<Language, string>;
+    solution: Partial<Record<Language, string>>;
     explanation: string;
-    testCases: TestCase[];
+    // Per-language starter code
+    starterCode: Partial<Record<Language, string>>;
+    // Per-language test cases
+    testCases: Partial<Record<Language, TestCase[]>>;
     xpReward: number;
     tags: string[];
 }
