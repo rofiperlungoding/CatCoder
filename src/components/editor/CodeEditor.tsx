@@ -1,7 +1,10 @@
-import React from 'react';
-import Editor, { type EditorProps, type OnMount, type BeforeMount } from '@monaco-editor/react';
+import React, { lazy, Suspense } from 'react';
+import type { EditorProps, OnMount, BeforeMount } from '@monaco-editor/react';
 import { Loader2 } from 'lucide-react';
 import { useThemeStore } from '../../stores';
+
+// Lazy load Monaco Editor (~400KB savings)
+const Editor = lazy(() => import('@monaco-editor/react').then(m => ({ default: m.default })));
 
 interface CodeEditorProps extends EditorProps {
     value: string;
@@ -72,41 +75,45 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         }, 100);
     };
 
+    const editorFallback = (
+        <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-slate-50 dark:bg-zinc-950 gap-3">
+            <Loader2 className="animate-spin text-lime-500" size={24} />
+            <span className="text-xs font-semibold tracking-wide uppercase dark:text-zinc-500">Loading Editor...</span>
+        </div>
+    );
+
     return (
         <div className="h-full w-full rounded-2xl overflow-hidden border border-gray-200 dark:border-lime-500/30 shadow-sm bg-white dark:bg-gray-950 transition-all duration-200">
-            <Editor
-                height="100%"
-                defaultLanguage={language}
-                language={language}
-                value={value}
-                onChange={onChange}
-                theme={theme === 'dark' ? 'catcoder-dark' : 'catcoder-light'}
-                beforeMount={handleBeforeMount}
-                onMount={handleEditorDidMount}
-                loading={
-                    <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-slate-50 dark:bg-zinc-950 gap-3">
-                        <Loader2 className="animate-spin text-lime-500" size={24} />
-                        <span className="text-xs font-semibold tracking-wide uppercase dark:text-zinc-500">Initializing Editor...</span>
-                    </div>
-                }
-                options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    roundedSelection: true,
-                    scrollBeyondLastLine: false,
-                    readOnly: readOnly,
-                    automaticLayout: true,
-                    fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
-                    fontLigatures: true,
-                    padding: { top: 20, bottom: 20 },
-                    cursorBlinking: 'smooth',
-                    smoothScrolling: true,
-                    contextmenu: true,
-                    ...props.options
-                }}
-                {...props}
-            />
+            <Suspense fallback={editorFallback}>
+                <Editor
+                    height="100%"
+                    defaultLanguage={language}
+                    language={language}
+                    value={value}
+                    onChange={onChange}
+                    theme={theme === 'dark' ? 'catcoder-dark' : 'catcoder-light'}
+                    beforeMount={handleBeforeMount}
+                    onMount={handleEditorDidMount}
+                    loading={editorFallback}
+                    options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        roundedSelection: true,
+                        scrollBeyondLastLine: false,
+                        readOnly: readOnly,
+                        automaticLayout: true,
+                        fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                        fontLigatures: true,
+                        padding: { top: 20, bottom: 20 },
+                        cursorBlinking: 'smooth',
+                        smoothScrolling: true,
+                        contextmenu: true,
+                        ...props.options
+                    }}
+                    {...props}
+                />
+            </Suspense>
         </div>
     );
 };

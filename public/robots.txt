@@ -1,0 +1,13 @@
+# robots.txt for CatCoder
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /home
+Disallow: /learn
+Disallow: /practice
+Disallow: /compete
+Disallow: /roadmap
+Disallow: /profile
+
+# Sitemap
+Sitemap: https://catcoder.app/sitemap.xml
