@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-    Clock,
     Calendar,
-    Trophy,
     ArrowLeft,
     Share2,
     ExternalLink,
-    Zap,
-    Github,
-    Twitter
+    Zap
 } from 'lucide-react';
 import { Button } from '../../components/ui';
 import { fetchSpeedRunById, formatDuration, formatTimeAgo, type SpeedRunEntry } from '../../lib/speedruns';
@@ -60,7 +56,7 @@ export const SpeedRunDetail: React.FC = () => {
         <div className="max-w-4xl mx-auto py-8 px-4 space-y-8">
             {/* Header / Nav */}
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/compete')} className="rounded-full">
+                <Button variant="ghost" size="sm" onClick={() => navigate('/compete')} className="rounded-full p-2">
                     <ArrowLeft size={20} />
                 </Button>
                 <div>
@@ -72,7 +68,7 @@ export const SpeedRunDetail: React.FC = () => {
                     </h1>
                 </div>
                 <div className="flex-1" />
-                <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
+                <Button variant="secondary" size="sm" onClick={handleShare} className="gap-2">
                     <Share2 size={16} />
                     Share
                 </Button>
@@ -143,8 +139,8 @@ export const SpeedRunDetail: React.FC = () => {
                             <div className="flex justify-between items-start mb-2">
                                 <h2 className="text-xl font-bold text-foreground">{run.problem.title}</h2>
                                 <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${run.problem.difficulty === 'easy' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                        run.problem.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                    run.problem.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                     }`}>
                                     {run.problem.difficulty}
                                 </span>

@@ -174,14 +174,15 @@ export const fetchSpeedRunById = async (id: string): Promise<SpeedRunEntry | nul
     }
 
     const problemMeta = getProblemMeta(data.content_id);
+    const profile = data.profiles as any;
 
     return {
         id: data.id,
         user: {
-            id: data.profiles.id,
-            username: data.profiles.username,
-            avatarUrl: data.profiles.avatar_url || undefined,
-            league: data.profiles.rank || 'bronze'
+            id: profile.id,
+            username: profile.username,
+            avatarUrl: profile.avatar_url || undefined,
+            league: profile.rank || 'bronze'
         },
         problem: {
             id: data.content_id,

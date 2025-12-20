@@ -14,7 +14,7 @@ import {
     Lightbulb,
     ChevronDown
 } from 'lucide-react';
-import { Badge, Tabs, Button } from '../../components/ui';
+import { Badge, Button } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import { useCodeRunner } from '../../hooks';

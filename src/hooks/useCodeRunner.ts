@@ -157,11 +157,9 @@ sys.stdout = io.StringIO()
             await addLog({ type: 'stderr', message: output }, 500);
         } else {
             const lines = output.split('\n');
-            let hasOutput = false;
             for (const line of lines) {
                 if (line !== '') {
                     await addLog({ type: 'stdout', message: line }, 200);
-                    hasOutput = true;
                 }
             }
         }
