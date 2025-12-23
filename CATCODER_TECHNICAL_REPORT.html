@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CatCoder Technical Report</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #fff;
+            font-size: 11pt;
+        }
+
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm;
+        }
+
+        /* Cover Page */
+        .cover {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            page-break-after: always;
+        }
+
+        .cover-logo {
+            font-size: 72pt;
+            margin-bottom: 20px;
+        }
+
+        .cover h1 {
+            font-size: 36pt;
+            font-weight: 700;
+            color: #65a30d;
+            margin-bottom: 10px;
+        }
+
+        .cover-subtitle {
+            font-size: 14pt;
+            color: #666;
+            margin-bottom: 60px;
+        }
+
+        .cover-meta {
+            font-size: 11pt;
+            color: #888;
+        }
+
+        .cover-meta p {
+            margin: 5px 0;
+        }
+
+        /* Sections */
+        h1 {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #65a30d;
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #65a30d;
+        }
+
+        h2 {
+            font-size: 14pt;
+            font-weight: 600;
+            color: #333;
+            margin: 25px 0 12px 0;
+        }
+
+        h3 {
+            font-size: 12pt;
+            font-weight: 600;
+            color: #444;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        /* Code blocks */
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: #f4f4f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9pt;
+        }
+
+        pre {
+            background: #18181b;
+            color: #e4e4e7;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 9pt;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        /* Lists */
+        ul,
+        ol {
+            margin: 12px 0 12px 25px;
+        }
+
+        li {
+            margin: 6px 0;
+        }
+
+        /* Highlights */
+        .highlight {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfccb 100%);
+            border-left: 4px solid #65a30d;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-box {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #65a30d;
+        }
+
+        .metric-label {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Architecture Diagram */
+        .diagram {
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 9pt;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        /* Page breaks */
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #888;
+            font-size: 9pt;
+        }
+
+        /* Print styles */
+        @media print {
+            @page {
+                margin: 15mm;
+                /* Remove browser header/footer */
+            }
+
+            @page :first {
+                margin-top: 0;
+            }
+
+            body {
+                font-size: 10pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .cover {
+                height: 100vh;
+            }
+        }
+
+        .toc {
+            margin: 30px 0;
+        }
+
+        .toc-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ddd;
+        }
+
+        .toc-item:hover {
+            background: #f9f9f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: 500;
+        }
+
+        .badge-green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-yellow {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Cover Page -->
+        <div class="cover">
+            <div class="cover-logo">🐱</div>
+            <h1>CatCoder</h1>
+            <p class="cover-subtitle">Technical Documentation & Architecture Report</p>
+            <div class="cover-meta">
+                <p><strong>Version:</strong> 1.0.0</p>
+                <p><strong>Date:</strong> December 20, 2025</p>
+                <p><strong>Classification:</strong> Technical Report</p>
+            </div>
+        </div>
+
+        <!-- Table of Contents -->
+        <h1>Table of Contents</h1>
+        <div class="toc">
+            <div class="toc-item"><span>1. Executive Summary</span><span>3</span></div>
+            <div class="toc-item"><span>2. Technology Stack</span><span>4</span></div>
+            <div class="toc-item"><span>3. System Architecture</span><span>5</span></div>
+            <div class="toc-item"><span>4. Features Overview</span><span>6</span></div>
+            <div class="toc-item"><span>5. Database Schema</span><span>8</span></div>
+            <div class="toc-item"><span>6. Authentication & Security</span><span>9</span></div>
+            <div class="toc-item"><span>7. Performance Optimizations</span><span>10</span></div>
+            <div class="toc-item"><span>8. Deployment</span><span>11</span></div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- Executive Summary -->
+        <h1>1. Executive Summary</h1>
+
+        <div class="highlight">
+            <strong>Mission Statement:</strong> "Master Coding. Build Your Future."
+            <br><br>
+            CatCoder is an enterprise-grade gamified learning platform that transforms programming education through
+            interactive challenges, real-time code execution, and skill-based progression tracking.
+        </div>
+
+        <h2>Key Metrics</h2>
+        <div class="metric-grid">
+            <div class="metric-box">
+                <div class="metric-value">57+</div>
+                <div class="metric-label">Source Files</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value">15K+</div>
+                <div class="metric-label">Lines of Code</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value">3</div>
+                <div class="metric-label">Languages Supported</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-value">25+</div>
+                <div class="metric-label">Lessons</div>
+            </div>
+        </div>
+
+        <h2>Core Capabilities</h2>
+        <ul>
+            <li><strong>Structured Learning Paths</strong> — Progressive curriculum from beginner to expert</li>
+            <li><strong>Practice Arena</strong> — Speedrun-focused problem solving with client-side validation</li>
+            <li><strong>Gamification System</strong> — XP, levels, ranks, achievements, and leaderboards</li>
+            <li><strong>Career Roadmaps</strong> — Visual guides for Frontend, Backend, Mobile, and AI careers</li>
+            <li><strong>In-Browser Execution</strong> — Python and JavaScript code runs directly in the browser</li>
+        </ul>
+
+        <div class="page-break"></div>
+
+        <!-- Technology Stack -->
+        <h1>2. Technology Stack</h1>
+
+        <h2>2.1 Frontend Technologies</h2>
+        <table>
+            <tr>
+                <th>Technology</th>
+                <th>Version</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td>React</td>
+                <td>19.2.0</td>
+                <td>UI Framework</td>
+            </tr>
+            <tr>
+                <td>TypeScript</td>
+                <td>5.9.3</td>
+                <td>Type Safety</td>
+            </tr>
+            <tr>
+                <td>Vite</td>
+                <td>7.2.4</td>
+                <td>Build Tool & Dev Server</td>
+            </tr>
+            <tr>
+                <td>TailwindCSS</td>
+                <td>4.1.18</td>
+                <td>Styling Framework</td>
+            </tr>
+            <tr>
+                <td>Zustand</td>
+                <td>5.0.9</td>
+                <td>State Management</td>
+            </tr>
+            <tr>
+                <td>React Router DOM</td>
+                <td>7.10.1</td>
+                <td>Client-side Routing</td>
+            </tr>
+            <tr>
+                <td>Monaco Editor</td>
+                <td>4.7.0</td>
+                <td>Code Editor (VS Code Engine)</td>
+            </tr>
+            <tr>
+                <td>Lucide React</td>
+                <td>0.561.0</td>
+                <td>Icon Library</td>
+            </tr>
+        </table>
+
+        <h2>2.2 Backend & Infrastructure</h2>
+        <table>
+            <tr>
+                <th>Technology</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td>Supabase</td>
+                <td>Database, Authentication, Row Level Security, Functions</td>
+            </tr>
+            <tr>
+                <td>PostgreSQL</td>
+                <td>Primary Database (via Supabase)</td>
+            </tr>
+            <tr>
+                <td>Pyodide</td>
+                <td>In-browser Python Execution (WebAssembly)</td>
+            </tr>
+            <tr>
+                <td>Netlify</td>
+                <td>Deployment & CDN Hosting</td>
+            </tr>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- Architecture -->
+        <h1>3. System Architecture</h1>
+
+        <h2>3.1 High-Level Architecture</h2>
+        <div class="diagram">┌─────────────────────────────────────────────────────────────┐
+            │ FRONTEND (SPA) │
+            │ ┌─────────────────────────────────────────────────────────┐│
+            │ │ React 19 + TypeScript + TailwindCSS ││
+            │ ├─────────────────────────────────────────────────────────┤│
+            │ │ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ││
+            │ │ │ Pages │ │Components│ │ Hooks │ │ Stores │ ││
+            │ │ └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘ ││
+            │ │ └───────────┬┴───────────┬┴───────────┬┘ ││
+            │ │ ┌────▼────────────▼────────────▼────┐ ││
+            │ │ │ Zustand Store │ ││
+            │ │ └────────────────┬───────────────────┘ ││
+            │ └───────────────────────────────┼──────────────────────────┘│
+            │ ┌───────────────────────────────▼──────────────────────────┐│
+            │ │ Supabase Client ││
+            │ └───────────────────────────────┬──────────────────────────┘│
+            └──────────────────────────────────┼───────────────────────────┘
+            │
+            ┌──────────────▼──────────────┐
+            │ SUPABASE BACKEND │
+            ├──────────────────────────────┤
+            │ • PostgreSQL Database │
+            │ • Auth (Magic Link) │
+            │ • Row Level Security │
+            │ • RPC Functions │
+            └──────────────────────────────┘</div>
+
+        <h2>3.2 Data Flow</h2>
+        <p>User interactions follow a unidirectional data flow pattern:</p>
+        <div class="highlight">
+            User Action → React Component → Zustand Action → Supabase RPC → PostgreSQL → Response → State Update → UI
+            Re-render
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- Features -->
+        <h1>4. Features Overview</h1>
+
+        <h2>4.1 Authentication Module</h2>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Magic Link Auth</td>
+                <td>Passwordless authentication via email</td>
+            </tr>
+            <tr>
+                <td>Guest Mode</td>
+                <td>Browse without account, limited features</td>
+            </tr>
+            <tr>
+                <td>Auto Profile Creation</td>
+                <td>Database trigger creates profile on signup</td>
+            </tr>
+            <tr>
+                <td>Session Persistence</td>
+                <td>Zustand + localStorage for auth state</td>
+            </tr>
+        </table>
+
+        <h2>4.2 Learning Module</h2>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Tiered Curriculum</td>
+                <td>5 tiers from Seedling to Expert</td>
+            </tr>
+            <tr>
+                <td>Interactive Lessons</td>
+                <td>Embedded code editor with validation</td>
+            </tr>
+            <tr>
+                <td>XP Rewards</td>
+                <td>Points awarded on completion</td>
+            </tr>
+            <tr>
+                <td>Progress Tracking</td>
+                <td>Visual progress bars and completion status</td>
+            </tr>
+        </table>
+
+        <h2>4.3 Practice Arena</h2>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Offline Mode</td>
+                <td>Fully client-side, no server calls required</td>
+            </tr>
+            <tr>
+                <td>Speedrun Timer</td>
+                <td>Tracks solve time for each problem</td>
+            </tr>
+            <tr>
+                <td>Multi-Language</td>
+                <td>Python, JavaScript, C++ support</td>
+            </tr>
+            <tr>
+                <td>Auto-Submit</td>
+                <td>Marks complete on validation pass</td>
+            </tr>
+        </table>
+
+        <h2>4.4 Competition Center</h2>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Global Leaderboard</td>
+                <td>XP-based rankings with avatars</td>
+            </tr>
+            <tr>
+                <td>Speed Run Feed</td>
+                <td>Recent fastest solves</td>
+            </tr>
+            <tr>
+                <td>League System</td>
+                <td>Bronze → Silver → Gold → Platinum → Diamond</td>
+            </tr>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- Database -->
+        <h1>5. Database Schema</h1>
+
+        <h2>5.1 Entity Relationship</h2>
+        <div class="diagram">┌─────────────────┐ ┌─────────────────────┐
+            │ auth.users │ │ profiles │
+            │ (Supabase) │ │ │
+            ├─────────────────┤ ├─────────────────────┤
+            │ id (PK) │◄──────│ id (PK, FK) │
+            │ email │ │ username │
+            │ created_at │ │ avatar_url │
+            └─────────────────┘ │ xp, level, rank │
+            │ streak_current │
+            │ streak_best │
+            └─────────┬───────────┘
+            │
+            ┌─────────────────────┼─────────────────────┐
+            ▼ ▼ ▼
+            ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────┐
+            │ user_progress │ │ user_achievements │ │ problem_answers │
+            ├─────────────────────┤ ├─────────────────────┤ ├─────────────────┤
+            │ id, user_id (FK) │ │ id, user_id (FK) │ │ id, content_type│
+            │ content_type │ │ achievement_id │ │ content_id │
+            │ content_id, status │ │ unlocked_at │ │ expected_output │
+            │ score, duration │ └─────────────────────┘ │ xp_reward │
+            └─────────────────────┘ └─────────────────┘</div>
+
+        <h2>5.2 Table Descriptions</h2>
+        <table>
+            <tr>
+                <th>Table</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td><code>profiles</code></td>
+                <td>User profile data extending Supabase auth</td>
+            </tr>
+            <tr>
+                <td><code>user_progress</code></td>
+                <td>Tracks lesson, problem, challenge completion</td>
+            </tr>
+            <tr>
+                <td><code>user_achievements</code></td>
+                <td>Stores unlocked achievement badges</td>
+            </tr>
+            <tr>
+                <td><code>problem_answers</code></td>
+                <td>Server-side answer validation data</td>
+            </tr>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- Security -->
+        <h1>6. Authentication & Security</h1>
+
+        <h2>6.1 Authentication Flow</h2>
+        <div class="highlight">
+            User enters email → Supabase sends Magic Link → User clicks link → Callback handler → Session created →
+            Profile loaded → Dashboard redirect
+        </div>
+
+        <h2>6.2 Row Level Security (RLS)</h2>
+        <table>
+            <tr>
+                <th>Table</th>
+                <th>Policy</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>profiles</td>
+                <td>SELECT</td>
+                <td>Public (for leaderboards)</td>
+            </tr>
+            <tr>
+                <td>profiles</td>
+                <td>UPDATE</td>
+                <td>Own profile only</td>
+            </tr>
+            <tr>
+                <td>user_progress</td>
+                <td>SELECT</td>
+                <td>Own progress + public for leaderboard</td>
+            </tr>
+            <tr>
+                <td>user_progress</td>
+                <td>INSERT/UPDATE</td>
+                <td>Own progress only</td>
+            </tr>
+            <tr>
+                <td>problem_answers</td>
+                <td>SELECT</td>
+                <td>Public (read answers for validation)</td>
+            </tr>
+        </table>
+
+        <h2>6.3 XP Security</h2>
+        <p>XP cannot be arbitrarily updated by clients. The <code>validate_and_complete()</code> function uses
+            <code>SECURITY DEFINER</code> to:
+        </p>
+        <ul>
+            <li>Validate user output against stored expected output</li>
+            <li>Award XP only if correct</li>
+            <li>Prevent duplicate XP awards</li>
+        </ul>
+
+        <h2>6.4 Content Security Policy</h2>
+        <p>The application implements a strict CSP header to prevent XSS attacks:</p>
+        <ul>
+            <li>Scripts limited to self and CDN sources</li>
+            <li>Connections restricted to Supabase endpoints</li>
+            <li>Worker sources for Pyodide WebAssembly</li>
+        </ul>
+
+        <div class="page-break"></div>
+
+        <!-- Performance -->
+        <h1>7. Performance Optimizations</h1>
+
+        <h2>7.1 Bundle Optimization</h2>
+        <table>
+            <tr>
+                <th>Optimization</th>
+                <th>Impact</th>
+            </tr>
+            <tr>
+                <td>Lazy Loading (Pages)</td>
+                <td>~40% reduction in initial bundle</td>
+            </tr>
+            <tr>
+                <td>Monaco Lazy Loading</td>
+                <td>~400KB off initial load</td>
+            </tr>
+            <tr>
+                <td>Vendor Chunk Splitting</td>
+                <td>Better caching, smaller per-page loads</td>
+            </tr>
+        </table>
+
+        <h2>7.2 Chunk Distribution</h2>
+        <table>
+            <tr>
+                <th>Chunk</th>
+                <th>Size</th>
+                <th>Gzip</th>
+            </tr>
+            <tr>
+                <td>vendor-react</td>
+                <td>45 KB</td>
+                <td>16 KB</td>
+            </tr>
+            <tr>
+                <td>vendor-supabase</td>
+                <td>169 KB</td>
+                <td>44 KB</td>
+            </tr>
+            <tr>
+                <td>vendor-monaco</td>
+                <td>15 KB</td>
+                <td>5 KB</td>
+            </tr>
+            <tr>
+                <td>vendor-ui</td>
+                <td>14 KB</td>
+                <td>6 KB</td>
+            </tr>
+        </table>
+
+        <h2>7.3 Estimated Performance Improvement</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Before</th>
+                <th>After</th>
+            </tr>
+            <tr>
+                <td>Initial JS Bundle</td>
+                <td>697 KB</td>
+                <td>~350 KB</td>
+            </tr>
+            <tr>
+                <td>Time to Interactive</td>
+                <td>~3s</td>
+                <td>~1.5s</td>
+            </tr>
+            <tr>
+                <td>Bundle Chunks</td>
+                <td>1</td>
+                <td>5-8</td>
+            </tr>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- Deployment -->
+        <h1>8. Deployment</h1>
+
+        <h2>8.1 Build Process</h2>
+        <pre><code># Development
+npm run dev          # Start Vite dev server (port 5173)
+
+# Production Build
+npm run build        # TypeScript check + Vite build
+npm run preview      # Preview production build locally</code></pre>
+
+        <h2>8.2 Netlify Configuration</h2>
+        <table>
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Build Command</td>
+                <td><code>npm run build</code></td>
+            </tr>
+            <tr>
+                <td>Publish Directory</td>
+                <td><code>dist</code></td>
+            </tr>
+            <tr>
+                <td>Node Version</td>
+                <td>18.x</td>
+            </tr>
+        </table>
+
+        <h2>8.3 Environment Variables</h2>
+        <ul>
+            <li><code>VITE_SUPABASE_URL</code> — Supabase project URL</li>
+            <li><code>VITE_SUPABASE_ANON_KEY</code> — Supabase anonymous key</li>
+        </ul>
+
+        <h2>8.4 Production URLs</h2>
+        <table>
+            <tr>
+                <th>Resource</th>
+                <th>URL</th>
+            </tr>
+            <tr>
+                <td>Live Site</td>
+                <td>https://catcoder.netlify.app</td>
+            </tr>
+            <tr>
+                <td>GitHub Repository</td>
+                <td>https://github.com/rofiperlungoding/CatCoder</td>
+            </tr>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>CatCoder Technical Report</strong> — Version 1.0.0</p>
+            <p>Generated: December 20, 2025</p>
+            <p>🐱 Master Coding. Build Your Future.</p>
+        </div>
+    </div>
+</body>
+
+</html>

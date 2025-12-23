@@ -21,6 +21,7 @@ const PricingPage = lazy(() => import('./pages/Public').then(m => ({ default: m.
 const AboutPage = lazy(() => import('./pages/Public').then(m => ({ default: m.AboutPage })));
 const ContactPage = lazy(() => import('./pages/Public').then(m => ({ default: m.ContactPage })));
 const LoginPage = lazy(() => import('./pages/Auth/Login').then(m => ({ default: m.LoginPage })));
+const AuthCallback = lazy(() => import('./pages/Auth/AuthCallback').then(m => ({ default: m.AuthCallback })));
 const ForgotPasswordPage = lazy(() => import('./pages/Auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./pages/Auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.OnboardingPage })));
@@ -87,6 +88,7 @@ function App() {
           </Route>
 
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/onboarding" element={<PublicRoute><OnboardingPage /></PublicRoute>} />

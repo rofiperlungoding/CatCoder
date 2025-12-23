@@ -104,6 +104,7 @@ interface UserState {
     setGuest: () => void;
     logout: () => void;
     signIn: (email: string, password: string) => Promise<{ user: any; error: any }>;
+    signInWithGoogle: () => Promise<{ user: any; error: any }>;
     signUp: (email: string, password: string, username: string) => Promise<{ user: any; error: any }>;
     resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
     magicLinkLogin: (email: string) => Promise<{ error: any }>;
@@ -245,6 +246,43 @@ export const useUserStore = create<UserState>()(
                 }
             },
 
+            signInWithGoogle: async () => {
+                console.log('[Auth] signInWithGoogle called (Supabase OAuth)');
+
+                if (!isSupabaseConfigured()) {
+                    useUIStore.getState().addToast('error', 'Supabase not configured');
+                    return { user: null, error: { message: 'Supabase not configured' } };
+                }
+
+                try {
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: `${window.location.origin}/auth/callback`,
+                            queryParams: {
+                                access_type: 'offline',
+                                prompt: 'consent',
+                            },
+                        },
+                    });
+
+                    if (error) {
+                        console.error('[Auth] Google OAuth error:', error);
+                        useUIStore.getState().addToast('error', error.message);
+                        return { user: null, error };
+                    }
+
+                    // OAuth will redirect, so we don't need to handle the response here
+                    // The initializeSession will pick up the session after redirect
+                    console.log('[Auth] Google OAuth initiated, redirecting...');
+                    return { user: data, error: null };
+                } catch (err: any) {
+                    console.error('[Auth] Google sign-in error:', err);
+                    useUIStore.getState().addToast('error', 'Failed to sign in with Google');
+                    return { user: null, error: { message: err.message } };
+                }
+            },
+
             resetPasswordForEmail: async (email) => {
                 if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } };
                 try {
@@ -379,32 +417,89 @@ export const useUserStore = create<UserState>()(
                 }
 
                 try {
+                    // Helper function to handle user session (create profile if needed)
+                    const handleUserSession = async (session: any) => {
+                        if (!session?.user) return false;
+
+                        const user = session.user;
+                        console.log('[Auth] Handling session for user:', user.email);
+
+                        // Try to fetch existing profile
+                        let profile = await fetchProfile(user.id);
+
+                        // If no profile exists (e.g., first OAuth login), create one
+                        if (!profile) {
+                            console.log('[Auth] No profile found, creating one for OAuth user...');
+                            const username = user.user_metadata?.full_name ||
+                                user.user_metadata?.name ||
+                                user.email?.split('@')[0] ||
+                                'User';
+                            const avatarUrl = user.user_metadata?.avatar_url ||
+                                user.user_metadata?.picture;
+
+                            try {
+                                await supabase.from('profiles').upsert({
+                                    id: user.id,
+                                    username: username,
+                                    avatar_url: avatarUrl,
+                                    xp: 0,
+                                    level: 1,
+                                    rank: 'bronze',
+                                    streak_current: 0,
+                                    streak_best: 0
+                                });
+                                console.log('[Auth] Profile created for OAuth user');
+
+                                // Set user with basic data
+                                profile = {
+                                    id: user.id,
+                                    email: user.email || '',
+                                    username: username,
+                                    avatarUrl: avatarUrl,
+                                    xp: 0,
+                                    level: 1,
+                                    rank: 'bronze' as const,
+                                    streakCurrent: 0,
+                                    streakBest: 0,
+                                    createdAt: new Date().toISOString()
+                                };
+                            } catch (err) {
+                                console.warn('[Auth] Failed to create profile:', err);
+                                return false;
+                            }
+                        }
+
+                        if (profile) {
+                            profile.email = user.email || '';
+                            set({ user: profile, isAuthenticated: true, isGuest: false, isLoading: false });
+                            useProgressStore.getState().fetchProgress(user.id);
+                            return true;
+                        }
+
+                        return false;
+                    };
+
+                    // Initial session check
                     const { data: { session } } = await supabase.auth.getSession();
                     if (session?.user) {
-                        const profile = await fetchProfile(session.user.id);
-                        if (profile) {
-                            profile.email = session.user.email || '';
-                            set({ user: profile, isAuthenticated: true, isGuest: false, isLoading: false });
-                            // Fetch user progress from database
-                            useProgressStore.getState().fetchProgress(session.user.id);
-                        } else {
-                            set({ isLoading: false });
-                        }
+                        await handleUserSession(session);
                     } else {
                         set({ isLoading: false });
                     }
 
-                    supabase.auth.onAuthStateChange(async (_event, session) => {
-                        if (session?.user) {
-                            const profile = await fetchProfile(session.user.id);
-                            if (profile) {
-                                profile.email = session.user.email || '';
-                                set({ user: profile, isAuthenticated: true, isGuest: false });
-                                // Fetch user progress from database
-                                useProgressStore.getState().fetchProgress(session.user.id);
+                    // Listen for auth state changes (handles OAuth redirects)
+                    supabase.auth.onAuthStateChange(async (event, session) => {
+                        console.log('[Auth] Auth state changed:', event);
+
+                        if (event === 'SIGNED_IN' && session?.user) {
+                            const success = await handleUserSession(session);
+                            if (success) {
+                                useUIStore.getState().addToast('success', 'Welcome! Signed in with Google');
                             }
-                        } else {
+                        } else if (event === 'SIGNED_OUT') {
                             set({ user: null, isAuthenticated: false, isGuest: false });
+                        } else if (session?.user) {
+                            await handleUserSession(session);
                         }
                     });
                 } catch (error) {
