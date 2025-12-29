@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Input } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
-import { useProgressStore, useUIStore } from '../../stores';
+import { useProgressStore, useUIStore, useUserStore } from '../../stores';
 import { useCodeRunner } from '../../hooks';
 import type { Problem } from '../../types';
 import { problems as problemsData } from '../../data/problems';
@@ -25,7 +25,8 @@ import { problems as problemsData } from '../../data/problems';
 export const PracticePage: React.FC = () => {
     const { problemId } = useParams();
     const navigate = useNavigate();
-    const { isCompleted, markComplete } = useProgressStore();
+    const { isCompleted, validateAndComplete } = useProgressStore();
+    const { user } = useUserStore();
     const { addToast } = useUIStore();
 
     // List State
@@ -89,21 +90,49 @@ export const PracticePage: React.FC = () => {
         const langTestCases = activeProblem.testCases[langKey];
         const expectedOutput = langTestCases?.[0]?.expectedOutput;
 
-        // Run the code with expected output for validation
+        // Run the code with expected output for validation (client-side for quick feedback)
         const passed = await runCode(code, selectedLanguage, expectedOutput);
 
-        // Auto-submit if passed
+        // If passed client-side validation, now validate server-side for security
         if (passed) {
             const solveTimeSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
             const minutes = Math.floor(solveTimeSeconds / 60);
             const seconds = solveTimeSeconds % 60;
             const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 
-            if (!isCompleted('problem', activeProblem.id)) {
-                markComplete('problem', activeProblem.id, undefined, solveTimeSeconds);
-                addToast('success', `✓ Solved in ${timeStr}!`);
-            } else {
+            // Check if user is authenticated (not guest)
+            if (!user || user.id.startsWith('guest-')) {
+                addToast('success', `✓ Solved in ${timeStr}! (Guest mode - progress not saved)`);
+                return;
+            }
+
+            // Already completed? Just show message
+            if (isCompleted('problem', activeProblem.id)) {
                 addToast('success', `✓ Solved again in ${timeStr}!`);
+                return;
+            }
+
+            // SERVER-SIDE VALIDATION: Call Supabase RPC for secure XP award
+            // This prevents XP manipulation by hackers
+            const result = await validateAndComplete(
+                'problem',
+                activeProblem.id,
+                selectedLanguage,
+                solveTimeSeconds
+            );
+
+            if (result.success) {
+                if (result.xp_awarded && result.xp_awarded > 0) {
+                    addToast('success', `✓ Solved in ${timeStr}! +${result.xp_awarded} XP`);
+                } else if (result.message === 'Already completed') {
+                    addToast('success', `✓ Solved again in ${timeStr}!`);
+                } else {
+                    addToast('success', `✓ Solved in ${timeStr}!`);
+                }
+            } else {
+                // Server validation failed (shouldn't happen if client passed, but handle it)
+                console.error('Server validation failed:', result.error);
+                addToast('warning', 'Solved locally, but server verification pending.');
             }
         }
     };
@@ -459,14 +488,14 @@ export const PracticePage: React.FC = () => {
                                         >
                                             {/* Main Subtle Gradient Background */}
                                             <div className={`absolute inset-0 bg-gradient-to-br ${problem.difficulty === 'easy' ? 'from-emerald-500/10 dark:from-emerald-500/20' :
-                                                    problem.difficulty === 'medium' ? 'from-amber-500/10 dark:from-amber-500/20' :
-                                                        'from-rose-500/10 dark:from-rose-500/20'
+                                                problem.difficulty === 'medium' ? 'from-amber-500/10 dark:from-amber-500/20' :
+                                                    'from-rose-500/10 dark:from-rose-500/20'
                                                 } via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500`} />
 
                                             {/* Top Right Glow Blob (Retained for accent) */}
                                             <div className={`absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br ${problem.difficulty === 'easy' ? 'from-emerald-500/30' :
-                                                    problem.difficulty === 'medium' ? 'from-amber-500/30' :
-                                                        'from-rose-500/30'
+                                                problem.difficulty === 'medium' ? 'from-amber-500/30' :
+                                                    'from-rose-500/30'
                                                 } to-transparent blur-3xl rounded-full transition-all duration-500 opacity-0 group-hover:opacity-100`} />
 
                                             {/* Content Container */}

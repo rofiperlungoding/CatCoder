@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Avatar, ProgressBar, Button } from '../../components/ui';
 import { EditProfileModal } from '../../components/profile/EditProfileModal';
+import { ContributionGraph } from '../../components/profile/ContributionGraph';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import { calculateLevelProgress } from '../../lib/utils';
 
@@ -141,40 +142,13 @@ export const ProfilePage: React.FC = () => {
                 </div>
 
                 {/* Right Col: Activity Graph */}
-                <div className="md:col-span-2 bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border">
+                <div className="md:col-span-2 bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border h-full flex flex-col">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="font-bold text-lg text-primary dark:text-white">Contribution Graph</h3>
                         <div className="text-sm text-muted-foreground font-medium">Last 12 Months</div>
                     </div>
 
-                    <div className="grid grid-cols-12 gap-2 h-48 content-center">
-                        {Array.from({ length: 84 }).map((_, i) => {
-                            const active = Math.random();
-                            let colorClass = 'bg-gray-100 dark:bg-muted';
-                            if (active > 0.8) colorClass = 'bg-lime-500';
-                            else if (active > 0.6) colorClass = 'bg-lime-300';
-                            else if (active > 0.4) colorClass = 'bg-lime-200';
-
-                            return (
-                                <div
-                                    key={i}
-                                    className={`rounded-lg w-full h-full transition-all hover:scale-110 cursor-pointer ${colorClass}`}
-                                    title={`Day ${i}`}
-                                ></div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="mt-8 flex items-center justify-end text-xs font-bold text-muted-foreground gap-3">
-                        <span>Less</span>
-                        <div className="flex gap-1.5">
-                            <div className="w-4 h-4 bg-gray-100 dark:bg-muted rounded-md"></div>
-                            <div className="w-4 h-4 bg-lime-200 rounded-md"></div>
-                            <div className="w-4 h-4 bg-lime-300 rounded-md"></div>
-                            <div className="w-4 h-4 bg-lime-500 rounded-md"></div>
-                        </div>
-                        <span>More</span>
-                    </div>
+                    <ContributionGraph className="flex-1 flex flex-col justify-center" />
                 </div>
             </div>
 

@@ -2,6 +2,32 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { initializeFirewall } from './lib/requestFirewall'
+import { initializeDOMMonitor } from './lib/domMonitor'
+
+// Initialize security modules in production only
+// Requirements 6.1: Intercept all fetch and XMLHttpRequest calls at startup
+// Requirements 7.5: DOM Monitor only activates in production builds
+const isProduction = import.meta.env.PROD;
+
+// Initialize request firewall
+initializeFirewall({
+  enabled: isProduction,
+  onBlocked: (url, method) => {
+    console.warn(`[Security] Blocked ${method} request to: ${url}`);
+    // TODO: Integrate with security logger when implemented (Task 12)
+  },
+});
+
+// Initialize DOM integrity monitor
+// Requirements 7.1, 7.2, 7.4: Monitor DOM for unauthorized script/iframe injections
+initializeDOMMonitor({
+  enabled: isProduction,
+  onViolation: (_element, type) => {
+    console.warn(`[Security] Removed unauthorized ${type} injection`);
+    // TODO: Integrate with security logger when implemented (Task 12)
+  },
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

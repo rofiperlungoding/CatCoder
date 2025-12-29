@@ -21,14 +21,18 @@
   <meta property="og:image" content="/logo.png" />
 
   <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
-                 script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.firebaseapp.com; 
-                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-                 font-src 'self' https://fonts.gstatic.com; 
-                 connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google.com https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com; 
-                 img-src 'self' data: https:; 
-                 frame-src 'self' https://*.google.com https://*.firebaseapp.com;
-                 worker-src 'self' blob:;" />
+  <!-- 
+    CSP Configuration (Requirements 4.1-4.6):
+    - default-src 'none': Deny all resources not explicitly allowed
+    - script-src: 'self' + 'unsafe-eval' (required for code execution) + CDNs for Pyodide
+    - style-src: 'self' + 'unsafe-inline' (required for styled-components/emotion)
+    - font-src: 'self' + Google Fonts
+    - connect-src: 'self' + Supabase domains + Pyodide CDN
+    - img-src: 'self' + data URIs + Supabase storage
+    - worker-src: 'self' + blob: (required for Web Workers)
+    - frame-src: 'none' (no iframes allowed)
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://pyodide.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://pyodide.org; img-src 'self' data: https://*.supabase.co; worker-src 'self' blob:; frame-src 'none'; base-uri 'self'; form-action 'self';" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

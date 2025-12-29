@@ -26,6 +26,7 @@ const ForgotPasswordPage = lazy(() => import('./pages/Auth/ForgotPasswordPage').
 const ResetPasswordPage = lazy(() => import('./pages/Auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.OnboardingPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFoundPage })));
+const HoneypotPage = lazy(() => import('./pages/Honeypot').then(m => ({ default: m.HoneypotPage })));
 
 // Loading screen component
 const LoadingScreen = () => (
@@ -106,6 +107,13 @@ function App() {
             <Route path="/roadmap/:pathId" element={<RoadmapPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
+
+          {/* Honeypot Routes - Not linked in navigation */}
+          {/* Requirements: 10.1, 10.5 - Define routes for common attack targets */}
+          <Route path="/admin" element={<HoneypotPage />} />
+          <Route path="/wp-admin" element={<HoneypotPage />} />
+          <Route path="/administrator" element={<HoneypotPage />} />
+          <Route path="/dashboard/admin" element={<HoneypotPage />} />
 
           {/* 404 Not Found */}
           <Route path="*" element={<NotFoundPage />} />

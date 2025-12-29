@@ -1,8 +1,44 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import type { User, UserProgress, Language, Activity } from '../types';
 import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../lib/utils';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { secureStorage, migrateToEncrypted } from '../lib/secureStorage';
+import { getTrueTime, getTrueDate, syncServerTime, isClockOutOfSync } from '../lib/serverTime';
+import { 
+    registerDeviceSession, 
+    verifyDeviceFingerprint, 
+    handleFingerprintMismatch,
+    clearCachedFingerprint 
+} from '../lib/deviceFingerprint';
+
+/**
+ * Secure storage adapter for Zustand persist middleware
+ * Requirements 3.5: Integrate with Zustand's persist middleware transparently
+ * 
+ * This adapter wraps secureStorage to match Zustand's StateStorage interface
+ * and handles migration from unencrypted to encrypted storage.
+ */
+const secureStateStorage: StateStorage = {
+    getItem: (name: string): string | null => {
+        // First, attempt migration from unencrypted to encrypted
+        // This handles existing users who have unencrypted data
+        migrateToEncrypted(name);
+        return secureStorage.getItem(name);
+    },
+    setItem: (name: string, value: string): void => {
+        secureStorage.setItem(name, value);
+    },
+    removeItem: (name: string): void => {
+        secureStorage.removeItem(name);
+    }
+};
+
+/**
+ * Create secure JSON storage for Zustand persist middleware
+ * Uses AES encryption for all stored data
+ */
+const createSecureStorage = () => createJSONStorage(() => secureStateStorage);
 
 // Helper function to fetch profile from Supabase with timeout
 const fetchProfile = async (userId: string): Promise<User | null> => {
@@ -161,6 +197,9 @@ export const useUserStore = create<UserState>()(
                 });
                 useUIStore.getState().addToast('success', 'Signed out successfully');
 
+                // Clear cached fingerprint (Requirements 5.4)
+                clearCachedFingerprint();
+
                 // Sign out from Supabase in background (fire-and-forget)
                 if (isSupabaseConfigured()) {
                     supabase.auth.signOut().catch(err => {
@@ -236,6 +275,11 @@ export const useUserStore = create<UserState>()(
                             }
                         }).catch(() => {
                             // Profile fetch failed, but we already have basic user - that's fine
+                        });
+
+                        // Register device fingerprint for this session (Requirements 5.1, 5.2)
+                        registerDeviceSession().catch(err => {
+                            console.warn('[Auth] Failed to register device session:', err);
                         });
                     }
 
@@ -473,6 +517,12 @@ export const useUserStore = create<UserState>()(
                             profile.email = user.email || '';
                             set({ user: profile, isAuthenticated: true, isGuest: false, isLoading: false });
                             useProgressStore.getState().fetchProgress(user.id);
+                            
+                            // Register device fingerprint for this session (Requirements 5.1, 5.2)
+                            registerDeviceSession().catch(err => {
+                                console.warn('[Auth] Failed to register device session:', err);
+                            });
+                            
                             return true;
                         }
 
@@ -512,6 +562,16 @@ export const useUserStore = create<UserState>()(
                 const { user } = get();
                 if (!user) return;
 
+                // SECURITY: For authenticated users, XP is now controlled server-side
+                // via the submit_completion RPC function. This method only updates
+                // local state for guest/mock users.
+                if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+                    console.warn('[Security] addXP called for authenticated user - XP should be awarded via server RPC');
+                    // For authenticated users, we should refresh from server instead
+                    // The validateAndComplete function handles XP awards server-side
+                    return;
+                }
+
                 const newXP = user.xp + amount;
                 const newLevel = calculateLevel(newXP);
                 const newRank = getRank(newXP);
@@ -535,15 +595,6 @@ export const useUserStore = create<UserState>()(
                 };
 
                 set({ user: updatedUser });
-
-                // Sync to Supabase
-                if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
-                    syncProfileToSupabase(user.id, {
-                        xp: newXP,
-                        level: newLevel,
-                        rank: newRank
-                    });
-                }
             },
 
             setSelectedLanguage: (language) => set({ selectedLanguage: language }),
@@ -552,9 +603,21 @@ export const useUserStore = create<UserState>()(
                 const { user } = get();
                 if (!user) return;
 
-                const today = new Date().toDateString();
+                // Sync server time first to ensure accurate streak calculation
+                // Requirements 8.4: Use getTrueTime for all streak calculations
+                await syncServerTime();
+
+                // Check if clock is out of sync - warn but don't block
+                if (isClockOutOfSync()) {
+                    console.warn('[Streak] System clock is significantly out of sync with server. Streak calculation may be affected.');
+                }
+
+                // Use server-synchronized time for streak calculations
+                // This prevents users from manipulating streaks by changing system clock
+                const trueTime = getTrueTime();
+                const today = new Date(trueTime).toDateString();
                 const lastVisit = getLocalStorage('lastVisit', '');
-                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                const yesterday = new Date(trueTime - 86400000).toDateString();
 
                 let newStreak = user.streakCurrent;
 
@@ -574,12 +637,12 @@ export const useUserStore = create<UserState>()(
 
                 set({ user: updatedUser });
 
-                // Sync to Supabase
+                // Sync to Supabase using server time for last_activity_date
                 if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
                     syncProfileToSupabase(user.id, {
                         streak_current: newStreak,
                         streak_best: Math.max(user.streakBest, newStreak),
-                        last_activity_date: new Date().toISOString().split('T')[0]
+                        last_activity_date: getTrueDate().toISOString().split('T')[0]
                     });
                 }
             },
@@ -617,7 +680,8 @@ export const useUserStore = create<UserState>()(
             }
         }),
         {
-            name: 'catcoder-user'
+            name: 'catcoder-user',
+            storage: createSecureStorage()
         }
     )
 );
@@ -634,8 +698,9 @@ interface ProgressState {
     markComplete: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string, score?: number, durationSeconds?: number) => void;
     isCompleted: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string) => boolean;
     getProgress: (contentType: 'lesson' | 'problem' | 'challenge', contentId: string) => UserProgress | undefined;
-    // Secure server-side validation
-    validateAndComplete: (contentType: 'problem' | 'lesson', contentId: string, language: string, userOutput: string, durationSeconds?: number) => Promise<{ success: boolean; xp_awarded?: number; error?: string; message?: string }>;
+    // Secure server-side completion (Requirements 2.2, 2.3, 2.4, 2.5, 2.6)
+    // XP is calculated server-side, duplicate completions are prevented
+    validateAndComplete: (contentType: 'problem' | 'lesson' | 'challenge', contentId: string, language: string, durationSeconds?: number) => Promise<{ success: boolean; xp_awarded?: number; error?: string; message?: string }>;
 }
 
 // Helper to sync progress to Supabase
@@ -797,7 +862,7 @@ export const useProgressStore = create<ProgressState>()(
                 );
             },
 
-            validateAndComplete: async (contentType, contentId, language, userOutput, durationSeconds) => {
+            validateAndComplete: async (contentType, contentId, language, durationSeconds) => {
                 if (!isSupabaseConfigured()) {
                     return { success: false, error: 'Supabase not configured' };
                 }
@@ -807,21 +872,48 @@ export const useProgressStore = create<ProgressState>()(
                     return { success: false, error: 'Not authenticated or guest user' };
                 }
 
+                // Verify device fingerprint before sensitive operation (Requirements 5.3, 5.4)
+                const fingerprintResult = await verifyDeviceFingerprint({
+                    onMismatch: handleFingerprintMismatch,
+                    logMismatch: true
+                });
+
+                if (!fingerprintResult.valid) {
+                    // If fingerprint doesn't match, the handleFingerprintMismatch callback
+                    // will sign out the user and redirect to login
+                    return { 
+                        success: false, 
+                        error: fingerprintResult.reason || 'Device verification failed' 
+                    };
+                }
+
                 try {
-                    const { data, error } = await supabase.rpc('validate_and_complete', {
+                    // Use the secure submit_completion RPC function
+                    // This function handles:
+                    // 1. Server-side XP calculation (Requirements 2.3)
+                    // 2. Duplicate prevention (Requirements 2.5)
+                    // 3. Atomic profile updates (Requirements 2.4)
+                    const { data, error } = await supabase.rpc('submit_completion', {
                         p_content_type: contentType,
                         p_content_id: contentId,
                         p_language: language,
-                        p_user_output: userOutput,
                         p_duration_seconds: durationSeconds || null
                     });
 
                     if (error) {
-                        console.error('Validation RPC error:', error);
+                        console.error('submit_completion RPC error:', error);
                         return { success: false, error: error.message };
                     }
 
-                    const result = data as { success: boolean; xp_awarded?: number; error?: string; message?: string };
+                    const result = data as { 
+                        success: boolean; 
+                        xp_awarded?: number; 
+                        new_xp?: number;
+                        new_level?: number;
+                        new_rank?: string;
+                        error?: string; 
+                        message?: string 
+                    };
 
                     if (result.success) {
                         // Update local state
@@ -850,24 +942,64 @@ export const useProgressStore = create<ProgressState>()(
                             completedProblems: newCompletedProblems
                         });
 
-                        // Refresh user profile to get updated XP from server
+                        // Refresh user profile from server to get updated XP (Requirements 2.6)
                         if (result.xp_awarded && result.xp_awarded > 0) {
-                            // Fetch updated profile from server
-                            const { data: profileData } = await supabase
-                                .from('profiles')
-                                .select('*')
-                                .eq('id', userStore.user.id)
-                                .single();
-
-                            if (profileData) {
+                            const oldLevel = userStore.user.level;
+                            
+                            // Use the values returned by the RPC if available
+                            if (result.new_xp !== undefined && result.new_level !== undefined && result.new_rank !== undefined) {
                                 const updatedUser = {
                                     ...userStore.user,
-                                    xp: profileData.xp,
-                                    level: profileData.level,
-                                    rank: profileData.rank
+                                    xp: result.new_xp,
+                                    level: result.new_level,
+                                    rank: result.new_rank as User['rank']
                                 };
                                 useUserStore.setState({ user: updatedUser });
+                                
+                                // Check for level up
+                                if (result.new_level > oldLevel) {
+                                    useUIStore.getState().showLevelUp(result.new_level);
+                                    userStore.addActivity({
+                                        type: 'level_up',
+                                        title: `Reached Level ${result.new_level}`,
+                                        xpEarned: 0
+                                    });
+                                }
+                            } else {
+                                // Fallback: Fetch updated profile from server
+                                const { data: profileData } = await supabase
+                                    .from('profiles')
+                                    .select('*')
+                                    .eq('id', userStore.user.id)
+                                    .single();
+
+                                if (profileData) {
+                                    const updatedUser = {
+                                        ...userStore.user,
+                                        xp: profileData.xp,
+                                        level: profileData.level,
+                                        rank: profileData.rank as User['rank']
+                                    };
+                                    useUserStore.setState({ user: updatedUser });
+                                    
+                                    // Check for level up
+                                    if (profileData.level > oldLevel) {
+                                        useUIStore.getState().showLevelUp(profileData.level);
+                                        userStore.addActivity({
+                                            type: 'level_up',
+                                            title: `Reached Level ${profileData.level}`,
+                                            xpEarned: 0
+                                        });
+                                    }
+                                }
                             }
+                            
+                            // Add activity for completion
+                            userStore.addActivity({
+                                type: contentType === 'lesson' ? 'lesson_completed' : 'problem_solved',
+                                title: `Completed ${contentType}: ${contentId}`,
+                                xpEarned: result.xp_awarded
+                            });
                         }
                     }
 
@@ -880,6 +1012,7 @@ export const useProgressStore = create<ProgressState>()(
         }),
         {
             name: 'catcoder-progress',
+            storage: createSecureStorage(),
             partialize: (state) => ({
                 progress: state.progress,
                 completedLessons: Array.from(state.completedLessons),
@@ -930,6 +1063,7 @@ export const useAchievementStore = create<AchievementState>()(
         }),
         {
             name: 'catcoder-achievements',
+            storage: createSecureStorage(),
             partialize: (state) => ({
                 unlockedAchievements: Array.from(state.unlockedAchievements)
             }),
@@ -1027,6 +1161,7 @@ export const useThemeStore = create<ThemeState>()(
         }),
         {
             name: 'catcoder-theme',
+            storage: createSecureStorage(),
             onRehydrateStorage: () => () => {
                 applyTheme();
             }

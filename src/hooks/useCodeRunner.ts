@@ -1,3 +1,12 @@
+/**
+ * Code Runner Hook
+ * Feature: security-hardening
+ * Requirements: 1.1
+ * 
+ * This hook provides code execution with sandboxed JavaScript execution via Web Worker.
+ * Maintains backward compatibility with existing API while using secure sandbox.
+ */
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 export type LogType = 'command' | 'stdout' | 'stderr' | 'system' | 'success';
@@ -19,15 +28,22 @@ declare global {
     }
 }
 
+// Timeout constant for sandboxed execution - 3 seconds
+const EXECUTION_TIMEOUT_MS = 3000;
+
 export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     const [terminalLogs, setTerminalLogs] = useState<LogEntry[]>([]);
     const [isRunning, setIsRunning] = useState(false);
     const [isValidated, setIsValidated] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    // Pyodide ref
+    // Pyodide ref for Python execution
     const pyodideRef = useRef<any>(null);
     const [isPyodideLoading, setIsPyodideLoading] = useState(false);
+
+    // Web Worker ref for sandboxed JS execution
+    const workerRef = useRef<Worker | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const loadPyodideInstance = async () => {
@@ -46,6 +62,18 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
         loadPyodideInstance();
     }, []);
 
+    // Cleanup worker on unmount
+    useEffect(() => {
+        return () => {
+            if (workerRef.current) {
+                workerRef.current.terminate();
+            }
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
     // Helper to add log with delay
     const addLog = useCallback((log: LogEntry, delay = 300) => {
         return new Promise<void>(resolve => {
@@ -62,7 +90,101 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
         setValidationError(null);
     }, []);
 
-    const executeJs = (codeStr: string): string => {
+    /**
+     * Execute JavaScript code in sandboxed Web Worker
+     * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
+     */
+    const executeJsSandboxed = (codeStr: string): Promise<string> => {
+        return new Promise((resolve) => {
+            const output: string[] = [];
+            const errors: string[] = [];
+            const executionId = Date.now().toString();
+
+            // Terminate any existing worker
+            if (workerRef.current) {
+                workerRef.current.terminate();
+            }
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+
+            try {
+                // Create fresh worker instance for each execution (Requirement 1.6)
+                const worker = new Worker('/sandbox-worker.js');
+                workerRef.current = worker;
+
+                // Set up timeout (Requirement 1.3 - 3 second timeout)
+                timeoutRef.current = setTimeout(() => {
+                    worker.terminate();
+                    workerRef.current = null;
+                    resolve('Error: Execution timed out after 3 seconds');
+                }, EXECUTION_TIMEOUT_MS);
+
+                // Handle messages from worker
+                worker.onmessage = (event) => {
+                    const { type, data, executionId: msgExecutionId } = event.data;
+
+                    // Ignore messages from previous executions
+                    if (msgExecutionId && msgExecutionId !== executionId) {
+                        return;
+                    }
+
+                    switch (type) {
+                        case 'log':
+                            output.push(data);
+                            break;
+                        case 'warn':
+                            output.push(`Warning: ${data}`);
+                            break;
+                        case 'error':
+                            errors.push(data);
+                            break;
+                        case 'complete':
+                            // Clear timeout and terminate worker
+                            if (timeoutRef.current) {
+                                clearTimeout(timeoutRef.current);
+                                timeoutRef.current = null;
+                            }
+                            worker.terminate();
+                            workerRef.current = null;
+
+                            // Format output similar to old implementation
+                            if (errors.length > 0) {
+                                resolve(`Error: ${errors.join('\n')}`);
+                            } else {
+                                resolve(output.join('\n'));
+                            }
+                            break;
+                    }
+                };
+
+                // Handle worker errors
+                worker.onerror = (error) => {
+                    if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current);
+                        timeoutRef.current = null;
+                    }
+                    worker.terminate();
+                    workerRef.current = null;
+                    resolve(`Error: ${error.message || 'Unknown worker error'}`);
+                };
+
+                // Send code to worker for execution
+                worker.postMessage({ code: codeStr, language: 'javascript', executionId });
+
+            } catch (error) {
+                // Handle worker creation errors - fall back to non-sandboxed execution
+                console.warn('Web Worker not available, falling back to direct execution');
+                resolve(executeJsFallback(codeStr));
+            }
+        });
+    };
+
+    /**
+     * Fallback JavaScript execution (non-sandboxed)
+     * Used only when Web Workers are not available
+     */
+    const executeJsFallback = (codeStr: string): string => {
         try {
             const logs: string[] = [];
             const consoleMock = {
@@ -137,10 +259,11 @@ sys.stdout = io.StringIO()
         // 2. Run
         await addLog({ type: 'command', message: runCommand }, 400);
 
-        // 3. Execution (Real JS or Pyodide or Mock C++)
+        // 3. Execution (Sandboxed JS, Pyodide Python, or Mock C++)
         let output = '';
         if (language === 'javascript') {
-            output = executeJs(code);
+            // Use sandboxed Web Worker execution (Requirement 1.1)
+            output = await executeJsSandboxed(code);
         } else if (language === 'python') {
             await addLog({ type: 'system', message: 'Initializing Python Environment...' }, 100);
             output = await executePython(code);
