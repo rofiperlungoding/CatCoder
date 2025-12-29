@@ -29,10 +29,12 @@ export const ProfilePage: React.FC = () => {
     const levelProgress = calculateLevelProgress(user.xp);
 
     const handleShare = () => {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
+        // Generate unique CatCoder profile URL
+        const baseUrl = window.location.origin;
+        const profileUrl = `${baseUrl}/catcoder/${user.username}`;
+        navigator.clipboard.writeText(profileUrl).then(() => {
             setCopied(true);
-            addToast('success', 'Profile link copied to clipboard');
+            addToast('success', 'Link profil CatCoder berhasil disalin!');
             setTimeout(() => setCopied(false), 2000);
         });
     };

@@ -27,6 +27,7 @@ const ResetPasswordPage = lazy(() => import('./pages/Auth/ResetPasswordPage').th
 const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.OnboardingPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFoundPage })));
 const HoneypotPage = lazy(() => import('./pages/Honeypot').then(m => ({ default: m.HoneypotPage })));
+const PublicProfilePage = lazy(() => import('./pages/PublicProfile').then(m => ({ default: m.PublicProfilePage })));
 
 // Loading screen component
 const LoadingScreen = () => (
@@ -114,6 +115,9 @@ function App() {
           <Route path="/wp-admin" element={<HoneypotPage />} />
           <Route path="/administrator" element={<HoneypotPage />} />
           <Route path="/dashboard/admin" element={<HoneypotPage />} />
+
+          {/* Public Profile Route - Shareable CatCoder profile link */}
+          <Route path="/catcoder/:username" element={<PublicProfilePage />} />
 
           {/* 404 Not Found */}
           <Route path="*" element={<NotFoundPage />} />
