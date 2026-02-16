@@ -574,7 +574,8 @@ export const useUserStore = create<UserState>()(
                     // Initial session check
                     const { data: { session } } = await supabase.auth.getSession();
                     if (session?.user) {
-                        await handleUserSession(session);
+                        const success = await handleUserSession(session);
+                        if (!success) set({ isLoading: false });
                     } else {
                         set({ isLoading: false });
                     }

@@ -4,7 +4,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { ScrollToTop } from './components/layout';
 import { Toaster } from './components/ui';
-import { useUserStore } from './stores';
+import { useUserStore, useUIStore } from './stores';
 import { Cat } from 'lucide-react';
 import { analytics } from './services/analytics';
 
@@ -81,10 +81,19 @@ const PageTracker = () => {
 
 function App() {
   const { initializeSession } = useUserStore();
+  const { addToast } = useUIStore();
 
   useEffect(() => {
+    // Check for storage access (Issue #3)
+    try {
+      localStorage.setItem('storage_test', 'test');
+      localStorage.removeItem('storage_test');
+    } catch (e) {
+      console.warn('Storage access blocked:', e);
+      addToast('warning', 'Storage access blocked. Progress may not be saved.');
+    }
     initializeSession();
-  }, [initializeSession]);
+  }, [initializeSession, addToast]);
 
   return (
     <BrowserRouter>
