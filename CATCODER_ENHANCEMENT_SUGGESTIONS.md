@@ -552,7 +552,7 @@ jobs:
 | 🟡 **P2** | PWA setup | 3 hours | Medium | ✅ Done |
 | 🟡 **P2** | Unit testing setup | 4 hours | Medium | ✅ Done |
 | 🟢 **P3** | Storybook | 4 hours | Low | ⏳ Pending |
-| 🟢 **P3** | Analytics | 2 hours | Low | ⏳ Pending |
+| 🟢 **P3** | Analytics | 2 hours | Low | ✅ Done |
 
 ---
 

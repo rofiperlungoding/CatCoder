@@ -19,6 +19,11 @@ initializeFirewall({
   },
 });
 
+import { analytics } from './services/analytics';
+
+// Initialize Analytics
+analytics.init();
+
 // Initialize DOM integrity monitor
 // Requirements 7.1, 7.2, 7.4: Monitor DOM for unauthorized script/iframe injections
 initializeDOMMonitor({

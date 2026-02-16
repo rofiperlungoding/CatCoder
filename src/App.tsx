@@ -1,11 +1,12 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { ScrollToTop } from './components/layout';
 import { Toaster } from './components/ui';
 import { useUserStore } from './stores';
 import { Cat } from 'lucide-react';
+import { analytics } from './services/analytics';
 
 // Lazy load page components for code splitting
 const HomePage = lazy(() => import('./pages/Home').then(m => ({ default: m.HomePage })));
@@ -67,6 +68,17 @@ const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
+// Track page views
+const PageTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    analytics.logPageView(location.pathname + location.search);
+  }, [location]);
+
+  return null;
+};
+
 function App() {
   const { initializeSession } = useUserStore();
 
@@ -76,6 +88,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <PageTracker />
       <ScrollToTop />
       <Suspense fallback={<LoadingScreen />}>
         <Routes>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Sparkles,
@@ -21,6 +21,7 @@ import { useProgressStore, useUIStore, useUserStore } from '../../stores';
 import { useCodeRunner } from '../../hooks';
 import type { Problem, User } from '../../types';
 import { problems as problemsData } from '../../data/problems';
+import { analytics } from '../../services/analytics';
 
 interface ChallengeSolverProps {
     problem: Problem;
@@ -56,6 +57,13 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
     const [startTime] = useState<number>(() => Date.now());
     const [isLangOpen, setIsLangOpen] = useState(false);
 
+    useEffect(() => {
+        analytics.logEvent('problem_viewed', {
+            problemId: problem.id,
+            title: problem.title
+        });
+    }, [problem.id, problem.title]);
+
     const {
         terminalLogs,
         isRunning,
@@ -70,6 +78,11 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
         const langTestCases = problem.testCases[langKey];
         const expectedOutput = langTestCases?.[0]?.expectedOutput;
 
+        analytics.logEvent('code_run', {
+            problemId: problem.id,
+            language: selectedLanguage
+        });
+
         // Run the code with expected output for validation
         const passed = await runCode(code, selectedLanguage, expectedOutput);
 
@@ -78,6 +91,12 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
             const minutes = Math.floor(solveTimeSeconds / 60);
             const seconds = solveTimeSeconds % 60;
             const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
+            analytics.logEvent('problem_solved', {
+                problemId: problem.id,
+                language: selectedLanguage,
+                duration: solveTimeSeconds
+            });
 
             if (!user || user.id.startsWith('guest-')) {
                 addToast('success', `✓ Solved in ${timeStr}! (Guest mode - progress not saved)`);
