@@ -1,6 +1,6 @@
 # CatCoder
-
 > **Master Coding. Build Your Future.**
+**Version:** 2.0.0 | **Updated:** February 16, 2026
 
 An enterprise-grade gamified learning platform that transforms Python education through interactive challenges, real-time code execution, and skill-based progression tracking.
 

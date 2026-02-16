@@ -121,3 +121,6 @@ Why "CatCoder"? Because learning to code should feel as curious, playful, and re
 ---
 
 *Built with 💚 for learners everywhere.*
+
+---
+**Last Updated:** February 16, 2026
