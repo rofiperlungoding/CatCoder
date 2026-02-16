@@ -101,14 +101,40 @@ export const LearnPage: React.FC = () => {
         loading: analyticsLoading
     } = useAIAnalytics(usageStats, recentAttempts, availableChallenges);
 
-    const handleCompleteLesson = () => {
+    const handleCompleteLesson = async () => {
         if (!activeLesson) return;
 
-        if (!isCompleted('lesson', activeLesson.id)) {
+        // Check if already completed locally to avoid duplicate calls
+        if (isCompleted('lesson', activeLesson.id)) {
+            navigate('/learn');
+            return;
+        }
+
+        if (user && !user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+            // Authenticated User: Use server-side validation
+            try {
+                const result = await useProgressStore.getState().validateAndComplete(
+                    'lesson',
+                    activeLesson.id,
+                    activeLesson.language
+                );
+
+                if (result.success) {
+                    addToast('xp', `Completed "${activeLesson.title}"! +${result.xp_awarded || activeLesson.xpReward} XP`);
+                } else {
+                    console.error('Lesson completion failed:', result.error);
+                    addToast('error', 'Failed to save progress. Please check your connection.');
+                }
+            } catch (error) {
+                console.error('Lesson completion error:', error);
+            }
+        } else {
+            // Guest/Mock User: Use local store
             markComplete('lesson', activeLesson.id);
             addXP(activeLesson.xpReward);
             addToast('xp', `Completed "${activeLesson.title}"! +${activeLesson.xpReward} XP`);
         }
+
         navigate('/learn');
     };
 

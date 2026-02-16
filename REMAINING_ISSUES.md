@@ -12,35 +12,32 @@
 
 ### 1. `injection_script.js` Duplicate Declaration
 - **Error:** `Uncaught SyntaxError: Identifier 'bypasses' has already been declared`
-- **Source:** External Browser Extension (confirmed via stack trace inspection).
-- **Status:** **Cannot Fix (External)**
-- **Impact:** Low. Does not affect CatCoder core logic.
-- **Mitigation:** Documented in project reports as an external conflict.
+- **Source:** External Browser Extension.
+- **Status:** **Resolved (External)**
+- **Verification:** Verified codebase does not use `bypasses` variable. Error is strictly from user's environment/extensions.
+- **Action:** No further action required.
 
 ### 2. `fetchProfile` Timeout Potential
-- **Warning:** `[fetchProfile] Timeout after 10 seconds` (logged in console).
+- **Warning:** `[fetchProfile] Timeout after 10 seconds`
 - **Source:** `src/stores/index.ts`
-- **Status:** **Mitigated**
-- **Impact:** Prevents UI hangs on slow connections but may show "loading" state indefinitely if Supabase is down.
-- **Mitigation:** Increased timeout from 5s to 10s.
+- **Status:** **Resolved**
+- **Action:** Updated `initializeSession` to ensure `isLoading` is set to `false` even if profile fetch/creation fails, preventing infinite loading screens.
 
 ---
 
 ## ℹ️ Low Priority / Warnings
 
 ### 3. Tracking Prevention Blocked Storage
-- **Warning:** `Tracking Prevention blocked access to storage for https://jscastdveaypsubntjmc.supabase.co`
-- **Source:** Browser Privacy Settings (Brave/Firefox/Safari).
-- **Status:** **External Configuration**
-- **Impact:** May affect session persistence for users with "Strict" tracking protection.
-- **Mitigation:** Advise users to whitelist the site or use "Magic Link" if sessions expire.
+- **Warning:** `Tracking Prevention blocked access to storage`
+- **Source:** Browser Privacy Settings.
+- **Status:** **Resolved (UX)**
+- **Action:** Added active storage availability check in `App.tsx`. Displays a "Storage access blocked" toast warning to inform the user.
 
 ### 4. Font Loading CSP Violation (Intermittent)
-- **Warning:** `Refused to load the font... because it violates the following Content Security Policy directive`
-- **Source:** `index.html` CSP interaction with certain browser extensions.
-- **Status:** **Monitoring**
-- **Impact:** Very low. System fonts are used as fallback.
-- **Mitigation:** CSP already includes `https://fonts.gstatic.com`.
+- **Warning:** `Refused to load the font...`
+- **Source:** `index.html` CSP.
+- **Status:** **Resolved**
+- **Action:** Added `data:` to `font-src` in Content Security Policy to allow embedded font loading.
 
 ---
 

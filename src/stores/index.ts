@@ -954,6 +954,8 @@ export const useProgressStore = create<ProgressState>()(
                         new_xp?: number;
                         new_level?: number;
                         new_rank?: string;
+                        new_streak_current?: number;
+                        new_streak_best?: number;
                         error?: string;
                         message?: string
                     };
@@ -995,7 +997,9 @@ export const useProgressStore = create<ProgressState>()(
                                     ...userStore.user,
                                     xp: result.new_xp,
                                     level: result.new_level,
-                                    rank: result.new_rank as User['rank']
+                                    rank: result.new_rank as User['rank'],
+                                    streakCurrent: result.new_streak_current ?? userStore.user.streakCurrent,
+                                    streakBest: result.new_streak_best ?? userStore.user.streakBest
                                 };
                                 useUserStore.setState({ user: updatedUser });
 
