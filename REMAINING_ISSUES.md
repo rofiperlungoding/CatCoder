@@ -9,35 +9,32 @@
 ---
 
 ## ⚠️ Medium Priority
-
-### 1. `injection_script.js` Duplicate Declaration
-- **Error:** `Uncaught SyntaxError: Identifier 'bypasses' has already been declared`
-- **Source:** External Browser Extension.
-- **Status:** **Resolved (External)**
-- **Verification:** Verified codebase does not use `bypasses` variable. Error is strictly from user's environment/extensions.
-- **Action:** No further action required.
-
-### 2. `fetchProfile` Timeout Potential
-- **Warning:** `[fetchProfile] Timeout after 10 seconds`
-- **Source:** `src/stores/index.ts`
-- **Status:** **Resolved**
-- **Action:** Updated `initializeSession` to ensure `isLoading` is set to `false` even if profile fetch/creation fails, preventing infinite loading screens.
+*No medium priority issues.*
 
 ---
 
 ## ℹ️ Low Priority / Warnings
+*No low priority issues.*
+
+---
+
+## ✅ Resolved & Verified History (v2.0.0)
+
+### 1. `injection_script.js` Duplicate Declaration
+- **Source:** External Browser Extension.
+- **Status:** **Verified External** - No code action required.
+
+### 2. `fetchProfile` Timeout Potential
+- **Source:** `src/stores/index.ts`
+- **Status:** **Fixed** - `initializeSession` correctly resets `isLoading`.
 
 ### 3. Tracking Prevention Blocked Storage
-- **Warning:** `Tracking Prevention blocked access to storage`
 - **Source:** Browser Privacy Settings.
-- **Status:** **Resolved (UX)**
-- **Action:** Added active storage availability check in `App.tsx`. Displays a "Storage access blocked" toast warning to inform the user.
+- **Status:** **Fixed** - Added storage check in `App.tsx`.
 
-### 4. Font Loading CSP Violation (Intermittent)
-- **Warning:** `Refused to load the font...`
+### 4. Font Loading CSP Violation
 - **Source:** `index.html` CSP.
-- **Status:** **Resolved**
-- **Action:** Added `data:` to `font-src` in Content Security Policy to allow embedded font loading.
+- **Status:** **Fixed** - Added `data:` URI support to `font-src`.
 
 ---
 
