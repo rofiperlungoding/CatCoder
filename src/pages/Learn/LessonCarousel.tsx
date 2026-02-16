@@ -127,12 +127,41 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentStep, activeLesson.id, activeLesson.language, clearLogs]);
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (isLastStep) {
             // Requirement 2.2, 2.3, 2.4, 2.5: Award XP and mark complete
-            markComplete('lesson', activeLesson.id);
-            addXP(activeLesson.xpReward);
-            addToast("success", `Lesson Completed! You've earned ${activeLesson.xpReward} XP.`);
+            const user = useUserStore.getState().user;
+
+            if (user && !user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+                // Authenticated User: Use server-side validation
+                try {
+                    const result = await useProgressStore.getState().validateAndComplete(
+                        'lesson',
+                        activeLesson.id,
+                        activeLesson.language
+                    );
+
+                    if (result.success) {
+                        addToast('success', `Lesson Completed! +${result.xp_awarded || activeLesson.xpReward} XP`);
+                    } else {
+                        console.error('Lesson completion failed:', result.error);
+                        // Fallback to local toast if it's just a "completed" state, but don't add XP locally
+                        if (result.message === 'Already completed') {
+                            addToast('info', 'Lesson already completed.');
+                        } else {
+                            addToast('error', 'Failed to save progress. Please check your connection.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Lesson completion error:', error);
+                }
+            } else {
+                // Guest/Mock User: Use local store
+                markComplete('lesson', activeLesson.id);
+                addXP(activeLesson.xpReward);
+                addToast("success", `Lesson Completed! You've earned ${activeLesson.xpReward} XP.`);
+            }
+
             onComplete();
         } else if (canProceed) {
             setCurrentStep(prev => prev + 1);
