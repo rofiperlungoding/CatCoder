@@ -1,4 +1,4 @@
-import { TrendingUp, AlertCircle, Target, ArrowRight } from 'lucide-react';
+import { TrendingUp, AlertCircle, Target, ArrowRight, Sparkles } from 'lucide-react';
 import type { LearningInsight } from '../../types/analytics';
 
 interface InsightCardProps {
@@ -27,6 +27,13 @@ export default function InsightCard({ insight }: InsightCardProps) {
             text: 'text-blue-200',
             icon: Target,
             iconColor: 'text-blue-400',
+        },
+        pattern: {
+            border: 'border-purple-500/20',
+            bg: 'bg-purple-500/10',
+            text: 'text-purple-200',
+            icon: Sparkles,
+            iconColor: 'text-purple-400',
         },
     };
 

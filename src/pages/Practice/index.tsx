@@ -28,7 +28,7 @@ interface ChallengeSolverProps {
     onBack: () => void;
     user: User | null;
     addToast: (type: 'success' | 'warning' | 'error' | 'info', message: string) => void;
-    isCompleted: (type: string, id: string) => boolean;
+    isCompleted: (type: 'lesson' | 'problem' | 'challenge', id: string) => boolean;
     validateAndComplete: (
         contentType: 'problem' | 'lesson' | 'challenge',
         contentId: string,

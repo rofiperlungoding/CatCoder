@@ -3,10 +3,10 @@ import React from 'react';
 interface LoadingSpinnerProps {
     size?: number;
     className?: string;
-    light?: boolean;
+
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 24, className = '', light = false }) => {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 24, className = '' }) => {
     // Default size is 24px (w-6 h-6 usually, but here we use style or w-[size] if needed, 
     // but easiest is just to pass size to the style or generic class)
 

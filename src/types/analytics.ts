@@ -25,7 +25,7 @@ export interface SkillAssessment {
 }
 
 export interface LearningInsight {
-    type: 'strength' | 'weakness' | 'recommendation';
+    type: 'strength' | 'weakness' | 'recommendation' | 'pattern';
     title: string;
     description: string;
     actionable: string;
