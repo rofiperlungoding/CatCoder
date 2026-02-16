@@ -1,6 +1,6 @@
 # CatCoder
 > **Master Coding. Build Your Future.**
-**Version:** 2.0.0 | **Updated:** February 16, 2026
+**Version:** 2.1.0 | **Updated:** February 16, 2026
 
 An enterprise-grade gamified learning platform that transforms Python education through interactive challenges, real-time code execution, and skill-based progression tracking.
 
@@ -50,7 +50,8 @@ CatCoder leverages a modern, performant technology stack:
 | **Code Editor** | Monaco Editor (VS Code engine) |
 | **Code Execution** | Pyodide (Python), Native JS |
 | **Backend** | Supabase (PostgreSQL + Auth + RLS) |
-| **Build Tool** | Vite 7 |
+| **Build Tool** | Vite 7 + Vite PWA |
+| **Documentation** | Storybook |
 | **Deployment** | Netlify |
 
 ### Architecture Highlights:
@@ -84,6 +85,8 @@ CatCoder leverages a modern, performant technology stack:
 - **Real-Time Leaderboards** — Live speed run tracking fostering community and competition
 - **Zero-Friction Onboarding** — Users start learning within seconds of visiting
 - **Fully Responsive** — Seamless experience from mobile to desktop
+- **Offline-Ready PWA** — Installable app that works without internet
+- **Component System** — Fully documented UI library with Storybook
 - **Dark Mode** — Complete theme support with WCAG-compliant contrast
 
 ---
@@ -101,7 +104,8 @@ CatCoder leverages a modern, performant technology stack:
 
 | Feature | Status |
 |---------|--------|
-| AI-Powered Hints | Planned |
+| AI-Powered Hints | ✅ Done (v2.0) |
+| Offline PWA Support | ✅ Done (v2.1) |
 | C++ WASM Execution | Planned |
 | Contest Mode | Planned |
 | Team Competitions | Planned |

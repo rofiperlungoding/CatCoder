@@ -45,6 +45,11 @@ Whether you're writing your first `Hello World` or mastering complex algorithms,
 - **Succession System:** Progress from **Bronze** to **Diamond** based on your XP.
 - **Daily Challenges:** Maintain your streak and earn bonus rewards.
 
+### 📱 Progressive Web App (PWA)
+- **Offline Support:** Practice coding even without an internet connection.
+- **Installable:** Add CatCoder to your home screen on mobile and desktop.
+- **App-Like Experience:** Smooth, native-like performance with cached resources.
+
 ## 🛠️ Tech Stack
 
 Built with modern, performance-focused technologies:
@@ -56,6 +61,9 @@ Built with modern, performance-focused technologies:
 - **AI Integration:** [OpenAI Service](https://openai.com/) (Personalized Analysis)
 - **Backend/Auth:** [Supabase](https://supabase.com/) (PostgreSQL, Auth, RLS)
 - **Execution:** [Pyodide](https://pyodide.org/) (Python in WASM)
+- **PWA:** [Vite PWA](https://vite-pwa-org.netlify.app/) (Offline Support)
+- **Documentation:** [Storybook](https://storybook.js.org/) (UI Components)
+- **Analytics:** [Web Vitals](https://web.dev/vitals/) (Performance Monitoring)
 
 ## 💻 Getting Started
 
@@ -78,6 +86,12 @@ Follow these steps to set up the project locally:
 4.  **Start the development server**
     ```bash
     npm run dev
+    ```
+
+5.  **Run Storybook (Optional)**
+    View the UI component library:
+    ```bash
+    npm run storybook
     ```
 
 5.  **Open your browser**

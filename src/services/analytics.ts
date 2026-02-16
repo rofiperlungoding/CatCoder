@@ -1,6 +1,6 @@
 import reportWebVitals from './reportWebVitals';
 
-type EventParams = Record<string, any>;
+type EventParams = Record<string, unknown>;
 
 class AnalyticsService {
     private static instance: AnalyticsService;
