@@ -13,6 +13,7 @@ import {
 import { Button, ProgressBar, Badge, Avatar } from '../../components/ui';
 import { useUserStore } from '../../stores';
 import { fetchLeaderboard } from '../../lib/leaderboard';
+import { syncUserXP } from '../../lib/sync';
 import type { LeaderboardEntry } from '../../types';
 
 export const HomePage: React.FC = () => {
@@ -35,6 +36,11 @@ export const HomePage: React.FC = () => {
 
         if (user || isGuest) {
             loadLeaderboard();
+        }
+
+        // Sync XP with history to ensure accuracy
+        if (user && !isGuest) {
+            syncUserXP(user.id).catch(err => console.error('XP Sync failed:', err));
         }
     }, [user, isGuest]);
 

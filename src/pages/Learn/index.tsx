@@ -12,7 +12,7 @@ import {
     Code
 } from 'lucide-react';
 import { Button, Input } from '../../components/ui';
-import { useUserStore, useProgressStore, useUIStore } from '../../stores';
+import { useUserStore, useProgressStore } from '../../stores';
 import type { Lesson, Language, Tier } from '../../types';
 import { lessons as lessonsData } from '../../data/lessons';
 import { useAIAnalytics } from '../../hooks/useAIAnalytics';
@@ -31,9 +31,8 @@ const tierMap: Record<string, string> = {
 export const LearnPage: React.FC = () => {
     const { lessonId } = useParams();
     const navigate = useNavigate();
-    const { selectedLanguage, setSelectedLanguage, addXP } = useUserStore();
-    const { isCompleted, markComplete } = useProgressStore();
-    const { addToast } = useUIStore();
+    const { selectedLanguage, setSelectedLanguage } = useUserStore();
+    const { isCompleted } = useProgressStore();
     const { showInsightsPanel, setShowInsightsPanel } = useAIStore();
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -102,39 +101,8 @@ export const LearnPage: React.FC = () => {
     } = useAIAnalytics(usageStats, recentAttempts, availableChallenges);
 
     const handleCompleteLesson = async () => {
-        if (!activeLesson) return;
-
-        // Check if already completed locally to avoid duplicate calls
-        if (isCompleted('lesson', activeLesson.id)) {
-            navigate('/learn');
-            return;
-        }
-
-        if (user && !user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
-            // Authenticated User: Use server-side validation
-            try {
-                const result = await useProgressStore.getState().validateAndComplete(
-                    'lesson',
-                    activeLesson.id,
-                    activeLesson.language
-                );
-
-                if (result.success) {
-                    addToast('xp', `Completed "${activeLesson.title}"! +${result.xp_awarded || activeLesson.xpReward} XP`);
-                } else {
-                    console.error('Lesson completion failed:', result.error);
-                    addToast('error', 'Failed to save progress. Please check your connection.');
-                }
-            } catch (error) {
-                console.error('Lesson completion error:', error);
-            }
-        } else {
-            // Guest/Mock User: Use local store
-            markComplete('lesson', activeLesson.id);
-            addXP(activeLesson.xpReward);
-            addToast('xp', `Completed "${activeLesson.title}"! +${activeLesson.xpReward} XP`);
-        }
-
+        // Validation and XP awarding is now handled within LessonCarousel
+        // This function just handles the navigation back to the list
         navigate('/learn');
     };
 

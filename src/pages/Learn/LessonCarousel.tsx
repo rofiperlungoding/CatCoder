@@ -110,6 +110,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
     const [code, setCode] = useState(() => getInitialCode(0));
     const [showHintPanel, setShowHintPanel] = useState(false);
     const [showReviewPanel, setShowReviewPanel] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
 
     const totalSteps = activeLesson.sections.length;
     const isLastStep = currentStep === totalSteps - 1;
@@ -129,40 +130,47 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
 
     const handleNext = async () => {
         if (isLastStep) {
-            // Requirement 2.2, 2.3, 2.4, 2.5: Award XP and mark complete
-            const user = useUserStore.getState().user;
+            setIsCompleting(true);
+            try {
+                // Requirement 2.2, 2.3, 2.4, 2.5: Award XP and mark complete
+                const user = useUserStore.getState().user;
 
-            if (user && !user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
-                // Authenticated User: Use server-side validation
-                try {
-                    const result = await useProgressStore.getState().validateAndComplete(
-                        'lesson',
-                        activeLesson.id,
-                        activeLesson.language
-                    );
+                if (user && !user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+                    // Authenticated User: Use server-side validation
+                    try {
+                        const result = await useProgressStore.getState().validateAndComplete(
+                            'lesson',
+                            activeLesson.id,
+                            activeLesson.language
+                        );
 
-                    if (result.success) {
-                        addToast('success', `Lesson Completed! +${result.xp_awarded || activeLesson.xpReward} XP`);
-                    } else {
-                        console.error('Lesson completion failed:', result.error);
-                        // Fallback to local toast if it's just a "completed" state, but don't add XP locally
-                        if (result.message === 'Already completed') {
-                            addToast('info', 'Lesson already completed.');
+                        if (result.success) {
+                            addToast('success', `Lesson Completed! +${result.xp_awarded || activeLesson.xpReward} XP`);
                         } else {
-                            addToast('error', 'Failed to save progress. Please check your connection.');
+                            console.error('Lesson completion failed:', result.error);
+                            // Fallback to local toast if it's just a "completed" state, but don't add XP locally
+                            if (result.message === 'Already completed') {
+                                addToast('info', 'Lesson already completed.');
+                            } else {
+                                addToast('error', 'Failed to save progress. Please check your connection.');
+                            }
                         }
+                    } catch (error) {
+                        console.error('Lesson completion error:', error);
                     }
-                } catch (error) {
-                    console.error('Lesson completion error:', error);
+                } else {
+                    // Guest/Mock User: Use local store
+                    markComplete('lesson', activeLesson.id);
+                    addXP(activeLesson.xpReward);
+                    addToast("success", `Lesson Completed! You've earned ${activeLesson.xpReward} XP.`);
                 }
-            } else {
-                // Guest/Mock User: Use local store
-                markComplete('lesson', activeLesson.id);
-                addXP(activeLesson.xpReward);
-                addToast("success", `Lesson Completed! You've earned ${activeLesson.xpReward} XP.`);
-            }
 
-            onComplete();
+                onComplete();
+            } catch (err) {
+                console.error('Error in completion flow:', err);
+            } finally {
+                setIsCompleting(false);
+            }
         } else if (canProceed) {
             setCurrentStep(prev => prev + 1);
             window.scrollTo(0, 0);
@@ -541,14 +549,23 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
 
                     <Button
                         onClick={handleNext}
-                        disabled={!canProceed}
-                        className={`rounded-full px-8 h-11 text-sm font-bold shadow-md transition-all ${canProceed
+                        disabled={!canProceed || isCompleting}
+                        className={`rounded-full px-8 h-11 text-sm font-bold shadow-md transition-all ${canProceed && !isCompleting
                             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                             : 'opacity-50 cursor-not-allowed'
                             }`}
                     >
-                        <span>{isLastStep ? 'Complete' : 'Next Step'}</span>
-                        {isLastStep ? <CheckCircle2 size={16} className="ml-2" /> : <ArrowRight size={16} className="ml-2" />}
+                        {isCompleting ? (
+                            <>
+                                <LoadingSpinner size={16} className="mr-2" />
+                                <span>Completing...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>{isLastStep ? 'Complete' : 'Next Step'}</span>
+                                {isLastStep ? <CheckCircle2 size={16} className="ml-2" /> : <ArrowRight size={16} className="ml-2" />}
+                            </>
+                        )}
                     </Button>
                 </div>
             </div>
