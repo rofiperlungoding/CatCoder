@@ -23,22 +23,13 @@ There had to be a better way.
 CatCoder is an interactive, web-based platform designed to make programming education **accessible**, **engaging**, and **effective**.
 
 ### 📚 **Learn**
-Structured, bite-sized lessons guiding users from zero to confident coder.
-- Clear explanations with real-world context
-- Interactive code editors with instant feedback
-- Progress tracking and achievement systems
+Structured, bite-sized lessons with an **Integrated AI Assistant** that provides real-time hints and explanations directly in the editor.
 
 ### 🧩 **Practice**
-Hands-on coding challenges organized by difficulty.
-- Solve problems across multiple languages (Python, JavaScript, C++)
-- Immediate validation with Pyodide in-browser execution
-- Build muscle memory through repetition
+Hands-on coding challenges with immediate validation using **Pyodide WebAssembly**, and a **Gemini-style AI Insights Panel** that suggests the perfect next challenge based on your performance.
 
 ### ⚡ **Compete**
-Gamified Speed Run leaderboards.
-- Race against peers to solve challenges fastest
-- Track personal bests and climb global rankings
-- Stay motivated through friendly competition
+Race against peers, track personal bests, and climb the global ranks in an experience designed for speed and elite performance.
 
 ### 🗺️ **Career Roadmaps**
 Visual learning paths for real careers.

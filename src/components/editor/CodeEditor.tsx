@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import type { EditorProps, OnMount, BeforeMount } from '@monaco-editor/react';
-import { Loader2 } from 'lucide-react';
+// import { Loader2 } from 'lucide-react'; // Removed unused import
+import { LoadingSpinner } from '../ui';
 import { useThemeStore } from '../../stores';
 
 // Lazy load Monaco Editor (~400KB savings)
@@ -68,7 +69,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         });
     };
 
-    const handleEditorDidMount: OnMount = (_editor, _monaco) => {
+    const handleEditorDidMount: OnMount = (_editor) => {
         // Force layout update after mount
         setTimeout(() => {
             _editor.layout();
@@ -77,7 +78,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
     const editorFallback = (
         <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-slate-50 dark:bg-zinc-950 gap-3">
-            <Loader2 className="animate-spin text-lime-500" size={24} />
+            <LoadingSpinner className="text-lime-500" size={24} />
             <span className="text-xs font-semibold tracking-wide uppercase dark:text-zinc-500">Loading Editor...</span>
         </div>
     );

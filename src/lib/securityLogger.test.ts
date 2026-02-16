@@ -6,11 +6,10 @@
  * 
  * Validates: Requirements 9.2
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fc from 'fast-check';
 import {
     SecurityEventType,
-    SecurityEvent,
     SecurityEventInput,
     isValidEventType,
     createSecurityEvent,
@@ -84,15 +83,15 @@ describe('Security Logger - Property-Based Tests', () => {
                     securityEventInputArb,
                     (input) => {
                         const event = createSecurityEvent(input);
-                        
+
                         // Timestamp should be valid ISO 8601
                         const timestamp = new Date(event.timestamp);
                         const isValidTimestamp = !isNaN(timestamp.getTime());
-                        
+
                         // Timestamp should be in ISO format
                         const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
                         const isISOFormat = isoRegex.test(event.timestamp);
-                        
+
                         return isValidTimestamp && isISOFormat;
                     }
                 ),
@@ -119,19 +118,19 @@ describe('Security Logger - Property-Based Tests', () => {
                     securityEventInputArb,
                     (input) => {
                         const event = createSecurityEvent(input);
-                        
+
                         // All input metadata keys should be present in output
                         const inputKeys = Object.keys(input.metadata);
                         const outputKeys = Object.keys(event.metadata);
-                        
+
                         // Check all input keys are in output
                         const allKeysPresent = inputKeys.every(key => outputKeys.includes(key));
-                        
+
                         // Check all values match
                         const allValuesMatch = inputKeys.every(
                             key => event.metadata[key] === input.metadata[key]
                         );
-                        
+
                         return allKeysPresent && allValuesMatch;
                     }
                 ),
@@ -154,7 +153,7 @@ describe('Security Logger - Property-Based Tests', () => {
 
         it('should pass correct structure to RPC when logging events', async () => {
             const mockRpc = vi.mocked(supabase.rpc);
-            
+
             await fc.assert(
                 fc.asyncProperty(
                     securityEventInputArb,
@@ -163,34 +162,34 @@ describe('Security Logger - Property-Based Tests', () => {
                         mockRpc.mockResolvedValueOnce({
                             data: { success: true, log_id: 'test-id' },
                             error: null
-                        } as any);
-                        
+                        } as { data: unknown; error: unknown });
+
                         await logSecurityEvent(input);
-                        
+
                         // Verify RPC was called
                         expect(mockRpc).toHaveBeenCalled();
-                        
+
                         // Get the call arguments
                         const lastCall = mockRpc.mock.calls[mockRpc.mock.calls.length - 1];
                         const [funcName, params] = lastCall;
-                        
+
                         // Verify function name
                         expect(funcName).toBe('log_security_event');
-                        
+
                         // Verify event type matches
-                        expect(params.p_event_type).toBe(input.type);
-                        
+                        expect((params as { p_event_type: string }).p_event_type).toBe(input.type);
+
                         // Verify metadata contains all input metadata
                         const inputKeys = Object.keys(input.metadata);
-                        const passedMetadata = params.p_metadata;
-                        
+                        const passedMetadata = (params as { p_metadata: Record<string, unknown> }).p_metadata;
+
                         const allInputMetadataPresent = inputKeys.every(
                             key => passedMetadata[key] === input.metadata[key]
                         );
-                        
+
                         // Verify client_timestamp is added
                         const hasClientTimestamp = 'client_timestamp' in passedMetadata;
-                        
+
                         return allInputMetadataPresent && hasClientTimestamp;
                     }
                 ),
@@ -237,9 +236,9 @@ describe('Security Logger - Unit Tests', () => {
                 type: 'blocked_request',
                 metadata: { url: 'https://evil.com', reason: 'not in allowlist' }
             };
-            
+
             const event = createSecurityEvent(input);
-            
+
             expect(event.type).toBe('blocked_request');
             expect(event.metadata).toEqual(input.metadata);
             expect(event.timestamp).toBeDefined();
@@ -252,9 +251,9 @@ describe('Security Logger - Unit Tests', () => {
                 userId: 'user-123',
                 metadata: { element: 'script' }
             };
-            
+
             const event = createSecurityEvent(input);
-            
+
             expect(event.userId).toBe('user-123');
         });
     });
@@ -262,12 +261,12 @@ describe('Security Logger - Unit Tests', () => {
     describe('logSecurityEvent', () => {
         it('should return error when Supabase is not configured', async () => {
             vi.mocked(isSupabaseConfigured).mockReturnValueOnce(false);
-            
+
             const result = await logSecurityEvent({
                 type: 'blocked_request',
                 metadata: {}
             });
-            
+
             expect(result.success).toBe(false);
             expect(result.error).toBe('Supabase not configured');
         });
@@ -277,7 +276,7 @@ describe('Security Logger - Unit Tests', () => {
                 type: 'invalid_type' as SecurityEventType,
                 metadata: {}
             });
-            
+
             expect(result.success).toBe(false);
             expect(result.error).toBe('Invalid event type');
         });
@@ -286,13 +285,13 @@ describe('Security Logger - Unit Tests', () => {
             vi.mocked(supabase.rpc).mockResolvedValueOnce({
                 data: { success: true, log_id: 'abc-123' },
                 error: null
-            } as any);
-            
+            } as { data: unknown; error: unknown });
+
             const result = await logSecurityEvent({
                 type: 'blocked_request',
                 metadata: { url: 'https://test.com' }
             });
-            
+
             expect(result.success).toBe(true);
             expect(result.logId).toBe('abc-123');
         });
@@ -301,25 +300,25 @@ describe('Security Logger - Unit Tests', () => {
             vi.mocked(supabase.rpc).mockResolvedValueOnce({
                 data: null,
                 error: { message: 'Database error' }
-            } as any);
-            
+            } as { data: unknown; error: unknown });
+
             const result = await logSecurityEvent({
                 type: 'blocked_request',
                 metadata: {}
             });
-            
+
             expect(result.success).toBe(false);
             expect(result.error).toBe('Database error');
         });
 
         it('should handle unexpected exceptions gracefully', async () => {
             vi.mocked(supabase.rpc).mockRejectedValueOnce(new Error('Network error'));
-            
+
             const result = await logSecurityEvent({
                 type: 'blocked_request',
                 metadata: {}
             });
-            
+
             expect(result.success).toBe(false);
             expect(result.error).toBe('Network error');
         });
@@ -330,12 +329,12 @@ describe('Security Logger - Unit Tests', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({
                 data: { success: true, log_id: 'test-id' },
                 error: null
-            } as any);
+            } as { data: unknown; error: unknown });
         });
 
         it('logBlockedRequest should include url and reason in metadata', async () => {
             await logBlockedRequest('https://evil.com', 'not in allowlist');
-            
+
             expect(supabase.rpc).toHaveBeenCalledWith('log_security_event', expect.objectContaining({
                 p_event_type: 'blocked_request',
                 p_metadata: expect.objectContaining({
@@ -347,7 +346,7 @@ describe('Security Logger - Unit Tests', () => {
 
         it('logDOMViolation should include element type and action', async () => {
             await logDOMViolation('script', 'removed');
-            
+
             expect(supabase.rpc).toHaveBeenCalledWith('log_security_event', expect.objectContaining({
                 p_event_type: 'dom_violation',
                 p_metadata: expect.objectContaining({
@@ -359,7 +358,7 @@ describe('Security Logger - Unit Tests', () => {
 
         it('logFingerprintMismatch should include expected and actual hashes', async () => {
             await logFingerprintMismatch('hash1', 'hash2');
-            
+
             expect(supabase.rpc).toHaveBeenCalledWith('log_security_event', expect.objectContaining({
                 p_event_type: 'fingerprint_mismatch',
                 p_metadata: expect.objectContaining({
@@ -371,7 +370,7 @@ describe('Security Logger - Unit Tests', () => {
 
         it('logHoneypotAccess should include route', async () => {
             await logHoneypotAccess('/admin');
-            
+
             expect(supabase.rpc).toHaveBeenCalledWith('log_security_event', expect.objectContaining({
                 p_event_type: 'honeypot_access',
                 p_metadata: expect.objectContaining({
@@ -382,7 +381,7 @@ describe('Security Logger - Unit Tests', () => {
 
         it('logTimeManipulation should include offset', async () => {
             await logTimeManipulation(300000);
-            
+
             expect(supabase.rpc).toHaveBeenCalledWith('log_security_event', expect.objectContaining({
                 p_event_type: 'time_manipulation',
                 p_metadata: expect.objectContaining({

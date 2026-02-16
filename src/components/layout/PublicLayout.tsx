@@ -3,6 +3,13 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Cat, Menu, X, ArrowUpRight, ChevronDown } from 'lucide-react';
 
 
+const links = [
+    { path: '/', label: 'Home' },
+    { path: '/features', label: 'Features' },
+    { path: '/pricing', label: 'Pricing' },
+    { path: '/about', label: 'About' }
+];
+
 export const PublicLayout: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
@@ -12,13 +19,6 @@ export const PublicLayout: React.FC = () => {
     const [pillStyle, setPillStyle] = useState({ left: 0, width: 0, opacity: 0 });
     const navRef = useRef<HTMLDivElement>(null);
     const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-
-    const links = [
-        { path: '/', label: 'Home' },
-        { path: '/features', label: 'Features' },
-        { path: '/pricing', label: 'Pricing' },
-        { path: '/about', label: 'About' }
-    ];
 
     useEffect(() => {
         const activeIndex = links.findIndex(link => link.path === location.pathname);

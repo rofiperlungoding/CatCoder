@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Sparkles,
@@ -15,108 +15,83 @@ import {
     ChevronDown,
     RotateCw
 } from 'lucide-react';
-import { Badge, Button, Input } from '../../components/ui';
+import { Badge, Button, Input, LoadingSpinner } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
 import { useProgressStore, useUIStore, useUserStore } from '../../stores';
 import { useCodeRunner } from '../../hooks';
-import type { Problem } from '../../types';
+import type { Problem, User } from '../../types';
 import { problems as problemsData } from '../../data/problems';
 
-export const PracticePage: React.FC = () => {
-    const { problemId } = useParams();
-    const navigate = useNavigate();
-    const { isCompleted, validateAndComplete } = useProgressStore();
-    const { user } = useUserStore();
-    const { addToast } = useUIStore();
+interface ChallengeSolverProps {
+    problem: Problem;
+    selectedLanguage: string;
+    onBack: () => void;
+    user: User | null;
+    addToast: (type: 'success' | 'warning' | 'error' | 'info', message: string) => void;
+    isCompleted: (type: string, id: string) => boolean;
+    validateAndComplete: (
+        contentType: 'problem' | 'lesson' | 'challenge',
+        contentId: string,
+        language: string,
+        durationSeconds?: number
+    ) => Promise<{ success: boolean; xp_awarded?: number; message?: string; error?: string }>;
+}
 
-    // List State
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedLanguage, setSelectedLanguage] = useState<string>('python');
-    const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
+    problem,
+    selectedLanguage,
+    onBack,
+    user,
+    addToast,
+    isCompleted,
+    validateAndComplete
+}) => {
+    const [code, setCode] = useState<string>(() => {
+        return problem.starterCode?.[selectedLanguage as keyof typeof problem.starterCode] ||
+            (selectedLanguage === 'python' ? '# Write your code here\n' :
+                selectedLanguage === 'javascript' ? '// Write your code here\n' :
+                    '// Write your code here\n');
+    });
 
-    // Detail State
-    const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
-    const [code, setCode] = useState<string>('');
-    const [startTime, setStartTime] = useState<number | null>(null); // Track when user started
+    const [startTime] = useState<number>(() => Date.now());
+    const [isLangOpen, setIsLangOpen] = useState(false);
+
     const {
         terminalLogs,
         isRunning,
         isValidated,
         validationError,
-        runCode,
-        clearLogs
+        runCode
     } = useCodeRunner();
 
-    // Load problem when problemId changes
-    useEffect(() => {
-        if (problemId) {
-            const problem = problemsData.find(p => p.id === problemId);
-            if (problem) {
-                setActiveProblem(problem);
-                setCode(getDefaultCode(selectedLanguage));
-                clearLogs();
-                setStartTime(Date.now()); // Start the timer!
-            }
-        } else {
-            setActiveProblem(null);
-            setStartTime(null);
-        }
-    }, [problemId, selectedLanguage]);
-
-    const getDefaultCode = (lang: string): string => {
-        // Use per-language starter code from problem data
-        if (activeProblem?.starterCode?.[lang as keyof typeof activeProblem.starterCode]) {
-            return activeProblem.starterCode[lang as keyof typeof activeProblem.starterCode] || '';
-        }
-        // Fallback
-        const defaults: Record<string, string> = {
-            python: '# Write your code here\n',
-            javascript: '// Write your code here\n',
-            cpp: '// Write your code here\n'
-        };
-        return defaults[lang] || '';
-    };
-
-    const handleSolveProblem = (e: React.MouseEvent, problem: Problem) => {
-        e.stopPropagation();
-        navigate(`/practice/${problem.id}`);
-    };
-
     const handleRunAndCheck = async () => {
-        if (!activeProblem) return;
-
         // Get per-language test case
         const langKey = selectedLanguage as 'python' | 'javascript' | 'cpp';
-        const langTestCases = activeProblem.testCases[langKey];
+        const langTestCases = problem.testCases[langKey];
         const expectedOutput = langTestCases?.[0]?.expectedOutput;
 
-        // Run the code with expected output for validation (client-side for quick feedback)
+        // Run the code with expected output for validation
         const passed = await runCode(code, selectedLanguage, expectedOutput);
 
-        // If passed client-side validation, now validate server-side for security
         if (passed) {
-            const solveTimeSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+            const solveTimeSeconds = Math.floor((Date.now() - startTime) / 1000);
             const minutes = Math.floor(solveTimeSeconds / 60);
             const seconds = solveTimeSeconds % 60;
             const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 
-            // Check if user is authenticated (not guest)
             if (!user || user.id.startsWith('guest-')) {
                 addToast('success', `✓ Solved in ${timeStr}! (Guest mode - progress not saved)`);
                 return;
             }
 
-            // Already completed? Just show message
-            if (isCompleted('problem', activeProblem.id)) {
+            if (isCompleted('problem', problem.id)) {
                 addToast('success', `✓ Solved again in ${timeStr}!`);
                 return;
             }
 
-            // SERVER-SIDE VALIDATION: Call Supabase RPC for secure XP award
-            // This prevents XP manipulation by hackers
             const result = await validateAndComplete(
                 'problem',
-                activeProblem.id,
+                problem.id,
                 selectedLanguage,
                 solveTimeSeconds
             );
@@ -130,18 +105,11 @@ export const PracticePage: React.FC = () => {
                     addToast('success', `✓ Solved in ${timeStr}!`);
                 }
             } else {
-                // Server validation failed (shouldn't happen if client passed, but handle it)
                 console.error('Server validation failed:', result.error);
                 addToast('warning', 'Solved locally, but server verification pending.');
             }
         }
     };
-
-    const filteredProblems = problemsData.filter(problem => {
-        const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            problem.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-        return matchesSearch;
-    });
 
     const getDifficultyColor = (difficulty: string) => {
         switch (difficulty) {
@@ -152,31 +120,6 @@ export const PracticePage: React.FC = () => {
         }
     };
 
-    const getTierName = (tier: number) => {
-        switch (tier) {
-            case 1: return 'Beginner';
-            case 2: return 'Basic';
-            case 3: return 'Intermediate';
-            case 4: return 'Advanced';
-            case 5: return 'Expert';
-            default: return 'Unknown';
-        }
-    };
-
-    const groupedProblems = filteredProblems.reduce((acc, problem) => {
-        const tier = problem.tier;
-        if (!acc[tier]) acc[tier] = [];
-        acc[tier].push(problem);
-        return acc;
-    }, {} as Record<number, Problem[]>);
-
-    const languageTabs = [
-        { id: 'python', label: 'Python', icon: <Code size={16} /> },
-        { id: 'javascript', label: 'JavaScript', icon: <Code size={16} /> },
-        { id: 'cpp', label: 'C++', icon: <Code size={16} /> }
-    ];
-
-    // Helper to render content with markdown (bold and code blocks)
     const renderMarkdown = (content: string) => (
         <div className="whitespace-pre-line">
             {content.split('```').map((part, i) => {
@@ -220,197 +163,231 @@ export const PracticePage: React.FC = () => {
         </div>
     );
 
-    if (activeProblem) {
-        return (
-            <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] pb-24">
-                <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 mb-6">
-                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                        <Button variant="ghost" size="sm" className="rounded-full gap-2 text-muted-foreground hover:text-primary transition-colors hover:bg-transparent" onClick={() => navigate('/practice')}>
-                            <ChevronLeft size={18} /> <span className="font-medium">All Problems</span>
-                        </Button>
-                        <h1 className="font-bold text-lg truncate px-4">{activeProblem.title}</h1>
-                        <div className="flex items-center gap-4">
-                            <div className="w-40">
-                                {/* Custom Language Dropdown */}
-                                <div className="relative min-w-[150px]">
-                                    <button
-                                        onClick={() => setIsLanguageOpen(!isLanguageOpen)}
-                                        className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-full text-sm px-4 py-2 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-foreground"
-                                    >
-                                        <span className="font-medium truncate flex items-center gap-2">
-                                            {languageTabs.find(t => t.id === selectedLanguage)?.label}
-                                        </span>
-                                        <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    {isLanguageOpen && (
-                                        <div className="absolute top-full right-0 mt-2 w-full min-w-[180px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-xl shadow-xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200 z-50">
-                                            {languageTabs.map((tab) => (
-                                                <button
-                                                    key={tab.id}
-                                                    onClick={() => {
-                                                        setSelectedLanguage(tab.id);
-                                                        setIsLanguageOpen(false);
-                                                    }}
-                                                    className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between
-                                                        ${selectedLanguage === tab.id
-                                                            ? 'bg-primary/5 text-primary font-bold'
-                                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
-                                                        }
-                                                    `}
-                                                >
-                                                    <span>{tab.label}</span>
-                                                    {selectedLanguage === tab.id && (
-                                                        <CheckCircle2 size={14} className="text-primary" />
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Backdrop */}
-                                    {isLanguageOpen && (
-                                        <div
-                                            className="fixed inset-0 z-40 bg-transparent"
-                                            onClick={() => setIsLanguageOpen(false)}
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-8rem)]">
-                    <div className="overflow-y-auto space-y-8 pr-2">
-                        <div className="bg-white dark:bg-[#1e1e1e] rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-white/5">
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex gap-2">
-                                    <Badge className={`${getDifficultyColor(activeProblem.difficulty)} rounded-full capitalize`}>
-                                        {activeProblem.difficulty}
-                                    </Badge>
-                                    <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 rounded-full">
-                                        Tier {activeProblem.tier}
-                                    </Badge>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-amber-500 font-bold bg-amber-500/10 px-3 py-1 rounded-full text-xs">
-                                    <Trophy size={14} />
-                                    +{activeProblem.xpReward} XP
-                                </div>
-                            </div>
-
-                            <h2 className="text-3xl font-black mb-4">{activeProblem.title}</h2>
-                            <div className="text-lg text-muted-foreground leading-relaxed">
-                                {renderMarkdown(activeProblem.description)}
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h3 className="font-bold text-lg flex items-center gap-2">
-                                <Sparkles size={18} className="text-primary" /> Examples
-                            </h3>
-                            {activeProblem.examples.map((ex, i) => (
-                                <div key={i} className="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl border border-gray-100 dark:border-white/5 font-mono text-sm">
-                                    <div className="mb-3">
-                                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Input</span>
-                                        <div className="bg-gray-50 dark:bg-black/20 p-2 rounded-lg text-foreground px-3">
-                                            {ex.input}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Output</span>
-                                        <div className="bg-gray-50 dark:bg-black/20 p-2 rounded-lg text-emerald-600 dark:text-emerald-400 font-bold px-3">
-                                            {ex.output}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {activeProblem.hints.length > 0 && (
-                            <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/10 p-6 rounded-3xl">
-                                <div className="flex items-center gap-3 mb-4 text-amber-600 dark:text-amber-500 font-bold">
-                                    <Lightbulb size={20} />
-                                    <span>Hints</span>
-                                </div>
-                                <ul className="list-disc list-inside space-y-2 text-amber-900/70 dark:text-amber-200/70 text-sm">
-                                    {activeProblem.hints.map((hint, i) => (
-                                        <li key={i}>{hint}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex flex-col gap-4 h-full min-h-[500px]">
-                        <div className="flex flex-col flex-1 rounded-2xl overflow-hidden border border-border shadow-2xl bg-[#1e1e1e]">
-                            <div className="bg-[#1e1e1e] px-4 py-3 flex items-center justify-between border-b border-white/5">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                    <Code size={14} /> Code Editor
-                                </span>
-                            </div>
-                            <div className="flex-1 min-h-0">
-                                <CodeEditor
-                                    value={code}
-                                    onChange={(v) => setCode(v || '')}
-                                    language={selectedLanguage}
-                                />
-                            </div>
-                            <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end gap-3">
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={handleRunAndCheck}
-                                    disabled={isRunning}
-                                    className="rounded-full font-semibold"
+    return (
+        <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] pb-24">
+            <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 mb-6">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <Button variant="ghost" size="sm" className="rounded-full gap-2 text-muted-foreground hover:text-primary transition-colors hover:bg-transparent" onClick={onBack}>
+                        <ChevronLeft size={18} /> <span className="font-medium">All Problems</span>
+                    </Button>
+                    <h1 className="font-bold text-lg truncate px-4">{problem.title}</h1>
+                    <div className="flex items-center gap-4">
+                        <div className="w-40">
+                            {/* Selector simplified for this component as it's passed from parent */}
+                            <div className="relative min-w-[150px]">
+                                <button
+                                    onClick={() => setIsLangOpen(!isLangOpen)}
+                                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-full text-sm px-4 py-2 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-foreground"
                                 >
-                                    {isRunning ? <Sparkles size={16} className="mr-2 animate-spin" /> : <Play size={16} className="mr-2" />}
-                                    Run Code
-                                </Button>
+                                    <span className="font-medium truncate flex items-center gap-2">
+                                        {selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}
+                                    </span>
+                                    <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                {/* Language selection is effectively handled by remounting via key in parent */}
                             </div>
-                        </div>
-
-                        <div className={`h-1/3 rounded-2xl overflow-hidden border flex flex-col transition-all duration-300 ${terminalLogs.length > 0 ? 'bg-[#1e1e1e] border-gray-800' : 'bg-white dark:bg-card border-dashed border-gray-200 dark:border-border'
-                            }`}>
-                            {terminalLogs.length > 0 ? (
-                                <>
-                                    <div className="px-4 py-3 bg-[#1e1e1e] border-b border-white/5 flex items-center justify-between">
-                                        <span className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
-                                            <Terminal size={14} /> Output
-                                        </span>
-                                        {isValidated && (
-                                            <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">
-                                                <CheckCircle2 size={14} /> Passed
-                                            </span>
-                                        )}
-                                        {validationError && (
-                                            <span className="text-rose-400 text-xs font-bold flex items-center gap-1">
-                                                <Zap size={14} /> Failed
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 p-4 font-mono text-sm overflow-y-auto space-y-1">
-                                        {terminalLogs.map((log, i) => (
-                                            <div key={i} className="animate-in fade-in slide-in-from-left-1 duration-200">
-                                                {log.type === 'command' && <span className="text-cyan-400 font-bold">$ {log.message}</span>}
-                                                {log.type === 'system' && <span className="text-gray-500 italic block py-1">{log.message}</span>}
-                                                {log.type === 'stdout' && <span className="text-gray-200 block ml-4 border-l-2 border-white/10 pl-2">{log.message}</span>}
-                                                {log.type === 'stderr' && <span className="text-red-400 bg-red-950/20 p-1 rounded">{log.message}</span>}
-                                                {log.type === 'success' && <span className="text-emerald-500 font-bold block mt-2">➜ {log.message}</span>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                    <Terminal size={24} className="mb-2 opacity-20" />
-                                    <p className="text-xs">Run your code to see output</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-8rem)]">
+                <div className="overflow-y-auto space-y-8 pr-2">
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-white/5">
+                        <div className="flex items-start justify-between mb-6">
+                            <div className="flex gap-2">
+                                <Badge className={`${getDifficultyColor(problem.difficulty)} rounded-full capitalize`}>
+                                    {problem.difficulty}
+                                </Badge>
+                                <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 rounded-full">
+                                    Tier {problem.tier}
+                                </Badge>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-amber-500 font-bold bg-amber-500/10 px-3 py-1 rounded-full text-xs">
+                                <Trophy size={14} />
+                                +{problem.xpReward} XP
+                            </div>
+                        </div>
+
+                        <h2 className="text-3xl font-black mb-4">{problem.title}</h2>
+                        <div className="text-lg text-muted-foreground leading-relaxed">
+                            {renderMarkdown(problem.description)}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="font-bold text-lg flex items-center gap-2">
+                            <Sparkles size={18} className="text-primary" /> Examples
+                        </h3>
+                        {problem.examples.map((ex, i) => (
+                            <div key={i} className="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl border border-gray-100 dark:border-white/5 font-mono text-sm">
+                                <div className="mb-3">
+                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Input</span>
+                                    <div className="bg-gray-50 dark:bg-black/20 p-2 rounded-lg text-foreground px-3">
+                                        {ex.input}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Output</span>
+                                    <div className="bg-gray-50 dark:bg-black/20 p-2 rounded-lg text-emerald-600 dark:text-emerald-400 font-bold px-3">
+                                        {ex.output}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {problem.hints.length > 0 && (
+                        <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/10 p-6 rounded-3xl">
+                            <div className="flex items-center gap-3 mb-4 text-amber-600 dark:text-amber-500 font-bold">
+                                <Lightbulb size={20} />
+                                <span>Hints</span>
+                            </div>
+                            <ul className="list-disc list-inside space-y-2 text-amber-900/70 dark:text-amber-200/70 text-sm">
+                                {problem.hints.map((hint, i) => (
+                                    <li key={i}>{hint}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex flex-col gap-4 h-full min-h-[500px]">
+                    <div className="flex flex-col flex-1 rounded-2xl overflow-hidden border border-border shadow-2xl bg-[#1e1e1e]">
+                        <div className="bg-[#1e1e1e] px-4 py-3 flex items-center justify-between border-b border-white/5">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                <Code size={14} /> Code Editor
+                            </span>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                            <CodeEditor
+                                value={code}
+                                onChange={(v) => setCode(v || '')}
+                                language={selectedLanguage}
+                            />
+                        </div>
+                        <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end gap-3">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={handleRunAndCheck}
+                                disabled={isRunning}
+                                className="rounded-full font-semibold"
+                            >
+                                {isRunning ? <LoadingSpinner size={16} className="mr-2" /> : <Play size={16} className="mr-2" />}
+                                Run Code
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className={`h-1/3 rounded-2xl overflow-hidden border flex flex-col transition-all duration-300 ${terminalLogs.length > 0 ? 'bg-[#1e1e1e] border-gray-800' : 'bg-white dark:bg-card border-dashed border-gray-200 dark:border-border'
+                        }`}>
+                        {terminalLogs.length > 0 ? (
+                            <>
+                                <div className="px-4 py-3 bg-[#1e1e1e] border-b border-white/5 flex items-center justify-between">
+                                    <span className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
+                                        <Terminal size={14} /> Output
+                                    </span>
+                                    {isValidated && (
+                                        <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">
+                                            <CheckCircle2 size={14} /> Passed
+                                        </span>
+                                    )}
+                                    {validationError && (
+                                        <span className="text-rose-400 text-xs font-bold flex items-center gap-1">
+                                            <Zap size={14} /> Failed
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex-1 p-4 font-mono text-sm overflow-y-auto space-y-1">
+                                    {terminalLogs.map((log, i) => (
+                                        <div key={i} className="animate-in fade-in slide-in-from-left-1 duration-200">
+                                            {log.type === 'command' && <span className="text-cyan-400 font-bold">$ {log.message}</span>}
+                                            {log.type === 'system' && <span className="text-gray-500 italic block py-1">{log.message}</span>}
+                                            {log.type === 'stdout' && <span className="text-gray-200 block ml-4 border-l-2 border-white/10 pl-2">{log.message}</span>}
+                                            {log.type === 'stderr' && <span className="text-red-400 bg-red-950/20 p-1 rounded">{log.message}</span>}
+                                            {log.type === 'success' && <span className="text-emerald-500 font-bold block mt-2">➜ {log.message}</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                <Terminal size={24} className="mb-2 opacity-20" />
+                                <p className="text-xs">Run your code to see output</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const PracticePage: React.FC = () => {
+    const { problemId } = useParams();
+    const navigate = useNavigate();
+    const { isCompleted, validateAndComplete } = useProgressStore();
+    const { user } = useUserStore();
+    const { addToast } = useUIStore();
+
+    // List State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('python');
+    const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+
+    // Derive active problem
+    const activeProblem = useMemo(() => {
+        return problemsData.find(p => p.id === problemId) || null;
+    }, [problemId]);
+
+    const handleSolveProblem = (e: React.MouseEvent, problem: Problem) => {
+        e.stopPropagation();
+        navigate(`/practice/${problem.id}`);
+    };
+
+    const filteredProblems = problemsData.filter(problem => {
+        const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            problem.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchesSearch;
+    });
+
+    const getTierName = (tier: number) => {
+        switch (tier) {
+            case 1: return 'Beginner';
+            case 2: return 'Basic';
+            case 3: return 'Intermediate';
+            case 4: return 'Advanced';
+            case 5: return 'Expert';
+            default: return 'Unknown';
+        }
+    };
+
+    const groupedProblems = filteredProblems.reduce((acc, problem) => {
+        const tier = problem.tier;
+        if (!acc[tier]) acc[tier] = [];
+        acc[tier].push(problem);
+        return acc;
+    }, {} as Record<number, Problem[]>);
+
+    const languageTabs = [
+        { id: 'python', label: 'Python', icon: <Code size={16} /> },
+        { id: 'javascript', label: 'JavaScript', icon: <Code size={16} /> },
+        { id: 'cpp', label: 'C++', icon: <Code size={16} /> }
+    ];
+
+    if (activeProblem) {
+        return (
+            <ChallengeSolver
+                key={`${activeProblem.id}-${selectedLanguage}`}
+                problem={activeProblem}
+                selectedLanguage={selectedLanguage}
+                onBack={() => navigate('/practice')}
+                user={user}
+                addToast={addToast}
+                isCompleted={isCompleted}
+                validateAndComplete={validateAndComplete}
+            />
         );
     }
 
@@ -427,6 +404,55 @@ export const PracticePage: React.FC = () => {
                             Master your skills with <span className="text-foreground font-semibold">interactive challenges</span>.
                             From basic algorithms to complex system design.
                         </p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="w-40">
+                            {/* Custom Language Dropdown for List mode */}
+                            <div className="relative min-w-[150px]">
+                                <button
+                                    onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-full text-sm px-4 py-2 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-foreground"
+                                >
+                                    <span className="font-medium truncate flex items-center gap-2">
+                                        {languageTabs.find(t => t.id === selectedLanguage)?.label}
+                                    </span>
+                                    <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isLanguageOpen && (
+                                    <div className="absolute top-full right-0 mt-2 w-full min-w-[180px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-xl shadow-xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200 z-50">
+                                        {languageTabs.map((tab) => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => {
+                                                    setSelectedLanguage(tab.id);
+                                                    setIsLanguageOpen(false);
+                                                }}
+                                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between
+                                                    ${selectedLanguage === tab.id
+                                                        ? 'bg-primary/5 text-primary font-bold'
+                                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
+                                                    }
+                                                `}
+                                            >
+                                                <span>{tab.label}</span>
+                                                {selectedLanguage === tab.id && (
+                                                    <CheckCircle2 size={14} className="text-primary" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {isLanguageOpen && (
+                                    <div
+                                        className="fixed inset-0 z-40 bg-transparent"
+                                        onClick={() => setIsLanguageOpen(false)}
+                                    />
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -486,23 +512,14 @@ export const PracticePage: React.FC = () => {
                                             ${completed ? 'border-emerald-500/50 dark:border-emerald-500/30' : 'hover:border-primary/50'}
                                             `}
                                         >
-                                            {/* Main Subtle Gradient Background */}
                                             <div className={`absolute inset-0 bg-gradient-to-br ${problem.difficulty === 'easy' ? 'from-emerald-500/10 dark:from-emerald-500/20' :
                                                 problem.difficulty === 'medium' ? 'from-amber-500/10 dark:from-amber-500/20' :
                                                     'from-rose-500/10 dark:from-rose-500/20'
                                                 } via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                                            {/* Top Right Glow Blob (Retained for accent) */}
-                                            <div className={`absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br ${problem.difficulty === 'easy' ? 'from-emerald-500/30' :
-                                                problem.difficulty === 'medium' ? 'from-amber-500/30' :
-                                                    'from-rose-500/30'
-                                                } to-transparent blur-3xl rounded-full transition-all duration-500 opacity-0 group-hover:opacity-100`} />
-
-                                            {/* Content Container */}
                                             <div className="relative z-10 flex flex-col h-full p-6">
-                                                {/* Header */}
                                                 <div className="flex justify-between items-start mb-4">
-                                                    <Badge className={`${getDifficultyColor(problem.difficulty)} border bg-opacity-50 backdrop-blur-sm`}>
+                                                    <Badge className="capitalize">
                                                         {problem.difficulty}
                                                     </Badge>
                                                     {completed && (
@@ -512,7 +529,6 @@ export const PracticePage: React.FC = () => {
                                                     )}
                                                 </div>
 
-                                                {/* Title & Tags */}
                                                 <div className="flex-1 mb-6">
                                                     <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100 group-hover:text-primary transition-colors leading-tight">
                                                         {problem.title}
@@ -526,7 +542,6 @@ export const PracticePage: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Footer: Languages & Action */}
                                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
                                                     <div className="flex gap-2">
                                                         {['Py', 'JS', 'C++'].map(lang => (

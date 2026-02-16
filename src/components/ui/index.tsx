@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 export * from './Button';
 export * from './Card';
 export * from './Badge';
@@ -9,5 +10,6 @@ export * from './Tabs';
 export * from './Skeleton';
 export * from './Modal';
 export * from './Toaster';
+export * from './LoadingSpinner';
 export * from './LevelUpModal';
 export * from './ThemeToggle';

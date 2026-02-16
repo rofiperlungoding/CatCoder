@@ -5,11 +5,10 @@ import {
     Timer,
     ArrowUpRight,
     Search,
-    Loader2
 } from 'lucide-react';
-import { Button } from '../../components/ui';
+import { Button, LoadingSpinner } from '../../components/ui';
 import { fetchSpeedRuns, formatDuration, formatTimeAgo, type SpeedRunEntry } from '../../lib/speedruns';
-export * from './SpeedRunDetail';
+export { SpeedRunDetail } from './SpeedRunDetail';
 
 export const CompetePage: React.FC = () => {
     const navigate = useNavigate();
@@ -66,7 +65,7 @@ export const CompetePage: React.FC = () => {
             {/* Loading State */}
             {isLoading && (
                 <div className="flex items-center justify-center py-20">
-                    <Loader2 size={32} className="animate-spin text-muted-foreground" />
+                    <LoadingSpinner size={32} className="text-muted-foreground" />
                 </div>
             )}
 

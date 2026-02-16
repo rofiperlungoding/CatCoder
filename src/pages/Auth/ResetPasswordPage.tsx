@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cat, Lock, CheckCircle, Eye, EyeOff } from 'lucide-react';
-import { Button, Input } from '../../components/ui';
+import { Button, Input, LoadingSpinner } from '../../components/ui';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useUIStore } from '../../stores';
 
@@ -39,7 +39,7 @@ export const ResetPasswordPage: React.FC = () => {
         checkSession();
 
         // Listen for auth state changes (Supabase handles recovery token automatically)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, _session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === 'PASSWORD_RECOVERY') {
                 setIsValidSession(true);
             }
@@ -85,7 +85,7 @@ export const ResetPasswordPage: React.FC = () => {
                 // Sign out after password reset to force re-login
                 await supabase.auth.signOut();
             }
-        } catch (err) {
+        } catch {
             addToast('error', 'An unexpected error occurred');
         } finally {
             setIsLoading(false);
@@ -97,7 +97,7 @@ export const ResetPasswordPage: React.FC = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#050505]">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-lime-500/20 border-t-lime-500 rounded-full animate-spin"></div>
+                    <LoadingSpinner size={48} className="text-lime-500" />
                     <p className="text-gray-400">Verifying reset link...</p>
                 </div>
             </div>
@@ -226,7 +226,7 @@ export const ResetPasswordPage: React.FC = () => {
                                 >
                                     {isLoading ? (
                                         <span className="flex items-center gap-2">
-                                            <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                                            <LoadingSpinner size={20} />
                                             Updating...
                                         </span>
                                     ) : (

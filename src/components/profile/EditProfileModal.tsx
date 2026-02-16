@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, User as UserIcon, Loader2 } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { X, User as UserIcon } from 'lucide-react';
+import { Button, LoadingSpinner } from '../ui';
 import { useUserStore } from '../../stores';
 
 interface EditProfileModalProps {
@@ -83,7 +83,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 size={18} className="animate-spin mr-2" />
+                                    <LoadingSpinner size={18} className="mr-2" />
                                     Saving...
                                 </>
                             ) : (

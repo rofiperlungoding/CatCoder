@@ -10,7 +10,7 @@
  * by simulating the duplicate prevention behavior that the SQL function implements.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 
 // Test configuration for property-based tests
@@ -54,7 +54,7 @@ function simulateSubmitCompletion(
 ): { result: SubmitCompletionResult; newRecords: Map<string, CompletionRecord> } {
     const key = `${userId}:${contentType}:${contentId}`;
     const newRecords = new Map(completedRecords);
-    
+
     // Check if already completed (duplicate prevention)
     const existingRecord = completedRecords.get(key);
     if (existingRecord && existingRecord.status === 'completed') {
@@ -67,10 +67,10 @@ function simulateSubmitCompletion(
             newRecords
         };
     }
-    
+
     // Calculate XP reward server-side
     const xpReward = XP_REWARDS[contentType] || 25;
-    
+
     // Insert/update the completion record
     newRecords.set(key, {
         userId,
@@ -79,7 +79,7 @@ function simulateSubmitCompletion(
         status: 'completed',
         xpAwarded: xpReward
     });
-    
+
     return {
         result: {
             success: true,
@@ -112,7 +112,7 @@ describe('Server-Side XP Authority - Property Tests', () => {
                     (userId, contentType, contentId, numCalls) => {
                         let records = new Map<string, CompletionRecord>();
                         const results: SubmitCompletionResult[] = [];
-                        
+
                         // Call submit_completion multiple times
                         for (let i = 0; i < numCalls; i++) {
                             const { result, newRecords } = simulateSubmitCompletion(
@@ -124,21 +124,21 @@ describe('Server-Side XP Authority - Property Tests', () => {
                             results.push(result);
                             records = newRecords;
                         }
-                        
+
                         // First call should award XP
                         const firstResult = results[0];
                         const expectedXP = XP_REWARDS[contentType];
-                        
+
                         // All subsequent calls should return xp_awarded: 0
                         const subsequentResults = results.slice(1);
-                        
+
                         return (
                             // First call awards expected XP
                             firstResult.success === true &&
                             firstResult.xp_awarded === expectedXP &&
                             // All subsequent calls return 0 XP
-                            subsequentResults.every(r => 
-                                r.success === true && 
+                            subsequentResults.every(r =>
+                                r.success === true &&
                                 r.xp_awarded === 0 &&
                                 r.message === 'Already completed'
                             )
@@ -159,7 +159,7 @@ describe('Server-Side XP Authority - Property Tests', () => {
                     fc.string({ minLength: 1, maxLength: 50 }).filter(s => /^[a-zA-Z0-9-]+$/.test(s)),
                     ([userId1, userId2], contentType, contentId) => {
                         let records = new Map<string, CompletionRecord>();
-                        
+
                         // User 1 completes the content
                         const { result: result1, newRecords: records1 } = simulateSubmitCompletion(
                             records,
@@ -168,7 +168,7 @@ describe('Server-Side XP Authority - Property Tests', () => {
                             contentId
                         );
                         records = records1;
-                        
+
                         // User 2 completes the same content
                         const { result: result2, newRecords: records2 } = simulateSubmitCompletion(
                             records,
@@ -177,7 +177,7 @@ describe('Server-Side XP Authority - Property Tests', () => {
                             contentId
                         );
                         records = records2;
-                        
+
                         // User 1 tries to complete again (should get 0 XP)
                         const { result: result1Again } = simulateSubmitCompletion(
                             records,
@@ -185,9 +185,9 @@ describe('Server-Side XP Authority - Property Tests', () => {
                             contentType,
                             contentId
                         );
-                        
+
                         const expectedXP = XP_REWARDS[contentType];
-                        
+
                         return (
                             // Both users should get XP on first completion
                             result1.xp_awarded === expectedXP &&
@@ -215,7 +215,7 @@ describe('Server-Side XP Authority - Property Tests', () => {
                     fc.constantFrom('lesson', 'problem', 'challenge') as fc.Arbitrary<'lesson' | 'problem' | 'challenge'>,
                     (userId, [contentId1, contentId2], contentType) => {
                         let records = new Map<string, CompletionRecord>();
-                        
+
                         // Complete first content
                         const { result: result1, newRecords: records1 } = simulateSubmitCompletion(
                             records,
@@ -224,7 +224,7 @@ describe('Server-Side XP Authority - Property Tests', () => {
                             contentId1
                         );
                         records = records1;
-                        
+
                         // Complete second content
                         const { result: result2, newRecords: records2 } = simulateSubmitCompletion(
                             records,
@@ -233,7 +233,7 @@ describe('Server-Side XP Authority - Property Tests', () => {
                             contentId2
                         );
                         records = records2;
-                        
+
                         // Try to complete first content again
                         const { result: result1Again } = simulateSubmitCompletion(
                             records,
@@ -241,9 +241,9 @@ describe('Server-Side XP Authority - Property Tests', () => {
                             contentType,
                             contentId1
                         );
-                        
+
                         const expectedXP = XP_REWARDS[contentType];
-                        
+
                         return (
                             // Both contents should award XP on first completion
                             result1.xp_awarded === expectedXP &&
@@ -265,17 +265,17 @@ describe('Server-Side XP Authority - Property Tests', () => {
                     fc.string({ minLength: 1, maxLength: 50 }).filter(s => /^[a-zA-Z0-9-]+$/.test(s)),
                     (userId, contentType, contentId) => {
                         const records = new Map<string, CompletionRecord>();
-                        
+
                         const { result } = simulateSubmitCompletion(
                             records,
                             userId,
                             contentType,
                             contentId
                         );
-                        
+
                         // XP should match server-defined values exactly
                         const expectedXP = XP_REWARDS[contentType];
-                        
+
                         return (
                             result.success === true &&
                             result.xp_awarded === expectedXP
@@ -292,7 +292,7 @@ describe('Server-Side XP Authority - Unit Tests', () => {
     it('should return correct XP for lesson completion', () => {
         const records = new Map<string, CompletionRecord>();
         const { result } = simulateSubmitCompletion(records, 'user-1', 'lesson', 'lesson-1');
-        
+
         expect(result.success).toBe(true);
         expect(result.xp_awarded).toBe(50);
     });
@@ -300,7 +300,7 @@ describe('Server-Side XP Authority - Unit Tests', () => {
     it('should return correct XP for problem completion', () => {
         const records = new Map<string, CompletionRecord>();
         const { result } = simulateSubmitCompletion(records, 'user-1', 'problem', 'problem-1');
-        
+
         expect(result.success).toBe(true);
         expect(result.xp_awarded).toBe(100);
     });
@@ -308,21 +308,21 @@ describe('Server-Side XP Authority - Unit Tests', () => {
     it('should return correct XP for challenge completion', () => {
         const records = new Map<string, CompletionRecord>();
         const { result } = simulateSubmitCompletion(records, 'user-1', 'challenge', 'challenge-1');
-        
+
         expect(result.success).toBe(true);
         expect(result.xp_awarded).toBe(200);
     });
 
     it('should return 0 XP and message for duplicate completion', () => {
         let records = new Map<string, CompletionRecord>();
-        
+
         // First completion
         const { newRecords } = simulateSubmitCompletion(records, 'user-1', 'problem', 'problem-1');
         records = newRecords;
-        
+
         // Duplicate completion
         const { result } = simulateSubmitCompletion(records, 'user-1', 'problem', 'problem-1');
-        
+
         expect(result.success).toBe(true);
         expect(result.xp_awarded).toBe(0);
         expect(result.message).toBe('Already completed');

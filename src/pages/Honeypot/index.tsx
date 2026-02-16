@@ -9,8 +9,9 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Loader2, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { logHoneypotAccess } from '../../lib/securityLogger';
+import { LoadingSpinner } from '../../components/ui';
 
 // Delay before redirecting (in milliseconds)
 const REDIRECT_DELAY_MS = 3000;
@@ -36,7 +37,7 @@ export const HoneypotPage = () => {
             'Loading admin panel...',
             'Authenticating session...'
         ];
-        
+
         let messageIndex = 0;
         const messageInterval = setInterval(() => {
             messageIndex = (messageIndex + 1) % messages.length;
@@ -63,7 +64,7 @@ export const HoneypotPage = () => {
                 <div className="relative">
                     <Shield size={64} className="text-muted-foreground" />
                     <div className="absolute -bottom-1 -right-1">
-                        <Loader2 size={24} className="text-primary animate-spin" />
+                        <LoadingSpinner size={24} className="text-primary" />
                     </div>
                 </div>
 
@@ -80,9 +81,9 @@ export const HoneypotPage = () => {
                 {/* Fake progress indicator */}
                 <div className="w-full max-w-xs">
                     <div className="h-1 bg-muted rounded-full overflow-hidden">
-                        <div 
+                        <div
                             className="h-full bg-primary rounded-full animate-pulse"
-                            style={{ 
+                            style={{
                                 width: '60%',
                                 animation: 'pulse 1s ease-in-out infinite'
                             }}

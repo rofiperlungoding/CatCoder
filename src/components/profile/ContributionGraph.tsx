@@ -70,7 +70,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ className 
 
                 // Count contributions per day
                 const countMap = new Map<string, number>();
-                (data || []).forEach((row: { completed_at: string }) => {
+                (data || []).forEach((row: { completed_at: string | null }) => {
                     if (row.completed_at) {
                         const dateStr = row.completed_at.split('T')[0];
                         countMap.set(dateStr, (countMap.get(dateStr) || 0) + 1);

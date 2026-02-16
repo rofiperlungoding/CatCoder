@@ -32,7 +32,7 @@
     - worker-src: 'self' + blob: (required for Web Workers)
     - frame-src: 'none' (no iframes allowed)
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://pyodide.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://pyodide.org; img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.githubusercontent.com https://*.gravatar.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com; worker-src 'self' blob:; frame-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://pyodide.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://pyodide.org https://api.openai.com; img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.githubusercontent.com https://*.gravatar.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com; worker-src 'self' blob:; frame-src 'none'; base-uri 'self'; form-action 'self';" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

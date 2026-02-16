@@ -5,12 +5,39 @@ import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../li
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { secureStorage, migrateToEncrypted } from '../lib/secureStorage';
 import { getTrueTime, getTrueDate, syncServerTime, isClockOutOfSync } from '../lib/serverTime';
-import { 
-    registerDeviceSession, 
-    verifyDeviceFingerprint, 
+import {
+    registerDeviceSession,
+    verifyDeviceFingerprint,
     handleFingerprintMismatch,
-    clearCachedFingerprint 
+    clearCachedFingerprint
 } from '../lib/deviceFingerprint';
+import { AuthError, type Session } from '@supabase/supabase-js';
+
+// Database types matching Supabase schema
+interface DBProfile {
+    id: string;
+    username: string | null;
+    avatar_url: string | null;
+    xp: number;
+    level: number;
+    rank: string;
+    streak_current: number;
+    streak_best: number;
+    created_at: string;
+    last_activity_date?: string | null;
+}
+
+interface DBUserProgress {
+    id: string;
+    user_id: string;
+    content_type: 'lesson' | 'problem' | 'challenge';
+    content_id: string;
+    status: 'completed' | 'started';
+    score?: number;
+    completed_at?: string;
+    duration_seconds?: number;
+    created_at?: string;
+}
 
 /**
  * Secure storage adapter for Zustand persist middleware
@@ -54,9 +81,9 @@ const fetchProfile = async (userId: string): Promise<User | null> => {
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise<null>((resolve) => {
             setTimeout(() => {
-                console.warn('[fetchProfile] Timeout after 5 seconds');
+                console.warn('[fetchProfile] Timeout after 10 seconds');
                 resolve(null);
-            }, 5000);
+            }, 10000);
         });
 
         const fetchPromise = (async () => {
@@ -86,20 +113,20 @@ const fetchProfile = async (userId: string): Promise<User | null> => {
                 id: data.id,
                 email: '',
                 username: data.username,
-                avatarUrl: data.avatar_url,
+                avatarUrl: data.avatar_url || undefined,
                 xp: data.xp || 0,
                 level: data.level || 1,
                 rank: (data.rank as User['rank']) || 'bronze',
                 streakCurrent: data.streak_current || 0,
                 streakBest: data.streak_best || 0,
-                createdAt: data.created_at
+                createdAt: data.created_at || new Date().toISOString()
             };
         })();
 
         const result = await Promise.race([fetchPromise, timeoutPromise]);
         console.log('[fetchProfile] Returning result:', result ? 'profile found' : 'null');
         return result;
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('[fetchProfile] Caught error:', err);
         return null;
     }
@@ -112,7 +139,7 @@ const syncProfileToSupabase = async (userId: string, updates: Partial<{
     rank: string;
     streak_current: number;
     streak_best: number;
-    last_activity_date: string;
+    last_activity_date: string | null;
 }>) => {
     if (!isSupabaseConfigured()) return;
 
@@ -136,15 +163,16 @@ interface UserState {
     recentActivities: Activity[];
 
     // Actions
+    // Actions
     setUser: (user: User | null) => void;
     setGuest: () => void;
     logout: () => void;
-    signIn: (email: string, password: string) => Promise<{ user: any; error: any }>;
-    signInWithGoogle: () => Promise<{ user: any; error: any }>;
-    signUp: (email: string, password: string, username: string) => Promise<{ user: any; error: any }>;
-    resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
-    magicLinkLogin: (email: string) => Promise<{ error: any }>;
-    updateEmail: (newEmail: string) => Promise<{ error: any }>;
+    signIn: (email: string, password: string) => Promise<{ user: User | null; error: AuthError | null }>;
+    signInWithGoogle: () => Promise<{ user: null; error: AuthError | null }>;
+    signUp: (email: string, password: string, username: string) => Promise<{ user: User | null; error: AuthError | null }>;
+    resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>;
+    magicLinkLogin: (email: string) => Promise<{ error: AuthError | null }>;
+    updateEmail: (newEmail: string) => Promise<{ error: AuthError | null }>;
     initializeSession: () => Promise<void>;
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
@@ -281,12 +309,18 @@ export const useUserStore = create<UserState>()(
                         registerDeviceSession().catch(err => {
                             console.warn('[Auth] Failed to register device session:', err);
                         });
+
+                        return { user: basicUser, error: null };
                     }
 
-                    return { user: data.user, error: null };
+                    return { user: null, error: null };
                 } catch (err) {
+                    console.error('[Auth] Unexpected error:', err);
                     useUIStore.getState().addToast('error', 'An unexpected error occurred');
-                    return { user: null, error: { message: 'Unexpected error' } };
+                    return {
+                        user: null,
+                        error: { message: 'Unexpected error', name: 'Error' } as unknown as AuthError
+                    };
                 }
             },
 
@@ -295,11 +329,11 @@ export const useUserStore = create<UserState>()(
 
                 if (!isSupabaseConfigured()) {
                     useUIStore.getState().addToast('error', 'Supabase not configured');
-                    return { user: null, error: { message: 'Supabase not configured' } };
+                    return { user: null, error: { message: 'Supabase not configured', name: 'ConfigError' } as unknown as AuthError };
                 }
 
                 try {
-                    const { data, error } = await supabase.auth.signInWithOAuth({
+                    const { error } = await supabase.auth.signInWithOAuth({
                         provider: 'google',
                         options: {
                             redirectTo: `${window.location.origin}/auth/callback`,
@@ -319,16 +353,19 @@ export const useUserStore = create<UserState>()(
                     // OAuth will redirect, so we don't need to handle the response here
                     // The initializeSession will pick up the session after redirect
                     console.log('[Auth] Google OAuth initiated, redirecting...');
-                    return { user: data, error: null };
-                } catch (err: any) {
+                    return { user: null, error: null };
+                } catch (err: unknown) {
                     console.error('[Auth] Google sign-in error:', err);
                     useUIStore.getState().addToast('error', 'Failed to sign in with Google');
-                    return { user: null, error: { message: err.message } };
+                    return {
+                        user: null,
+                        error: { message: (err as Error).message || 'Unknown error', name: 'AuthError' } as unknown as AuthError
+                    };
                 }
             },
 
             resetPasswordForEmail: async (email) => {
-                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } };
+                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured', name: 'ConfigError' } as unknown as AuthError };
                 try {
                     const { error } = await supabase.auth.resetPasswordForEmail(email, {
                         redirectTo: `${window.location.origin}/reset-password`,
@@ -336,13 +373,13 @@ export const useUserStore = create<UserState>()(
                     if (error) useUIStore.getState().addToast('error', error.message);
                     else useUIStore.getState().addToast('success', 'Password reset email sent!');
                     return { error };
-                } catch (err: any) {
-                    return { error: err };
+                } catch (err) {
+                    return { error: { message: String(err), name: 'Error' } as unknown as AuthError };
                 }
             },
 
             magicLinkLogin: async (email) => {
-                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } };
+                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured', name: 'ConfigError' } as unknown as AuthError };
                 try {
                     const { error } = await supabase.auth.signInWithOtp({
                         email,
@@ -353,20 +390,20 @@ export const useUserStore = create<UserState>()(
                     if (error) useUIStore.getState().addToast('error', error.message);
                     else useUIStore.getState().addToast('success', 'Magic link sent! Check your email.');
                     return { error };
-                } catch (err: any) {
-                    return { error: err };
+                } catch (err) {
+                    return { error: { message: String(err), name: 'Error' } as unknown as AuthError };
                 }
             },
 
             updateEmail: async (newEmail) => {
-                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured' } };
+                if (!isSupabaseConfigured()) return { error: { message: 'Supabase not configured', name: 'ConfigError' } as unknown as AuthError };
                 try {
                     const { error } = await supabase.auth.updateUser({ email: newEmail });
                     if (error) useUIStore.getState().addToast('error', error.message);
                     else useUIStore.getState().addToast('success', 'Confirmation sent to new email!');
                     return { error };
-                } catch (err: any) {
-                    return { error: err };
+                } catch (err) {
+                    return { error: { message: String(err), name: 'Error' } as unknown as AuthError };
                 }
             },
 
@@ -376,7 +413,7 @@ export const useUserStore = create<UserState>()(
                 if (!isSupabaseConfigured()) {
                     console.log('[Auth] Supabase not configured');
                     useUIStore.getState().addToast('warning', 'Supabase not configured. Cannot sign up.');
-                    return { user: null, error: { message: 'Supabase not configured' } };
+                    return { user: null, error: { message: 'Supabase not configured', name: 'ConfigError' } as unknown as AuthError };
                 }
 
                 try {
@@ -399,11 +436,12 @@ export const useUserStore = create<UserState>()(
 
                     console.log('[Auth] SignUp response:', data);
 
+
                     // Check if email confirmation is required
                     if (data.user && !data.session) {
                         console.log('[Auth] Email confirmation required');
                         useUIStore.getState().addToast('success', 'Account created! Please check your email to confirm.');
-                        return { user: data.user, error: null };
+                        return { user: null, error: null };
                     }
 
                     // If session exists, user is auto-confirmed
@@ -444,13 +482,17 @@ export const useUserStore = create<UserState>()(
                         }
 
                         useUIStore.getState().addToast('success', 'Welcome to CatCoder!');
+                        return { user: basicUser, error: null };
                     }
 
-                    return { user: data.user, error: null };
+                    return { user: null, error: null };
                 } catch (err) {
                     console.error('[Auth] Unexpected error during signUp:', err);
                     useUIStore.getState().addToast('error', 'An unexpected error occurred');
-                    return { user: null, error: { message: 'Unexpected error' } };
+                    return {
+                        user: null,
+                        error: { message: 'Unexpected error', name: 'Error' } as unknown as AuthError
+                    };
                 }
             },
 
@@ -462,7 +504,7 @@ export const useUserStore = create<UserState>()(
 
                 try {
                     // Helper function to handle user session (create profile if needed)
-                    const handleUserSession = async (session: any) => {
+                    const handleUserSession = async (session: Session) => {
                         if (!session?.user) return false;
 
                         const user = session.user;
@@ -517,12 +559,12 @@ export const useUserStore = create<UserState>()(
                             profile.email = user.email || '';
                             set({ user: profile, isAuthenticated: true, isGuest: false, isLoading: false });
                             useProgressStore.getState().fetchProgress(user.id);
-                            
+
                             // Register device fingerprint for this session (Requirements 5.1, 5.2)
                             registerDeviceSession().catch(err => {
                                 console.warn('[Auth] Failed to register device session:', err);
                             });
-                            
+
                             return true;
                         }
 
@@ -655,7 +697,7 @@ export const useUserStore = create<UserState>()(
 
                 if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
                     // Map User fields to Supabase columns
-                    const supabaseUpdates: any = {};
+                    const supabaseUpdates: Partial<DBProfile> = {};
                     if (updates.username) supabaseUpdates.username = updates.username;
                     if (updates.avatarUrl) supabaseUpdates.avatar_url = updates.avatarUrl;
 
@@ -756,7 +798,7 @@ export const useProgressStore = create<ProgressState>()(
                     return;
                 }
 
-                const progress: UserProgress[] = (data || []).map((row: any) => ({
+                const progress: UserProgress[] = ((data as unknown as DBUserProgress[]) || []).map((row) => ({
                     id: row.id,
                     userId: row.user_id,
                     contentType: row.content_type,
@@ -881,9 +923,9 @@ export const useProgressStore = create<ProgressState>()(
                 if (!fingerprintResult.valid) {
                     // If fingerprint doesn't match, the handleFingerprintMismatch callback
                     // will sign out the user and redirect to login
-                    return { 
-                        success: false, 
-                        error: fingerprintResult.reason || 'Device verification failed' 
+                    return {
+                        success: false,
+                        error: fingerprintResult.reason || 'Device verification failed'
                     };
                 }
 
@@ -897,7 +939,7 @@ export const useProgressStore = create<ProgressState>()(
                         p_content_type: contentType,
                         p_content_id: contentId,
                         p_language: language,
-                        p_duration_seconds: durationSeconds || null
+                        p_duration_seconds: durationSeconds ?? undefined
                     });
 
                     if (error) {
@@ -905,14 +947,14 @@ export const useProgressStore = create<ProgressState>()(
                         return { success: false, error: error.message };
                     }
 
-                    const result = data as { 
-                        success: boolean; 
-                        xp_awarded?: number; 
+                    const result = data as {
+                        success: boolean;
+                        xp_awarded?: number;
                         new_xp?: number;
                         new_level?: number;
                         new_rank?: string;
-                        error?: string; 
-                        message?: string 
+                        error?: string;
+                        message?: string
                     };
 
                     if (result.success) {
@@ -945,7 +987,7 @@ export const useProgressStore = create<ProgressState>()(
                         // Refresh user profile from server to get updated XP (Requirements 2.6)
                         if (result.xp_awarded && result.xp_awarded > 0) {
                             const oldLevel = userStore.user.level;
-                            
+
                             // Use the values returned by the RPC if available
                             if (result.new_xp !== undefined && result.new_level !== undefined && result.new_rank !== undefined) {
                                 const updatedUser = {
@@ -955,7 +997,7 @@ export const useProgressStore = create<ProgressState>()(
                                     rank: result.new_rank as User['rank']
                                 };
                                 useUserStore.setState({ user: updatedUser });
-                                
+
                                 // Check for level up
                                 if (result.new_level > oldLevel) {
                                     useUIStore.getState().showLevelUp(result.new_level);
@@ -976,24 +1018,25 @@ export const useProgressStore = create<ProgressState>()(
                                 if (profileData) {
                                     const updatedUser = {
                                         ...userStore.user,
-                                        xp: profileData.xp,
-                                        level: profileData.level,
-                                        rank: profileData.rank as User['rank']
+                                        xp: profileData.xp || 0,
+                                        level: profileData.level || 1,
+                                        rank: (profileData.rank as User['rank']) || 'bronze'
                                     };
                                     useUserStore.setState({ user: updatedUser });
-                                    
+
                                     // Check for level up
-                                    if (profileData.level > oldLevel) {
-                                        useUIStore.getState().showLevelUp(profileData.level);
+                                    const newLevel = profileData.level || 1;
+                                    if (newLevel > oldLevel) {
+                                        useUIStore.getState().showLevelUp(newLevel);
                                         userStore.addActivity({
                                             type: 'level_up',
-                                            title: `Reached Level ${profileData.level}`,
+                                            title: `Reached Level ${newLevel}`,
                                             xpEarned: 0
                                         });
                                     }
                                 }
                             }
-                            
+
                             // Add activity for completion
                             userStore.addActivity({
                                 type: contentType === 'lesson' ? 'lesson_completed' : 'problem_solved',

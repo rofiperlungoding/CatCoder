@@ -66,24 +66,24 @@ export async function generateFingerprint(): Promise<FingerprintResult> {
     try {
         const agent = await getAgent();
         const result = await agent.get();
-        
+
         // The visitorId is a stable hash of device characteristics
         const hash = result.visitorId;
-        
+
         // Cache the fingerprint for this session
         cachedFingerprint = hash;
-        
+
         return {
             success: true,
             hash
         };
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        
+
         if (import.meta.env.DEV) {
             console.warn('[DeviceFingerprint] Failed to generate fingerprint:', errorMessage);
         }
-        
+
         return {
             success: false,
             error: errorMessage
@@ -100,7 +100,7 @@ export async function getFingerprint(): Promise<string | null> {
     if (cachedFingerprint) {
         return cachedFingerprint;
     }
-    
+
     const result = await generateFingerprint();
     return result.success ? result.hash! : null;
 }
@@ -118,25 +118,25 @@ export async function registerDeviceSession(
     if (!isSupabaseConfigured()) {
         return { success: false, error: 'Supabase not configured' };
     }
-    
+
     try {
         // Get or generate fingerprint
         const hash = deviceHash || await getFingerprint();
-        
+
         if (!hash) {
             return { success: false, error: 'Failed to generate fingerprint' };
         }
-        
+
         // Call the RPC function to register the session
         const { data, error } = await supabase.rpc('register_device_session', {
             p_device_hash: hash,
-            p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null
+            p_user_agent: (typeof navigator !== 'undefined' ? navigator.userAgent : undefined) as string | undefined
         });
-        
+
         if (error) {
             return { success: false, error: error.message };
         }
-        
+
         if (data && typeof data === 'object') {
             const result = data as { success: boolean; session_id?: string; error?: string };
             return {
@@ -145,7 +145,7 @@ export async function registerDeviceSession(
                 error: result.error
             };
         }
-        
+
         return { success: true };
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -166,40 +166,40 @@ export async function verifyDeviceFingerprint(options?: {
     logMismatch?: boolean;
 }): Promise<FingerprintVerificationResult> {
     const { onMismatch, logMismatch = true } = options || {};
-    
+
     if (!isSupabaseConfigured()) {
         return { success: false, valid: false, error: 'Supabase not configured' };
     }
-    
+
     try {
         // Get current fingerprint
         const currentHash = await getFingerprint();
-        
+
         if (!currentHash) {
-            return { 
-                success: false, 
-                valid: false, 
-                error: 'Failed to generate fingerprint' 
+            return {
+                success: false,
+                valid: false,
+                error: 'Failed to generate fingerprint'
             };
         }
-        
+
         // Call the RPC function to verify
         const { data, error } = await supabase.rpc('verify_device_fingerprint', {
             p_device_hash: currentHash
         });
-        
+
         if (error) {
             return { success: false, valid: false, error: error.message };
         }
-        
+
         if (data && typeof data === 'object') {
-            const result = data as { 
-                success: boolean; 
-                valid: boolean; 
-                reason?: string; 
-                error?: string 
+            const result = data as {
+                success: boolean;
+                valid: boolean;
+                reason?: string;
+                error?: string
             };
-            
+
             // Handle fingerprint mismatch
             if (result.success && !result.valid) {
                 // Log the mismatch
@@ -210,13 +210,13 @@ export async function verifyDeviceFingerprint(options?: {
                         { reason: result.reason }
                     );
                 }
-                
+
                 // Call the mismatch handler
                 if (onMismatch) {
                     onMismatch();
                 }
             }
-            
+
             return {
                 success: result.success,
                 valid: result.valid,
@@ -224,7 +224,7 @@ export async function verifyDeviceFingerprint(options?: {
                 error: result.error
             };
         }
-        
+
         return { success: true, valid: true };
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -246,19 +246,19 @@ export async function invalidateAllSessions(): Promise<{
     if (!isSupabaseConfigured()) {
         return { success: false, error: 'Supabase not configured' };
     }
-    
+
     try {
         const { data, error } = await supabase.rpc('invalidate_all_sessions');
-        
+
         if (error) {
             return { success: false, error: error.message };
         }
-        
+
         if (data && typeof data === 'object') {
-            const result = data as { 
-                success: boolean; 
-                sessions_invalidated?: number; 
-                error?: string 
+            const result = data as {
+                success: boolean;
+                sessions_invalidated?: number;
+                error?: string
             };
             return {
                 success: result.success,
@@ -266,7 +266,7 @@ export async function invalidateAllSessions(): Promise<{
                 error: result.error
             };
         }
-        
+
         return { success: true };
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -289,12 +289,12 @@ export function clearCachedFingerprint(): void {
 export async function handleFingerprintMismatch(): Promise<void> {
     // Clear cached fingerprint
     clearCachedFingerprint();
-    
+
     // Sign out the user
     if (isSupabaseConfigured()) {
         await supabase.auth.signOut();
     }
-    
+
     // Redirect to login (if in browser context)
     if (typeof window !== 'undefined') {
         window.location.href = '/login?reason=session_invalid';

@@ -119,7 +119,18 @@ export const fetchSpeedRuns = async (limit: number = 20): Promise<SpeedRunEntry[
         return [];
     }
 
-    return (data || []).map((row: any) => {
+    return (data || []).map((row: {
+        id: string;
+        content_id: string;
+        duration_seconds: number | null;
+        completed_at: string | null;
+        profiles: {
+            id: string;
+            username: string;
+            avatar_url: string | null;
+            rank: string | null;
+        }
+    }) => {
         const problemMeta = getProblemMeta(row.content_id);
 
         return {
@@ -135,8 +146,8 @@ export const fetchSpeedRuns = async (limit: number = 20): Promise<SpeedRunEntry[
                 title: problemMeta.title,
                 difficulty: problemMeta.difficulty
             },
-            durationSeconds: row.duration_seconds,
-            completedAt: row.completed_at
+            durationSeconds: row.duration_seconds || 0,
+            completedAt: row.completed_at || new Date().toISOString()
         };
     });
 };
@@ -174,7 +185,12 @@ export const fetchSpeedRunById = async (id: string): Promise<SpeedRunEntry | nul
     }
 
     const problemMeta = getProblemMeta(data.content_id);
-    const profile = data.profiles as any;
+    const profile = data.profiles as unknown as {
+        id: string;
+        username: string;
+        avatar_url: string | null;
+        rank: string | null;
+    };
 
     return {
         id: data.id,
@@ -189,7 +205,7 @@ export const fetchSpeedRunById = async (id: string): Promise<SpeedRunEntry | nul
             title: problemMeta.title,
             difficulty: problemMeta.difficulty
         },
-        durationSeconds: data.duration_seconds,
-        completedAt: data.completed_at
+        durationSeconds: data.duration_seconds || 0,
+        completedAt: data.completed_at || new Date().toISOString()
     };
 };

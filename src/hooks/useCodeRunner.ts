@@ -22,9 +22,14 @@ interface UseCodeRunnerProps {
     onError?: (error: string) => void;
 }
 
+interface PyodideInterface {
+    runPython: (code: string) => unknown;
+    runPythonAsync: (code: string) => Promise<unknown>;
+}
+
 declare global {
     interface Window {
-        loadPyodide: any;
+        loadPyodide: () => Promise<PyodideInterface>;
     }
 }
 
@@ -38,7 +43,7 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     const [validationError, setValidationError] = useState<string | null>(null);
 
     // Pyodide ref for Python execution
-    const pyodideRef = useRef<any>(null);
+    const pyodideRef = useRef<PyodideInterface | null>(null);
     const [isPyodideLoading, setIsPyodideLoading] = useState(false);
 
     // Web Worker ref for sandboxed JS execution
@@ -60,7 +65,7 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
             }
         };
         loadPyodideInstance();
-    }, []);
+    }, [isPyodideLoading]); // Cleanup worker on unmount
 
     // Cleanup worker on unmount
     useEffect(() => {
@@ -174,7 +179,7 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
 
             } catch (error) {
                 // Handle worker creation errors - fall back to non-sandboxed execution
-                console.warn('Web Worker not available, falling back to direct execution');
+                console.warn('Web Worker not available, falling back to direct execution', error);
                 resolve(executeJsFallback(codeStr));
             }
         });
@@ -188,22 +193,22 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
         try {
             const logs: string[] = [];
             const consoleMock = {
-                log: (...args: any[]) => {
+                log: (...args: unknown[]) => {
                     logs.push(args.map(arg =>
                         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
                     ).join(' '));
                 },
-                error: (...args: any[]) => {
+                error: (...args: unknown[]) => {
                     logs.push('Error: ' + args.map(arg => String(arg)).join(' '));
                 },
-                warn: (...args: any[]) => {
+                warn: (...args: unknown[]) => {
                     logs.push('Warning: ' + args.map(arg => String(arg)).join(' '));
                 }
             };
             new Function('console', codeStr)(consoleMock);
             return logs.join('\n');
-        } catch (e: any) {
-            return `Error: ${e.message}`;
+        } catch (e: unknown) {
+            return `Error: ${(e as Error).message}`;
         }
     };
 
@@ -230,9 +235,9 @@ sys.stdout = io.StringIO()
 `);
             await pyodideRef.current.runPythonAsync(codeStr);
             const stdout = pyodideRef.current.runPython("sys.stdout.getvalue()");
-            return stdout;
-        } catch (e: any) {
-            return `Error: ${e.message}`;
+            return String(stdout);
+        } catch (e: unknown) {
+            return `Error: ${(e as Error).message}`;
         }
     };
 

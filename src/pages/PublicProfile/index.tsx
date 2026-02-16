@@ -78,13 +78,13 @@ export const PublicProfilePage: React.FC = () => {
                 const publicUser: PublicUser = {
                     id: profileData.id,
                     username: profileData.username,
-                    avatarUrl: profileData.avatar_url,
+                    avatarUrl: profileData.avatar_url || undefined,
                     xp: profileData.xp || 0,
                     level: profileData.level || 1,
                     rank: (profileData.rank as PublicUser['rank']) || 'bronze',
                     streakCurrent: profileData.streak_current || 0,
                     streakBest: profileData.streak_best || 0,
-                    createdAt: profileData.created_at
+                    createdAt: profileData.created_at || new Date().toISOString()
                 };
 
                 setUser(publicUser);
@@ -223,13 +223,12 @@ export const PublicProfilePage: React.FC = () => {
                                     <span className="text-gray-500 dark:text-gray-400">
                                         Bergabung {formatJoinDate(user.createdAt)}
                                     </span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                                        user.rank === 'diamond' ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800' :
-                                        user.rank === 'platinum' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800' :
-                                        user.rank === 'gold' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800' :
-                                        user.rank === 'silver' ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700' :
-                                        'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800'
-                                    }`}>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${user.rank === 'diamond' ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800' :
+                                            user.rank === 'platinum' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800' :
+                                                user.rank === 'gold' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800' :
+                                                    user.rank === 'silver' ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700' :
+                                                        'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800'
+                                        }`}>
                                         {user.rank}
                                     </span>
                                 </div>
@@ -249,7 +248,7 @@ export const PublicProfilePage: React.FC = () => {
                                 </span>
                             </div>
                             <div className="h-3 bg-gray-100 dark:bg-muted rounded-full overflow-hidden">
-                                <div 
+                                <div
                                     className="h-full bg-lime-500 rounded-full transition-all duration-500"
                                     style={{ width: `${levelProgress.percentage}%` }}
                                 />

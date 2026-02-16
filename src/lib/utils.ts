@@ -29,13 +29,11 @@ export function calculateLevel(xp: number): number {
 
 // Calculate XP progress to next level
 export function calculateLevelProgress(xp: number): { current: number; required: number; percentage: number } {
-    let level = 1;
     let requiredXP = 100;
     let totalXP = 0;
 
     while (totalXP + requiredXP <= xp) {
         totalXP += requiredXP;
-        level++;
         requiredXP = Math.floor(requiredXP * 1.5);
     }
 

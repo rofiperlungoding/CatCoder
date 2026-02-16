@@ -6,7 +6,7 @@
  * 
  * Validates: Requirements 6.2, 6.4, 6.5
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fc from 'fast-check';
 import {
     isUrlAllowed,
@@ -324,7 +324,7 @@ describe('Request Firewall - Unit Tests', () => {
         it('should remove allowed domain', () => {
             addAllowedDomain('temp-domain.com');
             expect(getAllowedDomains()).toContain('temp-domain.com');
-            
+
             removeAllowedDomain('temp-domain.com');
             expect(getAllowedDomains()).not.toContain('temp-domain.com');
         });

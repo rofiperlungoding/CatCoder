@@ -1736,15 +1736,15 @@ import re
 
 text = "My number is 0812345"
 
-# Find digits (\d)
-match = re.search(r"\d+", text) 
+# Find digits (\\d)
+match = re.search(r"\\d+", text) 
 
 print(match.group()) # 0812345
 \`\`\`
 
 Common symbols:
-- \`\d\`: Any digit
-- \`\w\`: Any letter/number
+- \`\\d\`: Any digit
+- \`\\w\`: Any letter/number
 - \`.\`: Any character
 - \`+\`: One or more`
             },
@@ -1753,9 +1753,9 @@ Common symbols:
                 type: 'code',
                 title: 'Find the Price',
                 content: `Extract the number from "Price: $99".
-Use \`re.search\` with pattern \`\d+\`.`,
-                codeTemplate: 'import re\ntext = "Price: $99"\n\nmatch = re.search(r"\d+", text)\nprint(match.group())',
-                hints: ['Pattern is r"\\d+"']
+Use \`re.search\` with pattern \`\\d+\`.`,
+                codeTemplate: 'import re\ntext = "Price: $99"\n\nmatch = re.search(r"\\d+", text)\nprint(match.group())',
+                hints: ['Pattern is r"\\\\d+"']
             },
             {
                 id: 'challenge',

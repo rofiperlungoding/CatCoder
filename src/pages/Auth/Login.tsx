@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cat, ArrowRight, Mail, Lock } from 'lucide-react';
-import { Button, Input, Toaster } from '../../components/ui';
+import { Button, Input, Toaster, LoadingSpinner } from '../../components/ui';
 import { useUserStore, useUIStore } from '../../stores';
 
 // Google Icon SVG Component
@@ -216,7 +216,7 @@ export const LoginPage: React.FC = () => {
                                     <span className="relative flex items-center gap-2">
                                         {isLoading ? (
                                             <>
-                                                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                                                <LoadingSpinner size={20} />
                                                 <span>Processing...</span>
                                             </>
                                         ) : (
@@ -247,7 +247,7 @@ export const LoginPage: React.FC = () => {
                                 >
                                     {isGoogleLoading ? (
                                         <>
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <LoadingSpinner size={20} />
                                             <span>Signing in...</span>
                                         </>
                                     ) : (
@@ -284,7 +284,7 @@ export const LoginPage: React.FC = () => {
                                     <span className="relative z-10 flex items-center justify-center gap-2">
                                         {isLoading ? (
                                             <>
-                                                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                                <LoadingSpinner size={20} />
                                                 Sending...
                                             </>
                                         ) : (

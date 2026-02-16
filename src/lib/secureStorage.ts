@@ -26,14 +26,14 @@ export interface SecureStorage {
  */
 const getEncryptionKey = (): string => {
     // Check for environment-configured key first
-    const envKey = typeof import.meta !== 'undefined' 
-        ? (import.meta as any).env?.VITE_STORAGE_ENCRYPTION_KEY 
+    const envKey = typeof import.meta !== 'undefined'
+        ? (import.meta as unknown as { env: Record<string, string> }).env?.VITE_STORAGE_ENCRYPTION_KEY
         : undefined;
-    
+
     if (envKey) {
         return envKey;
     }
-    
+
     // Fallback key for development only
     // In production, VITE_STORAGE_ENCRYPTION_KEY should be set
     return 'catcoder-dev-fallback-key-2024';
@@ -58,12 +58,12 @@ export const decrypt = (encrypted: string): string | null => {
     try {
         const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-        
+
         // If decryption produces empty string, data is corrupted/tampered
         if (!decrypted) {
             return null;
         }
-        
+
         return decrypted;
     } catch {
         // Decryption failed - data is corrupted or tampered
@@ -83,20 +83,20 @@ export const secureStorage: SecureStorage = {
     getItem: (name: string): string | null => {
         try {
             const encrypted = localStorage.getItem(name);
-            
+
             if (!encrypted) {
                 return null;
             }
-            
+
             const decrypted = decrypt(encrypted);
-            
+
             // If decryption failed, clear the corrupted entry
             // Requirements 3.4: Clear corrupted entries
             if (decrypted === null) {
                 localStorage.removeItem(name);
                 return null;
             }
-            
+
             return decrypted;
         } catch {
             // Any error during retrieval - clear and return null
@@ -108,7 +108,7 @@ export const secureStorage: SecureStorage = {
             return null;
         }
     },
-    
+
     /**
      * Encrypt and store an item in localStorage
      * Requirements 3.1: Encrypt data before writing
@@ -123,7 +123,7 @@ export const secureStorage: SecureStorage = {
             console.warn('[SecureStorage] Failed to store item:', name);
         }
     },
-    
+
     /**
      * Remove an item from localStorage
      */
@@ -153,16 +153,16 @@ export const isEncrypted = (value: string): boolean => {
 export const migrateToEncrypted = (name: string): boolean => {
     try {
         const rawValue = localStorage.getItem(name);
-        
+
         if (!rawValue) {
             return false;
         }
-        
+
         // Check if already encrypted
         if (isEncrypted(rawValue)) {
             return false;
         }
-        
+
         // Encrypt and store
         const encrypted = encrypt(rawValue);
         localStorage.setItem(name, encrypted);

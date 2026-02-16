@@ -45,7 +45,7 @@ export async function syncServerTime(): Promise<TimeSync> {
     }
 
     syncPromise = performSync();
-    
+
     try {
         const result = await syncPromise;
         return result;
@@ -68,34 +68,43 @@ async function performSync(): Promise<TimeSync> {
     try {
         // Record time before request for latency calculation
         const requestStartTime = Date.now();
-        
+
         const { data, error } = await supabase.rpc('get_server_time');
-        
+
         // Record time after response
         const requestEndTime = Date.now();
-        
+
         if (error) {
             console.error('Failed to sync server time:', error);
             // Keep existing state on error
             return timeSyncState;
         }
 
-        const response = data as ServerTimeResponse;
-        
+        if (!data || typeof data !== 'object') {
+            console.error('Invalid server time response format');
+            return timeSyncState;
+        }
+
+        const response = data as unknown as ServerTimeResponse;
+        if (typeof response.server_time_ms !== 'number') {
+            console.error('Invalid server time response: missing server_time_ms');
+            return timeSyncState;
+        }
+
         // Calculate network latency (round-trip time / 2)
         const roundTripTime = requestEndTime - requestStartTime;
         const estimatedLatency = roundTripTime / 2;
-        
+
         // Server time adjusted for latency
         const serverTimeMs = response.server_time_ms + estimatedLatency;
-        
+
         // Calculate offset: positive means server is ahead, negative means behind
         const localTimeAtResponse = requestEndTime;
         const offset = serverTimeMs - localTimeAtResponse;
-        
+
         // Check if out of sync
         const isOutOfSync = Math.abs(offset) > OUT_OF_SYNC_THRESHOLD_MS;
-        
+
         timeSyncState = {
             offset,
             lastSync: Date.now(),

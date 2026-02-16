@@ -13,6 +13,7 @@ import { EditProfileModal } from '../../components/profile/EditProfileModal';
 import { ContributionGraph } from '../../components/profile/ContributionGraph';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import { calculateLevelProgress } from '../../lib/utils';
+import AISettings from '../../components/settings/AISettings';
 
 export const ProfilePage: React.FC = () => {
     const { user } = useUserStore();
@@ -188,6 +189,11 @@ export const ProfilePage: React.FC = () => {
                         </p>
                     </div>
                 </div>
+            </div>
+
+            {/* AI Settings Section */}
+            <div className="bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border">
+                <AISettings />
             </div>
         </div>
     );

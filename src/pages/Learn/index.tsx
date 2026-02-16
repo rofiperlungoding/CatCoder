@@ -1,25 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-    BookOpen,
-    Search,
-    Clock,
-    Code,
     CheckCircle2,
     Sparkles,
+    ChevronDown,
+    BookOpen,
+    Brain,
     ArrowRight,
-    ChevronLeft,
-    Play,
-    Terminal,
-    Lightbulb,
-    ChevronDown
+    Clock,
+    Search,
+    Code
 } from 'lucide-react';
-import { Badge, Button } from '../../components/ui';
-import { CodeEditor } from '../../components/editor';
+import { Button, Input } from '../../components/ui';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
-import { useCodeRunner } from '../../hooks';
 import type { Lesson, Language, Tier } from '../../types';
 import { lessons as lessonsData } from '../../data/lessons';
+import { useAIAnalytics } from '../../hooks/useAIAnalytics';
+import { useAIStore } from '../../store/aiStore';
+import AIInsightsPanel from '../../components/ai/AIInsightsPanel';
+import { LessonCarousel } from './LessonCarousel';
+
+const tierMap: Record<string, string> = {
+    '1': 'Seedling',
+    '2': 'Sprout',
+    '3': 'Growing',
+    '4': 'Mature',
+    '5': 'Expert'
+};
 
 export const LearnPage: React.FC = () => {
     const { lessonId } = useParams();
@@ -27,133 +34,74 @@ export const LearnPage: React.FC = () => {
     const { selectedLanguage, setSelectedLanguage, addXP } = useUserStore();
     const { isCompleted, markComplete } = useProgressStore();
     const { addToast } = useUIStore();
+    const { showInsightsPanel, setShowInsightsPanel } = useAIStore();
 
-    // List State
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTier, setSelectedTier] = useState<Tier | 'all'>('all');
-
-    // Detail State
-    const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-    const [currentStep, setCurrentStep] = useState(0);
-
-    // Editor State
-    const [code, setCode] = useState('');
-    const {
-        terminalLogs,
-        isRunning,
-        isValidated: codeValidated,
-        // validationError, // Uncomment if needed for UI, currently alias implies we might use it but variable name matches
-        runCode,
-        clearLogs
-    } = useCodeRunner();
-
-    // const [output, setOutput] = useState<string | null>(null); // DEPRECATED
-    // const [terminalLogs, setTerminalLogs] = useState<{ type: 'command' | 'stdout' | 'stderr' | 'system' | 'success'; message: string; delay?: number }[]>([]);
-    // const [isRunning, setIsRunning] = useState(false);
-    // const [codeValidated, setCodeValidated] = useState(false);
-    // const [validationError, setValidationError] = useState<string | null>(null);
-
-    // Load lesson when lessonId changes
-    // Load lesson when lessonId changes
-    useEffect(() => {
-        if (lessonId) {
-            const lesson = lessonsData.find(l => l.id === lessonId);
-            if (lesson) {
-                setActiveLesson(lesson);
-                setCurrentStep(0);
-            }
-        } else {
-            setActiveLesson(null);
-        }
-    }, [lessonId]);
-
     const [isTierOpen, setIsTierOpen] = useState(false);
     const [isLanguageOpen, setIsLanguageOpen] = useState(false);
-    const tierOptions = [
-        { value: 'all', label: 'All Tiers' },
-        { value: '1', label: 'Tier 1: Seedling' },
-        { value: '2', label: 'Tier 2: Sprout' },
-        { value: '3', label: 'Tier 3: Growing' },
-        { value: '4', label: 'Tier 4: Mature' },
-        { value: '5', label: 'Tier 5: Expert' }
-    ];
 
-    // Reset code when step changes to a code section
-    useEffect(() => {
-        if (activeLesson) {
-            const currentSection = activeLesson.sections[currentStep];
-            if (currentSection && (currentSection.type === 'code' || currentSection.type === 'challenge')) {
-                const initialCode = currentSection.codeTemplate || getDefaultCode(activeLesson.language);
-                setCode(initialCode);
-                clearLogs();
-            }
+    const activeLesson = useMemo(() => {
+        return lessonId ? lessonsData.find(l => l.id === lessonId) || null : null;
+    }, [lessonId]);
+
+    // Lock body scroll when insights panel is open
+    React.useEffect(() => {
+        if (showInsightsPanel) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+            // Also ensure we remove properties if component unmounts
         }
-    }, [activeLesson, currentStep]);
-
-    // Helper to get default code by language
-    const getDefaultCode = (lang: string) => {
-        const defaults: Record<string, string> = {
-            python: '# Write your code here\n',
-            javascript: '// Write your code here\n',
-            cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    return 0;\n}'
+        return () => {
+            document.body.style.overflow = 'unset';
         };
-        return defaults[lang] || '';
-    };
+    }, [showInsightsPanel]);
 
-    // Simulate code execution and validate output
-    const handleRunCode = async () => {
-        const lang = activeLesson?.language || 'python';
-        const currentSection = activeLesson?.sections[currentStep];
-        const expectedOutput = currentSection?.expectedOutput;
 
-        await runCode(code, lang, expectedOutput);
-    };
+    const { user } = useUserStore();
+    const { progress: userProgress } = useProgressStore();
 
-    // Helper to render content with markdown (bold and code blocks)
-    const renderMarkdown = (content: string) => (
-        <div className="whitespace-pre-line">
-            {content.split('```').map((part, i) => {
-                if (i % 2 === 1) {
-                    const lines = part.split('\n');
-                    const codeContent = lines.slice(1).join('\n');
-                    return (
-                        <div key={i} className="not-prose my-12 rounded-xl overflow-hidden bg-zinc-950 border border-white/5 shadow-2xl">
-                            <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/5">
-                                <div className="flex gap-2 opacity-20">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                                </div>
-                                <div className="ml-auto text-xs font-mono text-gray-500">code</div>
-                            </div>
-                            <div className="p-6 overflow-x-auto">
-                                <code className="font-mono text-sm text-gray-300 leading-relaxed block whitespace-pre">{codeContent}</code>
-                            </div>
-                        </div>
-                    );
-                }
-                return (
-                    <span key={i}>
-                        {part.split(/(\*\*.*?\*\*|`[^`]+`)/).map((chunk, j) => {
-                            if (chunk.startsWith('**') && chunk.endsWith('**')) {
-                                return <strong key={j} className="text-foreground font-black">{chunk.slice(2, -2)}</strong>;
-                            }
-                            if (chunk.startsWith('`') && chunk.endsWith('`')) {
-                                return (
-                                    <code key={j} className="bg-secondary/50 border border-border px-1.5 py-0.5 rounded-md text-sm font-mono text-primary font-bold mx-0.5">
-                                        {chunk.slice(1, -1)}
-                                    </code>
-                                );
-                            }
-                            return chunk;
-                        })}
-                    </span>
-                );
-            })}
-        </div>
-    );
+    const usageStats = useMemo(() => ({
+        userId: user?.id || 'guest',
+        level: user?.level || 1,
+        totalXP: user?.xp || 0,
+        completedChallenges: userProgress
+            .filter(p => p.status === 'completed')
+            .map(p => p.contentId),
+        currentStreak: user?.streakCurrent || 0
+    }), [user, userProgress]);
 
-    const handleCompleteLessonDisplay = () => {
+    const recentAttempts = useMemo(() => {
+        return userProgress
+            .filter(p => p.completedAt) // Only completed/attempted with timestamp
+            .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+            .slice(0, 10)
+            .map(p => ({
+                challengeId: p.contentId,
+                timestamp: new Date(p.completedAt!).getTime(),
+                timeSpent: 300, // Duration not tracked in store yet
+                hintsUsed: 0,
+                attemptCount: 1,
+                codeLength: 150, // Length not tracked in store yet
+                passed: p.status === 'completed'
+            }));
+    }, [userProgress]);
+
+    const availableChallenges = useMemo(() => lessonsData.map(l => ({
+        id: l.id,
+        title: l.title,
+        difficulty: 'medium' as const
+    })), []);
+
+    const {
+        insights,
+        skills,
+        recommendation,
+        loading: analyticsLoading
+    } = useAIAnalytics(usageStats, recentAttempts, availableChallenges);
+
+    const handleCompleteLesson = () => {
         if (!activeLesson) return;
 
         if (!isCompleted('lesson', activeLesson.id)) {
@@ -163,16 +111,6 @@ export const LearnPage: React.FC = () => {
         }
         navigate('/learn');
     };
-
-    const handleStartLesson = (lesson: Lesson) => {
-        navigate(`/learn/${lesson.id}`);
-    };
-
-    const languageTabs = [
-        { id: 'python', label: 'Python', icon: <Code size={16} /> },
-        { id: 'javascript', label: 'JavaScript', icon: <Code size={16} /> },
-        { id: 'cpp', label: 'C++', icon: <Code size={16} /> }
-    ];
 
     const filteredLessons = lessonsData.filter(lesson => {
         const matchesLanguage = lesson.language === selectedLanguage;
@@ -194,584 +132,280 @@ export const LearnPage: React.FC = () => {
     ).length;
     const totalCount = lessonsData.filter(l => l.language === selectedLanguage).length;
 
-    // ========= RENDER DETAIL VIEW (CAROUSEL) =========
     if (activeLesson) {
-        const totalSteps = activeLesson.sections.length;
-        const currentSection = activeLesson.sections[currentStep];
-        const isLastStep = currentStep === totalSteps - 1;
-        const isCodeStep = currentSection.type === 'code' || currentSection.type === 'challenge';
-        const canProceed = isCodeStep ? codeValidated : true;
-
-        const handleNext = () => {
-            if (isLastStep) {
-                handleCompleteLessonDisplay();
-            } else if (canProceed) {
-                setCurrentStep(prev => prev + 1);
-                window.scrollTo(0, 0);
-            }
-        };
-
-        const handlePrev = () => {
-            if (currentStep > 0) {
-                setCurrentStep(prev => prev - 1);
-            }
-        };
-
         return (
-            <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] pb-24">
-                {/* Top Navigation Bar */}
-                <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 mb-10">
-                    <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                        <Button variant="ghost" size="sm" className="rounded-full gap-2 text-muted-foreground hover:text-primary transition-colors hover:bg-transparent" onClick={() => navigate('/learn')}>
-                            <ChevronLeft size={18} /> <span className="font-medium">Library</span>
-                        </Button>
-
-                        {/* Progress */}
-                        <div className="flex-1 max-w-sm mx-auto px-4">
-                            <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                                <span>Part {currentStep + 1}</span>
-                                <span>{totalSteps} Steps</span>
-                            </div>
-                            <div className="h-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
-                                    style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="w-[88px] flex justify-end">
-                            {/* Placeholder for future tools */}
-                        </div>
-                    </div>
-                </div>
-
-                <div className={`${['code', 'challenge'].includes(currentSection.type) ? 'max-w-6xl' : 'max-w-3xl'} mx-auto px-6 transition-all duration-500`}>
-                    {/* Content Card */}
-                    <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
-
-                        {/* Section Header */}
-                        <div className="mb-12">
-                            <div className="flex items-center gap-3 mb-6">
-                                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 border border-border px-3 py-1 rounded-full">
-                                    {currentSection.type}
-                                </span>
-                            </div>
-
-                            {currentSection.title && (
-                                <h1 className="text-4xl md:text-6xl font-black text-foreground mb-8 tracking-tighter leading-[1.1] text-left">
-                                    {currentSection.title}
-                                </h1>
-                            )}
-                        </div>
-
-                        {/* Text Content */}
-                        {currentSection.type === 'text' && (
-                            <div className="prose prose-xl prose-stone dark:prose-invert max-w-none 
-                                prose-headings:font-bold prose-headings:tracking-tight 
-                                prose-p:leading-relaxed prose-p:text-muted-foreground prose-p:text-lg
-                                prose-strong:text-foreground prose-strong:font-bold
-                                prose-code:text-foreground prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none prose-code:font-mono prose-code:text-[0.9em]
-                                ">
-                                {renderMarkdown(currentSection.content)}
-                            </div>
-                        )}
-
-                        {/* Code Practice Section */}
-                        {currentSection.type === 'code' && (
-                            <div className="grid grid-cols-1 gap-8">
-                                <div className="prose prose-lg dark:prose-invert max-w-none text-muted-foreground">
-                                    {renderMarkdown(currentSection.content)}
-                                </div>
-
-                                {currentSection.hints && currentSection.hints.length > 0 && (
-                                    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-6 rounded-2xl relative overflow-hidden group animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                        <div className="absolute top-0 left-0 w-1 bg-amber-500 h-full group-hover:w-1.5 transition-all shadow-[0_0_12px_rgba(245,158,11,0.5)]"></div>
-                                        <div className="flex gap-4">
-                                            <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm ring-1 ring-amber-500/20">
-                                                <Lightbulb size={20} className="fill-amber-500/20" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <h4 className="font-bold text-amber-900 dark:text-amber-400 text-sm uppercase tracking-wide flex items-center gap-2">
-                                                    Hint
-                                                </h4>
-                                                <div className="text-amber-900/80 dark:text-amber-200/90 text-sm leading-relaxed font-medium">
-                                                    {currentSection.hints[0]}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[500px]">
-                                    {/* Editor */}
-                                    <div className="flex flex-col rounded-xl overflow-hidden border border-border shadow-lg bg-[#1e1e1e]">
-                                        <div className="bg-[#1e1e1e] px-4 py-3 flex items-center justify-between border-b border-white/5">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Editor</span>
-                                            <div className="flex gap-1.5 opacity-40">
-                                                <div className="w-2 h-2 rounded-full bg-white" />
-                                                <div className="w-2 h-2 rounded-full bg-white" />
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 min-h-[400px]">
-                                            <CodeEditor
-                                                value={code || ''}
-                                                onChange={(v) => setCode(v || '')}
-                                                language={activeLesson.language}
-                                            />
-                                        </div>
-                                        <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end">
-                                            <Button
-                                                onClick={handleRunCode}
-                                                disabled={isRunning}
-                                                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                                                size="sm"
-                                            >
-                                                {isRunning ? <Sparkles className="animate-spin mr-2" size={14} /> : <Play className="mr-2" size={14} />}
-                                                Run
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Output Terminal */}
-                                    <div className="flex flex-col">
-                                        <div className={`h-full rounded-xl overflow-hidden border flex flex-col transition-all duration-300 ${terminalLogs.length > 0
-                                            ? 'bg-[#1e1e1e] border-gray-800'
-                                            : 'bg-muted/30 border-dashed border-border'
-                                            }`}>
-                                            {/* Terminal Header */}
-                                            {terminalLogs.length > 0 ? (
-                                                <div className="px-4 py-3 bg-[#1e1e1e] border-b border-white/5 flex items-center justify-between">
-                                                    <span className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
-                                                        <Terminal size={14} />
-                                                        Terminal
-                                                    </span>
-                                                    {codeValidated && <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold animate-in fade-in"><CheckCircle2 size={14} /> Passed</div>}
-                                                </div>
-                                            ) : null}
-
-                                            {/* Terminal Body */}
-                                            {terminalLogs.length > 0 ? (
-                                                <div className="flex-1 p-4 font-mono text-sm overflow-y-auto space-y-1">
-                                                    {terminalLogs.map((log, i) => (
-                                                        <div key={i} className="animate-in fade-in slide-in-from-left-1 duration-200">
-                                                            {log.type === 'command' && (
-                                                                <span className="text-cyan-400 font-bold flex gap-2">
-                                                                    <span className="opacity-50 select-none">$</span> {log.message}
-                                                                </span>
-                                                            )}
-                                                            {log.type === 'system' && (
-                                                                <span className="text-gray-500 italic block py-1">
-                                                                    {log.message}
-                                                                </span>
-                                                            )}
-                                                            {log.type === 'stdout' && (
-                                                                <span className="text-gray-200 whitespace-pre-wrap block ml-4 border-l-2 border-white/10 pl-2">
-                                                                    {log.message}
-                                                                </span>
-                                                            )}
-                                                            {log.type === 'stderr' && (
-                                                                <span className="text-red-400 block bg-red-950/20 p-2 rounded border border-red-900/50">
-                                                                    Error: {log.message}
-                                                                </span>
-                                                            )}
-                                                            {log.type === 'success' && (
-                                                                <span className="text-emerald-500 font-bold block mt-4 border-t border-white/10 pt-2">
-                                                                    ➜ {log.message}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                    {/* Cursor Blinking */}
-                                                    {isRunning && (
-                                                        <div className="w-2 h-4 bg-gray-500/50 animate-pulse inline-block align-middle ml-1"></div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
-                                                    <Terminal size={24} className="mb-3 opacity-30" />
-                                                    <p className="text-sm">Ready to execute.</p>
-                                                    <p className="text-xs opacity-50 mt-1">Click "Run" to see logs.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Challenge Section */}
-                        {currentSection.type === 'challenge' && (
-                            <div className="bg-card dark:bg-card border border-border p-8 md:p-12 rounded-[2rem] shadow-xl relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-
-                                <div className="relative z-10">
-                                    <div className="flex items-center gap-2 mb-6">
-                                        <div className="bg-primary/10 p-2 rounded-lg">
-                                            <Sparkles size={20} className="text-primary" />
-                                        </div>
-                                        <span className="text-sm font-bold uppercase tracking-widest text-primary">Challenge</span>
-                                    </div>
-
-                                    <div className="text-xl md:text-2xl text-foreground leading-relaxed mb-8 font-medium">
-                                        {renderMarkdown(currentSection.content)}
-                                    </div>
-
-                                    {currentSection.hints && (
-                                        <div className="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-6 rounded-2xl relative overflow-hidden group mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                            <div className="absolute top-0 left-0 w-1 bg-amber-500 h-full group-hover:w-1.5 transition-all shadow-[0_0_12px_rgba(245,158,11,0.5)]"></div>
-                                            <div className="flex gap-4">
-                                                <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm ring-1 ring-amber-500/20">
-                                                    <Lightbulb size={20} className="fill-amber-500/20" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <h4 className="font-bold text-amber-900 dark:text-amber-400 text-sm uppercase tracking-wide flex items-center gap-2">
-                                                        Hint
-                                                    </h4>
-                                                    <div className="text-amber-900/80 dark:text-amber-200/90 text-sm leading-relaxed font-medium">
-                                                        {currentSection.hints[0]}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Code Editor for Challenge */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[400px]">
-                                        {/* Editor */}
-                                        <div className="flex flex-col rounded-xl overflow-hidden border border-border shadow-lg bg-[#1e1e1e]">
-                                            <div className="bg-[#1e1e1e] px-4 py-3 flex items-center justify-between border-b border-white/5">
-                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Solution Editor</span>
-                                            </div>
-                                            <div className="flex-1 min-h-[300px]">
-                                                <CodeEditor
-                                                    value={code || ''}
-                                                    onChange={(v) => setCode(v || '')}
-                                                    language={activeLesson.language}
-                                                />
-                                            </div>
-                                            <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end">
-                                                <Button
-                                                    onClick={handleRunCode}
-                                                    disabled={isRunning}
-                                                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                                                    size="sm"
-                                                >
-                                                    {isRunning ? <Sparkles className="animate-spin mr-2" size={14} /> : <Play className="mr-2" size={14} />}
-                                                    Run Solution
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        {/* Output Terminal for Challenge */}
-                                        <div className="flex flex-col">
-                                            <div className={`h-full rounded-xl overflow-hidden border flex flex-col transition-all duration-300 ${terminalLogs.length > 0
-                                                ? 'bg-[#1e1e1e] border-gray-800'
-                                                : 'bg-muted/30 border-dashed border-border'
-                                                }`}>
-                                                {/* Terminal Header */}
-                                                {terminalLogs.length > 0 ? (
-                                                    <div className="px-4 py-3 bg-[#1e1e1e] border-b border-white/5 flex items-center justify-between">
-                                                        <span className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
-                                                            <Terminal size={14} />
-                                                            Test Runner
-                                                        </span>
-                                                    </div>
-                                                ) : null}
-
-                                                {/* Terminal Body */}
-                                                {terminalLogs.length > 0 ? (
-                                                    <div className="flex-1 p-4 font-mono text-sm overflow-y-auto space-y-1">
-                                                        {terminalLogs.map((log, i) => (
-                                                            <div key={i} className="animate-in fade-in slide-in-from-left-1 duration-200">
-                                                                {log.type === 'command' && <span className="text-cyan-400 font-bold">$ {log.message}</span>}
-                                                                {log.type === 'system' && <span className="text-gray-500 italic block py-1">{log.message}</span>}
-                                                                {log.type === 'stdout' && <span className="text-gray-200 block ml-4">{log.message}</span>}
-                                                                {log.type === 'stderr' && <span className="text-red-400">{log.message}</span>}
-                                                                {log.type === 'success' && <span className="text-emerald-500 font-bold block mt-4">➜ {log.message}</span>}
-                                                            </div>
-                                                        ))}
-                                                        {isRunning && <div className="w-2 h-4 bg-gray-500/50 animate-pulse inline-block align-middle ml-1"></div>}
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
-                                                        <Terminal size={24} className="mb-3 opacity-30" />
-                                                        <p className="text-sm">Run test cases.</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    {/* Navigation Controls (Inline) */}
-                    <div className="flex justify-between items-center pt-8 pb-12">
-                        <Button
-                            variant="secondary"
-                            onClick={handlePrev}
-                            disabled={currentStep === 0}
-                            className="rounded-full px-6 text-muted-foreground"
-                        >
-                            Previous
-                        </Button>
-
-                        <Button
-                            onClick={handleNext}
-                            disabled={!canProceed}
-                            className={`rounded-full px-8 h-11 text-sm font-bold shadow-md transition-all ${canProceed
-                                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                                : 'opacity-50 cursor-not-allowed'
-                                }`}
-                        >
-                            <span>{isLastStep ? 'Complete' : 'Next Step'}</span>
-                            {isLastStep ? <CheckCircle2 size={16} className="ml-2" /> : <ArrowRight size={16} className="ml-2" />}
-                        </Button>
-                    </div>
-                </div>
-            </div>
+            <LessonCarousel
+                key={activeLesson.id}
+                activeLesson={activeLesson}
+                onComplete={handleCompleteLesson}
+                onBack={() => navigate('/learn')}
+            />
         );
     }
 
-    // ========= RENDER LIST VIEW =========
     return (
-        <div className="space-y-8">
-            {/* Header Bento */}
-            <div className="relative overflow-hidden bg-black dark:bg-card text-white rounded-[2.5rem] p-8 md:p-12 shadow-xl shadow-black/5 dark:shadow-black/20 border border-transparent dark:border-border">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-lime-500/20 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none"></div>
+        <>
+            <div className={`space-y-8 animate-in fade-in duration-700 ${showInsightsPanel ? 'pointer-events-none blur-sm' : ''}`}>
+                {/* Header Bento */}
+                <div className="relative overflow-hidden bg-black dark:bg-card text-white rounded-[2.5rem] p-8 md:p-12 shadow-xl border border-white/5">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-lime-500/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none transition-opacity duration-1000"></div>
 
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                    <div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold mb-6">
-                            <Sparkles size={12} className="text-lime-400" />
-                            <span>Interactive Curriculum</span>
-                        </div>
-                        <h1 className="text-4xl font-bold mb-4 flex items-center gap-4 text-white">
-                            Learning Library
-                        </h1>
-                        <p className="text-white/70 max-w-lg text-lg leading-relaxed">
-                            Structured paths to take you from beginner to expert. Master concepts one by one.
-                        </p>
-                    </div>
-
-                    <div className="w-full md:w-auto min-w-[280px] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-[2rem] p-6 border border-black/10 dark:border-white/5 shadow-xl shadow-black/10">
-                        {/* Header */}
-                        <div className="flex items-center justify-between mb-5">
-                            <span className="text-sm font-semibold text-white/60 tracking-wide">Course Progress</span>
-                            <div className="flex items-baseline gap-0.5">
-                                <span className="text-4xl font-black text-lime-400 tracking-tight">{Math.round((completedCount / (totalCount || 1)) * 100)}</span>
-                                <span className="text-lg font-bold text-lime-400/70">%</span>
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold mb-6">
+                                <Sparkles size={12} className="text-lime-400" />
+                                <span>Interactive Curriculum</span>
                             </div>
+                            <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tighter">
+                                Learning Library
+                            </h1>
+                            <p className="text-white/60 max-w-lg text-lg leading-relaxed mb-6 font-medium">
+                                Structured paths to take you from beginner to expert. Master concepts one by one.
+                            </p>
+                            <Button
+                                onClick={() => setShowInsightsPanel(true)}
+                                className="rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow-lg backdrop-blur-sm transition-all"
+                            >
+                                <Brain size={16} className="mr-2" /> View AI Insights
+                            </Button>
                         </div>
 
-                        {/* Progress Bar */}
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-5">
-                            <div
-                                className="h-full bg-gradient-to-r from-lime-400 to-lime-300 rounded-full transition-all duration-500 ease-out"
-                                style={{ width: `${Math.round((completedCount / (totalCount || 1)) * 100)}%` }}
-                            />
-                        </div>
-
-                        {/* Stats */}
-                        <div className="flex gap-3">
-                            <div className="flex-1 bg-white/5 py-2.5 rounded-xl flex items-center justify-center gap-2 border border-black/10 dark:border-white/5">
-                                <CheckCircle2 size={14} className="text-lime-400" />
-                                <span className="text-xs font-semibold text-white/80">{completedCount} Done</span>
+                        <div className="w-full md:w-auto min-w-[300px] bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/10 shadow-2xl">
+                            <div className="flex items-center justify-between mb-6">
+                                <span className="text-sm font-bold text-white/40 uppercase tracking-widest">Progress</span>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-5xl font-black text-lime-400 tracking-tighter">
+                                        {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}
+                                    </span>
+                                    <span className="text-xl font-bold text-lime-400/50">%</span>
+                                </div>
                             </div>
-                            <div className="flex-1 bg-white/5 py-2.5 rounded-xl flex items-center justify-center gap-2 border border-black/10 dark:border-white/5">
-                                <BookOpen size={14} className="text-white/40" />
-                                <span className="text-xs font-semibold text-white/80">{totalCount} Total</span>
+
+                            <div className="h-3 bg-white/10 rounded-full overflow-hidden mb-6">
+                                <div
+                                    className="h-full bg-gradient-to-r from-lime-400 to-lime-200 rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(163,230,53,0.5)]"
+                                    style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
+                                />
+                            </div>
+
+                            <div className="flex gap-4">
+                                <div className="flex-1 bg-white/5 py-3 rounded-2xl flex flex-col items-center justify-center border border-white/5">
+                                    <span className="text-2xl font-black text-white">{completedCount}</span>
+                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-1">Done</span>
+                                </div>
+                                <div className="flex-1 bg-white/5 py-3 rounded-2xl flex flex-col items-center justify-center border border-white/5">
+                                    <span className="text-2xl font-black text-white/40">{totalCount}</span>
+                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-1">Total</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Controls Row */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex gap-3 w-full md:w-auto z-30">
-                    {/* Language Dropdown */}
-                    <div className="relative min-w-[160px]">
-                        <button
-                            onClick={() => setIsLanguageOpen(!isLanguageOpen)}
-                            className="w-full h-full bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-muted/50 transition-all text-primary dark:text-white"
-                        >
-                            <span className="font-medium truncate flex items-center gap-2">
-                                {languageTabs.find(t => t.id === selectedLanguage)?.label}
-                            </span>
-                            <ChevronDown size={16} className={`text-muted-foreground transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
-                        </button>
+                {/* Controls Row */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-3 w-full md:w-auto relative z-30">
+                        {/* Language Toggle */}
+                        <div className="relative group">
+                            <button
+                                onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                                className="h-12 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 flex items-center gap-3 shadow-md hover:shadow-lg transition-all text-primary dark:text-white font-bold"
+                            >
+                                <Code size={18} className="text-primary/60" />
+                                <span className="min-w-[80px] text-left">
+                                    {selectedLanguage === 'python' ? 'Python' : selectedLanguage === 'javascript' ? 'JavaScript' : 'C++'}
+                                </span>
+                                <ChevronDown size={16} className={`transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                            </button>
 
-                        {isLanguageOpen && (
-                            <div className="absolute top-full left-0 mt-2 w-full min-w-[200px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
-                                {languageTabs.map((tab) => (
+                            {isLanguageOpen && (
+                                <div className="absolute top-full left-0 mt-3 w-56 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-[1.5rem] shadow-2xl overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                                    {(['python', 'javascript', 'cpp'] as Language[]).map((lang) => (
+                                        <button
+                                            key={lang}
+                                            onClick={() => {
+                                                setSelectedLanguage(lang);
+                                                setIsLanguageOpen(false);
+                                            }}
+                                            className={`w-full text-left px-5 py-3 text-sm transition-all flex items-center justify-between
+                                            ${selectedLanguage === lang
+                                                    ? 'bg-primary/5 text-primary font-black'
+                                                    : 'text-muted-foreground hover:bg-gray-50 dark:hover:bg-white/5 hover:translate-x-1'
+                                                }`}
+                                        >
+                                            <span className="capitalize">{lang === 'cpp' ? 'C++' : lang}</span>
+                                            {selectedLanguage === lang && <CheckCircle2 size={16} className="text-primary" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Tier Dropdown */}
+                        <div className="relative group">
+                            <button
+                                onClick={() => setIsTierOpen(!isTierOpen)}
+                                className="h-12 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 flex items-center gap-3 shadow-md hover:shadow-lg transition-all text-primary dark:text-white font-bold"
+                            >
+                                <BookOpen size={18} className="text-primary/60" />
+                                <span className="min-w-[100px] text-left">
+                                    {selectedTier === 'all' ? 'All Tiers' : `Tier ${selectedTier}: ${tierMap[selectedTier]}`}
+                                </span>
+                                <ChevronDown size={16} className={`transition-transform duration-300 ${isTierOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {isTierOpen && (
+                                <div className="absolute top-full left-0 mt-3 w-64 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-[1.5rem] shadow-2xl overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
                                     <button
-                                        key={tab.id}
-                                        onClick={() => {
-                                            setSelectedLanguage(tab.id as Language);
-                                            setIsLanguageOpen(false);
-                                        }}
-                                        className={`w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between
-                                                ${selectedLanguage === tab.id
-                                                ? 'bg-primary/5 text-primary font-bold'
-                                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
-                                            }
-                                            `}
+                                        onClick={() => { setSelectedTier('all'); setIsTierOpen(false); }}
+                                        className={`w-full text-left px-5 py-3 text-sm transition-all ${selectedTier === 'all' ? 'bg-primary/5 text-primary font-black' : 'text-muted-foreground hover:bg-gray-50 dark:hover:bg-white/5 hover:translate-x-1'}`}
                                     >
-                                        <span className="flex items-center gap-2">
-                                            {/* tab.icon is present in data but we might just use text to keep it simple or use it if available */}
-                                            {tab.label}
-                                        </span>
-                                        {selectedLanguage === tab.id && (
-                                            <CheckCircle2 size={14} className="text-primary" />
-                                        )}
+                                        All Tiers
                                     </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Backdrop to close */}
-                        {isLanguageOpen && (
-                            <div
-                                className="fixed inset-0 z-40 bg-transparent"
-                                onClick={() => setIsLanguageOpen(false)}
-                            />
-                        )}
+                                    {(['1', '2', '3', '4', '5']).map((tier) => (
+                                        <button
+                                            key={tier}
+                                            onClick={() => { setSelectedTier(Number(tier) as Tier); setIsTierOpen(false); }}
+                                            className={`w-full text-left px-5 py-3 text-sm transition-all flex items-center justify-between
+                                            ${selectedTier === Number(tier)
+                                                    ? 'bg-primary/5 text-primary font-black'
+                                                    : 'text-muted-foreground hover:bg-gray-50 dark:hover:bg-white/5 hover:translate-x-1'
+                                                }`}
+                                        >
+                                            <span>Tier {tier}: {tierMap[tier]}</span>
+                                            {selectedTier === Number(tier) && <CheckCircle2 size={16} className="text-primary" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-                <div className="flex gap-3 w-full md:w-auto z-20">
-                    <div className="relative flex-1 md:w-64">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                        <input
-                            type="text"
+
+                    <div className="relative w-full md:w-96 group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5 group-focus-within:text-primary transition-colors" />
+                        <Input
                             placeholder="Search lessons..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-6 py-3 bg-white dark:bg-card text-primary dark:text-white border border-gray-200 dark:border-border rounded-full text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-100 dark:focus-visible:ring-lime-900 focus-visible:border-lime-500 transition-all font-sans shadow-sm"
+                            className="h-14 pl-14 pr-6 rounded-full bg-white dark:bg-card border-gray-200 dark:border-border shadow-md focus:shadow-xl transition-all font-medium text-base"
                         />
                     </div>
-
-                    {/* Custom Dropdown */}
-                    <div className="relative min-w-[200px]">
-                        <button
-                            onClick={() => setIsTierOpen(!isTierOpen)}
-                            className="w-full h-full bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 py-3 flex items-center justify-between shadow-sm hover:bg-gray-50 dark:hover:bg-muted/50 transition-all text-primary dark:text-white"
-                        >
-                            <span className="font-medium truncate">
-                                {tierOptions.find(o => o.value === selectedTier.toString())?.label || 'All Tiers'}
-                            </span>
-                            <ChevronDown size={16} className={`text-muted-foreground transition-transform duration-200 ${isTierOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {isTierOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
-                                {tierOptions.map((option) => (
-                                    <button
-                                        key={option.value}
-                                        onClick={() => {
-                                            setSelectedTier(option.value === 'all' ? 'all' : parseInt(option.value) as Tier);
-                                            setIsTierOpen(false);
-                                        }}
-                                        className={`w-full text-left px-5 py-2.5 text-sm transition-colors flex items-center justify-between
-                                            ${(option.value === 'all' && selectedTier === 'all') || parseInt(option.value) === selectedTier
-                                                ? 'bg-primary/5 text-primary font-bold'
-                                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5'
-                                            }
-                                        `}
-                                    >
-                                        {option.label}
-                                        {((option.value === 'all' && selectedTier === 'all') || parseInt(option.value) === selectedTier) && (
-                                            <CheckCircle2 size={14} className="text-primary" />
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Backdrop to close */}
-                        {isTierOpen && (
-                            <div
-                                className="fixed inset-0 z-40 bg-transparent"
-                                onClick={() => setIsTierOpen(false)}
-                            />
-                        )}
-                    </div>
                 </div>
-            </div>
 
-            {/* Tiers & Lessons Grid */}
-            <div className="space-y-12 pb-20">
-                {Object.entries(groupedLessons).map(([tier, lessons]) => (
-                    <div key={tier}>
-                        <div className="flex items-center gap-4 mb-8">
-                            <Badge variant="secondary" className="px-4 py-1.5 text-sm bg-white dark:bg-card shadow-sm border border-gray-100 dark:border-border rounded-full">
-                                Tier {tier}
-                            </Badge>
-                            <div className="h-px flex-1 bg-gray-200 dark:bg-border"></div>
-                        </div>
+                {/* Lessons Grid */}
+                <div className="space-y-16 pb-20">
+                    {Object.entries(groupedLessons).sort(([a], [b]) => Number(a) - Number(b)).map(([tier, lessons]) => (
+                        <div key={tier} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="flex items-center gap-4">
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 mb-1">Level 0{tier}</span>
+                                    <h2 className="text-xl font-black text-foreground tracking-tight px-6 bg-background relative z-10">
+                                        {tierMap[tier as string]}
+                                    </h2>
+                                </div>
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {lessons.map((lesson) => {
-                                const completed = isCompleted('lesson', lesson.id);
-                                return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {lessons.map((lesson) => (
                                     <div
                                         key={lesson.id}
-                                        onClick={() => handleStartLesson(lesson)}
-                                        className={`
-                                            group relative p-8 rounded-[2.5rem] border border-transparent transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[240px]
-                                            ${completed
-                                                ? 'bg-gray-50 dark:bg-muted/50 border-gray-100 dark:border-border'
-                                                : 'bg-white dark:bg-card shadow-sm hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-lime-200 dark:hover:border-lime-900 hover:-translate-y-1'
-                                            }
-                                        `}
+                                        onClick={() => navigate(`/learn/${lesson.id}`)}
+                                        className="group relative bg-white dark:bg-card border border-gray-200 dark:border-border rounded-[2rem] p-8 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/5 cursor-pointer overflow-hidden"
                                     >
-                                        <div>
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div className={`
-                                                    w-12 h-12 rounded-2xl flex items-center justify-center transition-colors
-                                                    ${completed
-                                                        ? 'bg-lime-100 dark:bg-lime-900/30 text-lime-600 dark:text-lime-400'
-                                                        : 'bg-gray-100 dark:bg-muted text-primary dark:text-white group-hover:bg-primary group-hover:text-lime-400 dark:group-hover:bg-white dark:group-hover:text-black'
-                                                    }
-                                                `}>
-                                                    {completed ? <CheckCircle2 size={24} /> : <Code size={24} />}
+                                        {isCompleted('lesson', lesson.id) && (
+                                            <div className="absolute top-6 right-6">
+                                                <div className="bg-lime-500/10 text-lime-600 dark:text-lime-400 p-2 rounded-xl border border-lime-500/20">
+                                                    <CheckCircle2 size={16} />
                                                 </div>
-                                                {completed && (
-                                                    <Badge variant="success" size="sm" className="bg-lime-100 text-lime-700 border-lime-200">Completed</Badge>
-                                                )}
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-6">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary/30 rounded-full text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                                {lesson.sections[0]?.type || 'Lesson'}
                                             </div>
 
-                                            <h3 className="font-bold text-lg text-primary mb-3">
-                                                {lesson.title}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                                                {lesson.description}
-                                            </p>
-                                        </div>
+                                            <div>
+                                                <h3 className="text-2xl font-black text-foreground mb-3 leading-tight tracking-tight group-hover:text-primary transition-colors">
+                                                    {lesson.title}
+                                                </h3>
+                                                <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed font-medium">
+                                                    {lesson.description}
+                                                </p>
+                                            </div>
 
-                                        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100 dark:border-border">
-                                            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                                <Clock size={14} /> {lesson.estimatedTime} min
-                                            </span>
-
-                                            {!completed ? (
-                                                <div className="flex items-center gap-2 text-xs font-bold text-primary group-hover:text-lime-600 transition-colors">
-                                                    Start Lesson <ArrowRight size={14} />
+                                            <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                                                        <Clock size={14} className="text-primary/40" />
+                                                        {lesson.estimatedTime}m
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-xs font-bold text-lime-600 dark:text-lime-400">
+                                                        <Sparkles size={14} />
+                                                        +{lesson.xpReward} XP
+                                                    </div>
                                                 </div>
-                                            ) : (
-                                                <span className="flex items-center gap-1 text-lime-600 text-xs font-bold">
-                                                    +{lesson.xpReward} XP Earned
-                                                </span>
-                                            )}
+                                                <div className="bg-primary/5 group-hover:bg-primary text-primary group-hover:text-white p-2.5 rounded-2xl transition-all duration-300">
+                                                    <ArrowRight size={18} />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+
+                    {filteredLessons.length === 0 && (
+                        <div className="text-center py-32 bg-secondary/20 rounded-[3rem] border-2 border-dashed border-border flex flex-col items-center gap-4">
+                            <div className="w-20 h-20 bg-muted/20 rounded-full flex items-center justify-center">
+                                <Search size={32} className="text-muted-foreground/30" />
+                            </div>
+                            <div>
+                                <p className="text-xl font-bold text-foreground">No lessons found</p>
+                                <p className="text-muted-foreground mt-1">Try adjusting your filters or search terms.</p>
+                            </div>
+                            <Button
+                                variant="primary"
+                                onClick={() => { setSearchQuery(''); setSelectedTier('all'); }}
+                                className="mt-4 rounded-full"
+                            >
+                                Reset all filters
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Backdrop for closing dropdowns */}
+                {(isTierOpen || isLanguageOpen) && (
+                    <div
+                        className="fixed inset-0 z-10 bg-black/5"
+                        onClick={() => { setIsTierOpen(false); setIsLanguageOpen(false); }}
+                    />
+                )}
             </div>
-        </div>
+
+            {/* AI Insights Modal */}
+            {showInsightsPanel && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 scale-in duration-300 pointer-events-auto">
+                    <div
+                        className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+                        onClick={() => setShowInsightsPanel(false)}
+                    />
+                    <div className="relative w-full max-w-6xl h-[85vh] overflow-hidden rounded-[2.5rem] shadow-2xl ring-1 ring-white/10">
+                        <AIInsightsPanel
+                            insights={insights}
+                            skills={skills}
+                            recommendation={recommendation}
+                            loading={analyticsLoading}
+                            onRefresh={() => { }}
+                            onClose={() => setShowInsightsPanel(false)}
+                        />
+                    </div>
+                </div>
+            )}
+        </>
     );
 };

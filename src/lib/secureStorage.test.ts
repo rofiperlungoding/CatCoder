@@ -32,12 +32,10 @@ describe('Secure Storage - Property-Based Tests', () => {
     beforeEach(() => {
         mockStorage = createMockLocalStorage();
         originalLocalStorage = globalThis.localStorage;
-        // @ts-ignore - replacing localStorage for testing
         globalThis.localStorage = mockStorage as unknown as Storage;
     });
 
     afterEach(() => {
-        // @ts-ignore - restoring localStorage
         globalThis.localStorage = originalLocalStorage;
     });
 
@@ -73,10 +71,10 @@ describe('Secure Storage - Property-Based Tests', () => {
                     (key, value) => {
                         // Ensure key is valid for localStorage
                         const safeKey = `test_${key.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                        
+
                         secureStorage.setItem(safeKey, value);
                         const retrieved = secureStorage.getItem(safeKey);
-                        
+
                         return retrieved === value;
                     }
                 ),
@@ -96,12 +94,12 @@ describe('Secure Storage - Property-Based Tests', () => {
                     (obj) => {
                         const key = 'test_json_object';
                         const jsonString = JSON.stringify(obj);
-                        
+
                         secureStorage.setItem(key, jsonString);
                         const retrieved = secureStorage.getItem(key);
-                        
+
                         if (retrieved === null) return false;
-                        
+
                         const parsed = JSON.parse(retrieved);
                         return JSON.stringify(parsed) === jsonString;
                     }
@@ -146,22 +144,22 @@ describe('Secure Storage - Property-Based Tests', () => {
                     }),
                     (jsonObj) => {
                         const key = 'test_json_corrupted';
-                        
+
                         // Store raw JSON (not encrypted) - simulates old unencrypted data
                         // that doesn't match the encrypted format
                         const rawJson = JSON.stringify(jsonObj);
-                        
+
                         // Skip if it happens to look like encrypted data
                         if (isEncrypted(rawJson)) {
                             return true;
                         }
-                        
+
                         localStorage.setItem(key, rawJson);
-                        
+
                         // Attempt to read - should either return null (decryption fails)
                         // or return garbage (not the original JSON)
                         const result = secureStorage.getItem(key);
-                        
+
                         // The key property is: if we get something back, it should NOT
                         // be the original unencrypted JSON (that would be a security issue)
                         // Either result is null (corrupted data cleared) or it's garbage
@@ -193,14 +191,14 @@ describe('Secure Storage - Property-Based Tests', () => {
                 '<html>test</html>',
                 'SELECT * FROM users'
             ];
-            
+
             for (const plainText of plainTextValues) {
                 const key = 'test_plain_text';
                 localStorage.setItem(key, plainText);
-                
+
                 const result = secureStorage.getItem(key);
                 const stillExists = localStorage.getItem(key);
-                
+
                 expect(result).toBeNull();
                 expect(stillExists).toBeNull();
             }
@@ -213,10 +211,10 @@ describe('Secure Storage - Property-Based Tests', () => {
                     fc.integer({ min: 0, max: 50 }),
                     (originalValue, tamperIndex) => {
                         const key = 'test_tampered';
-                        
+
                         // First, properly encrypt a value
                         const encrypted = encrypt(originalValue);
-                        
+
                         // Tamper with the encrypted data
                         const chars = encrypted.split('');
                         if (chars.length > 0) {
@@ -225,13 +223,13 @@ describe('Secure Storage - Property-Based Tests', () => {
                             chars[idx] = chars[idx] === 'X' ? 'Y' : 'X';
                         }
                         const tampered = chars.join('');
-                        
+
                         // Set tampered data directly
                         localStorage.setItem(key, tampered);
-                        
+
                         // Attempt to read
                         const result = secureStorage.getItem(key);
-                        
+
                         // Should either return null (corrupted) or the original value
                         // (if tampering happened to not break decryption)
                         // The key point is it should not throw
@@ -254,13 +252,13 @@ describe('Secure Storage - Property-Based Tests', () => {
                     fc.string({ minLength: 1, maxLength: 50 }),
                     (key) => {
                         const safeKey = `test_remove_${key.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                        
+
                         // Set a value
                         secureStorage.setItem(safeKey, 'test value');
-                        
+
                         // Remove it
                         secureStorage.removeItem(safeKey);
-                        
+
                         // Should be gone
                         const result = secureStorage.getItem(safeKey);
                         return result === null;
@@ -279,12 +277,12 @@ describe('Secure Storage - Unit Tests', () => {
     beforeEach(() => {
         mockStorage = createMockLocalStorage();
         originalLocalStorage = globalThis.localStorage;
-        // @ts-ignore
+        // @ts-expect-error - Mocking localStorage for isolation
         globalThis.localStorage = mockStorage as unknown as Storage;
     });
 
     afterEach(() => {
-        // @ts-ignore
+        // @ts-expect-error - Restoring original localStorage
         globalThis.localStorage = originalLocalStorage;
     });
 
@@ -292,7 +290,7 @@ describe('Secure Storage - Unit Tests', () => {
         const original = 'Hello, World!';
         const encrypted = encrypt(original);
         const decrypted = decrypt(encrypted);
-        
+
         expect(decrypted).toBe(original);
         expect(encrypted).not.toBe(original);
     });
@@ -302,13 +300,13 @@ describe('Secure Storage - Unit Tests', () => {
             user: { id: '123', name: 'Test User' },
             settings: { theme: 'dark', notifications: true }
         };
-        
+
         const key = 'app-state';
         const jsonString = JSON.stringify(state);
-        
+
         secureStorage.setItem(key, jsonString);
         const retrieved = secureStorage.getItem(key);
-        
+
         expect(retrieved).toBe(jsonString);
         expect(JSON.parse(retrieved!)).toEqual(state);
     });
@@ -316,7 +314,7 @@ describe('Secure Storage - Unit Tests', () => {
     it('should identify encrypted values correctly', () => {
         const encrypted = encrypt('test');
         const plainText = 'just plain text';
-        
+
         expect(isEncrypted(encrypted)).toBe(true);
         expect(isEncrypted(plainText)).toBe(false);
     });

@@ -36,7 +36,8 @@ export const fetchLeaderboard = async (limit: number = 10): Promise<LeaderboardE
         return [];
     }
 
-    return (data || []).map((profile: LeaderboardProfile, index: number) => ({
+    // Use a compatible type for the mapping that aligns with Supabase return type
+    return (data || []).map((profile: { id: string; username: string; avatar_url: string | null; xp: number | null; rank: string | null }, index: number) => ({
         rank: index + 1,
         user: {
             id: profile.id,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Cat, ArrowLeft, Mail, Send, CheckCircle } from 'lucide-react';
-import { Button, Input } from '../../components/ui';
+import { Button, Input, LoadingSpinner } from '../../components/ui';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useUIStore } from '../../stores';
 
@@ -39,7 +39,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 setIsSubmitted(true);
                 addToast('success', 'Password reset email sent!');
             }
-        } catch (err) {
+        } catch {
             addToast('error', 'An unexpected error occurred');
         } finally {
             setIsLoading(false);
@@ -125,7 +125,7 @@ export const ForgotPasswordPage: React.FC = () => {
                                 >
                                     {isLoading ? (
                                         <span className="flex items-center gap-2">
-                                            <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                                            <LoadingSpinner size={20} />
                                             Sending...
                                         </span>
                                     ) : (

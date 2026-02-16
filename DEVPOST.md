@@ -77,13 +77,11 @@ Building CatCoder was not without obstacles:
 
 ## 🏆 Accomplishments We're Proud Of
 
-- **Beautiful, Intuitive Interface**: A clean, minimalist design inspired by modern product aesthetics that welcomes newcomers without intimidating them.
-
-- **Three Complete Learning Paths**: Python, JavaScript, and C++ lesson modules ready for immediate use.
-
+- **Integrated AI Mentorship**: Real-time AI Assistant for hints and a Gemini-style AI Insights Panel for personalized learning analysis.
+- **Three Complete Learning Paths**: Python, JavaScript, and C++ lesson modules with standardized loading and smooth UI.
 - **Real-Time Leaderboards**: Live speed run tracking that fosters a sense of community and healthy competition.
-
-- **Zero-Friction Onboarding**: Users can start learning within seconds of visiting the platform.
+- **Zero-Friction Onboarding**: Users can start learning within seconds, even as guests.
+- **Production-Ready Performance**: Optimized with code splitting and vendor chunks for 2x faster loads.
 
 ---
 
@@ -91,10 +89,10 @@ Building CatCoder was not without obstacles:
 
 This project was a profound learning experience:
 
-- The importance of **user-centered design**—features mean nothing if they confuse or frustrate users.
-- How to architect a **scalable React application** with proper state management and component composition.
-- The nuances of **authentication and session management** in modern web applications.
-- That **accessibility is not optional**—it is a prerequisite for truly impactful educational tools.
+- **AI Integration**: How to build non-intrusive, helpful AI features that enhance rather than replace the learning experience.
+- **UI Performance**: Meticulous optimization with Vite and dynamic imports significantly transforms user feel.
+- **Scalable State**: Managing complex AI and progress states with Zustand.
+- **Enterprise Aesthetics**: Why consistent design tokens and standardized components are essential for trust.
 
 ---
 
@@ -102,11 +100,10 @@ This project was a profound learning experience:
 
 Our roadmap includes:
 
-- **Backend Code Execution**: Secure sandboxed environments for running user code in real-time.
-- **AI-Powered Hints**: Intelligent assistance that guides users without giving away solutions.
-- **Course Creation Tools**: Enabling educators to build and share their own curricula.
-- **Mobile Applications**: Native iOS and Android apps for learning on the go.
-- **Community Features**: Forums, study groups, and peer mentorship systems.
+- **C++ WebAssembly Execution**: Full parity with Python and JS in-browser runners.
+- **Collaborative Study Rooms**: Real-time multiplayer practice sessions.
+- **Course Creation SDK**: Allowing the community to build and share their own curriculum.
+- **Mobile Mastery**: Native apps for offline learning on the go.
 
 ---
 

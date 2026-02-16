@@ -9,7 +9,7 @@
  * Validates: Requirements 1.2, 1.4, 1.5, 1.6
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 
 // Test configuration for property-based tests
@@ -100,8 +100,8 @@ describe('Secure Code Runner - Property Tests', () => {
                     (testString) => {
                         const escapedString = JSON.stringify(testString);
                         const code = `console.log(${escapedString});`;
-                        const { output, errors } = createSandboxedExecution(code);
-                        
+                        const { output } = createSandboxedExecution(code);
+
                         // Output should contain the logged string
                         return output.length > 0 && output[0] === testString;
                     }
@@ -117,7 +117,7 @@ describe('Secure Code Runner - Property Tests', () => {
                     (testNumber) => {
                         const code = `console.log(${testNumber});`;
                         const { output } = createSandboxedExecution(code);
-                        
+
                         return output.length > 0 && output[0] === String(testNumber);
                     }
                 ),
@@ -132,7 +132,7 @@ describe('Secure Code Runner - Property Tests', () => {
                     (numbers) => {
                         const code = numbers.map(n => `console.log(${n});`).join('\n');
                         const { output } = createSandboxedExecution(code);
-                        
+
                         // All numbers should be captured in order
                         return output.length === numbers.length &&
                             numbers.every((n, i) => output[i] === String(n));
@@ -169,7 +169,7 @@ describe('Secure Code Runner - Property Tests', () => {
                     (api) => {
                         const code = `console.log(${api} === null);`;
                         const { output, errors } = createSandboxedExecution(code);
-                        
+
                         // Should execute without errors and blocked API should be null
                         return errors.length === 0 && output.length > 0 && output[0] === 'true';
                     }
@@ -190,7 +190,7 @@ describe('Secure Code Runner - Property Tests', () => {
                             console.log(${marker});
                         `;
                         const { output, errors } = createSandboxedExecution(code);
-                        
+
                         // Execution should continue and log the marker
                         return errors.length === 0 && output.includes(String(marker));
                     }
@@ -206,7 +206,7 @@ describe('Secure Code Runner - Property Tests', () => {
                     (api) => {
                         const code = `console.log(typeof ${api});`;
                         const { output, errors } = createSandboxedExecution(code);
-                        
+
                         // typeof null is 'object', execution should not crash
                         return errors.length === 0 && output.length > 0;
                     }
@@ -253,11 +253,11 @@ describe('Secure Code Runner - Property Tests', () => {
                         // First execution: set a variable
                         const code1 = `var ${varName} = ${value}; console.log(${varName});`;
                         const result1 = createSandboxedExecution(code1);
-                        
+
                         // Second execution: try to access the variable
                         const code2 = `console.log(typeof ${varName});`;
                         const result2 = createSandboxedExecution(code2);
-                        
+
                         // First execution should succeed with the value
                         // Second execution should show variable is undefined (not shared)
                         return result1.output.includes(String(value)) &&
@@ -277,11 +277,11 @@ describe('Secure Code Runner - Property Tests', () => {
                         // First execution: define a function
                         const code1 = `function ${fnName}() { return ${returnValue}; } console.log(${fnName}());`;
                         const result1 = createSandboxedExecution(code1);
-                        
+
                         // Second execution: try to call the function
                         const code2 = `console.log(typeof ${fnName});`;
                         const result2 = createSandboxedExecution(code2);
-                        
+
                         // First execution should succeed
                         // Second execution should show function is undefined
                         return result1.output.includes(String(returnValue)) &&
@@ -302,9 +302,9 @@ describe('Secure Code Runner - Property Tests', () => {
                             const code = `var globalVar = ${v}; console.log(globalVar);`;
                             return createSandboxedExecution(code);
                         });
-                        
+
                         // Each execution should only see its own value
-                        return results.every((r, i) => 
+                        return results.every((r, i) =>
                             r.output.length === 1 && r.output[0] === String(values[i])
                         );
                     }
