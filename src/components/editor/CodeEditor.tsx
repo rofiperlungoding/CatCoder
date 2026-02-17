@@ -23,7 +23,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 }) => {
     const { theme } = useThemeStore();
 
-    const handleBeforeMount: BeforeMount = (monaco) => {
+    const handleBeforeMount: BeforeMount = React.useCallback((monaco) => {
         // Define Custom Dark Theme (WCAG AA Compliant High Contrast)
         monaco.editor.defineTheme('catcoder-dark', {
             base: 'vs-dark',
@@ -67,14 +67,14 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 'editor.inactiveSelectionBackground': '#f1f5f9',
             }
         });
-    };
+    }, []);
 
-    const handleEditorDidMount: OnMount = (_editor) => {
+    const handleEditorDidMount: OnMount = React.useCallback((_editor) => {
         // Force layout update after mount
         setTimeout(() => {
             _editor.layout();
         }, 100);
-    };
+    }, []);
 
     const editorFallback = (
         <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-slate-50 dark:bg-zinc-950 gap-3">

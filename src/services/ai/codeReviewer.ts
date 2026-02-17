@@ -43,7 +43,22 @@ export class CodeReviewer {
             );
 
             // 5. Parse JSON
-            const jsonResponse = JSON.parse(content);
+            let jsonResponse;
+            try {
+                // Handle potential markdown wrapping (e.g., ```json ... ```)
+                const cleanContent = content.replace(/^```json\s*|\s*```$/g, '');
+                jsonResponse = JSON.parse(cleanContent);
+            } catch (e) {
+                console.warn('AI returned invalid JSON, falling back to text parsing', e);
+                // Fallback structure if AI returns plain text
+                jsonResponse = {
+                    explanation: content,
+                    rating: 3,
+                    strengths: ['Response received'],
+                    improvements: ['Could not parse specific feedback'],
+                    alternatives: []
+                };
+            }
 
             // 6. Construct response
             const response: AICodeReviewResponse = {
@@ -51,7 +66,7 @@ export class CodeReviewer {
                 strengths: jsonResponse.strengths || [],
                 improvements: jsonResponse.improvements || [],
                 alternatives: jsonResponse.alternatives || [],
-                explanation: jsonResponse.explanation || 'Review generated.',
+                explanation: jsonResponse.explanation || content.substring(0, 100),
                 tokensUsed: 0,
                 cached: false,
             };

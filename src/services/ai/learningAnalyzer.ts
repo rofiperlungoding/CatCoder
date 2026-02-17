@@ -8,7 +8,8 @@ import type {
     ChallengeAttempt,
     SkillAssessment,
     LearningInsight,
-    PersonalizedRecommendation
+    PersonalizedRecommendation,
+    LearningPathGuide
 } from '../../types/analytics';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 
@@ -17,8 +18,8 @@ export class LearningAnalyzer {
         progress: UserProgress,
         recentAttempts: ChallengeAttempt[]
     ): Promise<LearningInsight[]> {
-        // v2 prefix to invalidate old empty caches
-        const cacheKey = `v2_insights_${progress.userId}_${recentAttempts.length}`;
+        // v3 prefix to invalidate old empty/mock caches
+        const cacheKey = `v3_insights_${progress.userId}_${recentAttempts.length}`;
         const cached = AICache.get<LearningInsight[]>(cacheKey);
         if (cached) return cached;
 
@@ -91,7 +92,7 @@ export class LearningAnalyzer {
         recentAttempts: ChallengeAttempt[],
         availableChallenges: { id: string; title: string; difficulty: string }[]
     ): Promise<PersonalizedRecommendation | null> {
-        const cacheKey = `rec_${progress.userId}_${progress.completedChallenges.length}`;
+        const cacheKey = `rec_v2_${progress.userId}_${progress.completedChallenges.length}`;
         const cached = AICache.get<PersonalizedRecommendation>(cacheKey);
         if (cached) return cached;
 
@@ -161,39 +162,175 @@ export class LearningAnalyzer {
                     skill: skill.skill_name,
                     proficiency: skill.proficiency || 0,
                     challengesCompleted: attempts.length, // Approximate
-                    averageTime: 0, // Not stored in skills table yet
-                    successRate: (skill.confidence || 0) / 100 // Using confidence as a proxy for now
+                    averageTime: 0,
+                    successRate: (skill.confidence || 0) / 100
                 }));
             }
-        } catch (e) {
-            console.warn('Failed to fetch skills from DB, falling back to mock', e);
+
+            // No skills in DB? Ask AI to analyze based on history!
+            const prompt = `
+                Analyze the coding progress for a user with:
+                - Level: ${progress.level}
+                - XP: ${progress.totalXP}
+                - Recent Attempts: ${JSON.stringify(attempts.slice(-5).map(a => ({
+                challenge: a.challengeId,
+                passed: a.passed,
+                hints: a.hintsUsed,
+                time: a.timeSpent
+            })))}
+
+                Return a JSON array of 3-5 skill objects with:
+                - "skill": (e.g., "Logic & Algorithms", "Code Efficiency", "Debugging", "Python Syntax", "Problem Solving")
+                - "proficiency": (0-100 integer based on success rate and level)
+                - "confidence": (0-100 integer based on consistency)
+                
+                Example: [{"skill": "Logic", "proficiency": 60, "confidence": 80}]
+            `;
+
+            const options: Partial<ChatCompletionCreateParamsNonStreaming> = {
+                max_tokens: 300,
+                temperature: 0.3,
+                response_format: { type: 'json_object' },
+            };
+
+            const content = await openaiClient.generateCompletion(
+                [{ role: 'system', content: 'You are an expert coding tutor analyzer.' }, { role: 'user', content: prompt }],
+                options
+            );
+
+            const aiSkills = JSON.parse(content).skills || JSON.parse(content);
+
+            // Return real AI analysis
+            return Array.isArray(aiSkills) ? aiSkills.map((s: any) => ({
+                skill: s.skill,
+                proficiency: s.proficiency || 50,
+                challengesCompleted: attempts.length,
+                averageTime: 0,
+                successRate: (s.confidence || 50) / 100
+            })) : fallbackMockSkills(attempts.length);
+
+        } catch (aiError) {
+            console.error('AI Skill Analysis failed:', aiError);
+            return fallbackMockSkills(attempts.length);
+        }
+    }
+    async generateLearningPathGuide(
+        progress: UserProgress,
+        recentAttempts: ChallengeAttempt[],
+        availableLessons: { id: string; title: string; topic?: string }[] = []
+    ): Promise<LearningPathGuide> {
+        // v2 cache key to invalidate old non-curriculum guides
+        const cacheKey = `guide_v3_${progress.userId}_${progress.completedChallenges.length}_${progress.currentStreak}`;
+        const cached = AICache.get<LearningPathGuide>(cacheKey);
+        if (cached) return cached;
+
+        const fallbackGuide: LearningPathGuide = {
+            message: "Welcome back! Consistency is key to mastery.",
+            recommendation: "Continue your Python journey.",
+            reason: "Building a daily habit is the fastest way to learn.",
+            actionLabel: "Continue Learning",
+            targetUrl: "/learn"
+        };
+
+        // Find next uncompleted lessons to feed the AI
+        const nextLessons = availableLessons
+            .filter(l => !progress.completedChallenges.includes(l.id))
+            .slice(0, 5); // Take top 5 candidates
+
+        if (!AIRateLimitManager.canMakeRequest()) {
+            // Smart Fallback: Recommend the very first available lesson if we can't call AI
+            if (nextLessons.length > 0) {
+                return {
+                    message: "Ready to continue your learning streak?",
+                    recommendation: nextLessons[0].title,
+                    reason: "This is the next step in your path.",
+                    actionLabel: "Start Lesson",
+                    targetUrl: `/learn/${nextLessons[0].id}`
+                };
+            }
+            return fallbackGuide;
         }
 
-        // Mock fallback if no DB data
-        return [
-            {
-                skill: 'Logic & Algorithms',
-                proficiency: 75,
-                challengesCompleted: attempts.length,
-                averageTime: 300,
-                successRate: 0.8,
-            },
-            {
-                skill: 'Code Efficiency',
-                proficiency: 60,
-                challengesCompleted: attempts.length,
-                averageTime: 300,
-                successRate: 0.8,
-            },
-            {
-                skill: 'Debugging',
-                proficiency: 45,
-                challengesCompleted: Math.floor(attempts.length / 2),
-                averageTime: 450,
-                successRate: 0.6,
+        try {
+            const userContext = {
+                level: progress.level,
+                xp: progress.totalXP,
+                recentActivity: recentAttempts.slice(-3).map(a => ({
+                    id: a.challengeId,
+                    passed: a.passed,
+                    hints: a.hintsUsed
+                })),
+                streak: progress.currentStreak
+            };
+
+            const prompt = PromptTemplates.generateLearningPathPrompt(userContext, nextLessons);
+
+            const options: Partial<ChatCompletionCreateParamsNonStreaming> = {
+                max_tokens: 300,
+                temperature: 0.4,
+                response_format: { type: 'json_object' },
+            };
+
+            const content = await openaiClient.generateCompletion(
+                [{ role: 'user', content: prompt }],
+                options
+            );
+
+            const rawGuide = JSON.parse(content);
+            const recommendationId = rawGuide.recommendationId;
+
+            // Validate that the ID exists in our options
+            const matchedLesson = nextLessons.find(l => l.id === recommendationId);
+
+            // If AI hallucinated an ID or didn't provide one, default to the first available lesson
+            const targetLesson = matchedLesson || nextLessons[0];
+            const safeTargetUrl = targetLesson ? `/learn/${targetLesson.id}` : '/learn';
+
+            const guide: LearningPathGuide = {
+                message: rawGuide.message || "Keep up the momentum!",
+                recommendation: rawGuide.recommendation || targetLesson?.title || "Next Lesson",
+                reason: rawGuide.reason || "Consistency is key.",
+                actionLabel: rawGuide.actionLabel || "Start Lesson",
+                targetUrl: safeTargetUrl
+            };
+
+            AICache.set(cacheKey, guide); // Cache for 24 hours (default in AICache)
+            return guide;
+
+        } catch (error) {
+            console.error('Failed to generate learning guide:', error);
+            if (nextLessons.length > 0) {
+                return {
+                    message: "We're having trouble reaching the AI, but don't let that stop you!",
+                    recommendation: nextLessons[0].title,
+                    reason: "Continuity is important.",
+                    actionLabel: "Start Lesson",
+                    targetUrl: `/learn/${nextLessons[0].id}`
+                };
             }
-        ];
+            return fallbackGuide;
+        }
     }
+}
+
+// Helper for absolute worst-case fallback (e.g., offline)
+function fallbackMockSkills(attemptsCount: number): SkillAssessment[] {
+    return [
+        {
+            skill: 'Logic & Algorithms',
+            proficiency: 50,
+            challengesCompleted: attemptsCount,
+            averageTime: 0,
+            successRate: 0.5,
+        },
+        {
+            skill: 'Problem Solving',
+            proficiency: 40,
+            challengesCompleted: attemptsCount,
+            averageTime: 0,
+            successRate: 0.5,
+        }
+    ];
 }
 
 export const learningAnalyzer = new LearningAnalyzer();

@@ -11,6 +11,7 @@ import {
     ChevronUp
 } from 'lucide-react';
 import { Button, ProgressBar, Badge, Avatar } from '../../components/ui';
+import { AILearningGuide } from '../../components/ai/AILearningGuide';
 import { useUserStore } from '../../stores';
 import { fetchLeaderboard } from '../../lib/leaderboard';
 import { syncUserXP } from '../../lib/sync';
@@ -86,6 +87,9 @@ export const HomePage: React.FC = () => {
                     </Button>
                 </div>
             </div>
+
+            {/* AI Learning Guide - Prominent Placement */}
+            <AILearningGuide />
 
             {/* Main Bento Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[minmax(180px,auto)]">

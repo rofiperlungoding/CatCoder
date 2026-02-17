@@ -55,7 +55,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-2">
+            <nav className="flex-1 px-4 space-y-2" aria-label="Main Navigation">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path;
                     return (
@@ -169,19 +169,25 @@ export const Sidebar: React.FC = () => {
             {/* Mobile Header & Menu */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 z-40 px-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground" aria-hidden="true">
                         <Cat size={16} />
                     </div>
                     <span className="font-bold text-primary dark:text-white">CatCoder</span>
                 </div>
-                <button onClick={toggleMobileMenu} className="p-2 text-primary dark:text-white bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-100 dark:border-gray-700">
-                    {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                <button
+                    onClick={toggleMobileMenu}
+                    className="p-2 text-primary dark:text-white bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                    aria-expanded={isMobileMenuOpen}
+                    aria-controls="mobile-menu"
+                >
+                    {isMobileMenuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
                 </button>
             </div>
 
             {/* Mobile Drawer */}
             {isMobileMenuOpen && (
-                <div className="lg:hidden fixed inset-0 z-30 pt-16 bg-background">
+                <div id="mobile-menu" className="lg:hidden fixed inset-0 z-30 pt-16 bg-background" role="dialog" aria-modal="true">
                     <SidebarContent
                         location={location}
                         navItems={navItems}

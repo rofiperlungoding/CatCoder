@@ -23,6 +23,8 @@ export const Avatar: React.FC<AvatarProps> = ({ src, alt, fallback, size = 'md',
                     src={src}
                     alt={alt || fallback}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                 />
             ) : (
                 <div className="w-full h-full flex items-center justify-center font-bold text-slate-500 dark:text-slate-300 uppercase">

@@ -39,3 +39,11 @@ export interface PersonalizedRecommendation {
     estimatedDifficulty: string;
     estimatedTime: string;
 }
+
+export interface LearningPathGuide {
+    message: string;
+    recommendation: string;
+    reason: string;
+    actionLabel: string;
+    targetUrl: string;
+}

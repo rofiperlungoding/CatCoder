@@ -79,6 +79,8 @@ const PageTracker = () => {
   return null;
 };
 
+import { ReloadPrompt } from './components/pwa/ReloadPrompt';
+
 function App() {
   const { initializeSession } = useUserStore();
   const { addToast } = useUIStore();
@@ -97,6 +99,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ReloadPrompt />
       <PageTracker />
       <ScrollToTop />
       <Suspense fallback={<LoadingScreen />}>

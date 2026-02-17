@@ -107,4 +107,38 @@ export class PromptTemplates {
       }
     `;
   }
+
+  static generateLearningPathPrompt(userContext: any, nextLessons: any[]): string {
+    return `
+      ${this.SYSTEM_PROMPT}
+
+      Task: Act as a personalized coding mentor. Analyze the user's progress and generate a motivating, actionable learning guide.
+
+      User Context:
+      - Current Level: ${userContext.level}
+      - XP: ${userContext.xp}
+      - Recent Activity: ${JSON.stringify(userContext.recentActivity)}
+      - Current Streak: ${userContext.streak} days
+
+      Available Next Lessons (CHOOSE ONE OF THESE):
+      ${JSON.stringify(nextLessons.map(l => ({ id: l.id, title: l.title, topic: l.topic })))}
+
+      Output Requirement:
+      Return a JSON object with the following structure:
+      {
+        "message": "A short, encouraging message (max 2 sentences) acknowledging their recent progress or streak.",
+        "recommendation": "The exact title of the chosen lesson from the list above.",
+        "recommendationId": "The exact 'id' of the chosen lesson from the list above.",
+        "reason": "Why this specific lesson is important for their growth (max 1 sentence).",
+        "actionLabel": "A short, punchy button label (e.g. 'Start Loops', 'Go to Lesson')."
+      }
+
+      CRITICAL:
+      - You MUST choose a lesson from the "Available Next Lessons" list.
+      - The 'recommendationId' MUST match one of the provided IDs exactly.
+      - Make the recommendation title or reasoning SPECIFIC to the programming language (e.g. say 'Python Loops', not just 'Loops').
+
+      Tone: Enthusiastic, professional, concise.
+    `;
+  }
 }

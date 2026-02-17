@@ -39,3 +39,20 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// PWA Service Worker Registration
+import { registerSW } from 'virtual:pwa-register';
+
+if ('serviceWorker' in navigator) {
+  registerSW({
+    onNeedRefresh() {
+      // Prompt user to refresh
+      if (confirm("New content available. Reload?")) {
+        window.location.reload();
+      }
+    },
+    onOfflineReady() {
+      console.log("App is ready to work offline.");
+    },
+  });
+}

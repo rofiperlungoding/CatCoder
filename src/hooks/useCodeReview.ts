@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { codeReviewer } from '../services/ai/codeReviewer';
 import { aiPersistence } from '../services/ai/aiPersistence';
 import { useUserStore } from '../stores';
@@ -18,12 +18,35 @@ export function useCodeReview(): UseCodeReviewReturn {
     const [error, setError] = useState<string | null>(null);
     const { user } = useUserStore();
 
+    // Internal cache
+    const lastRequestRef = useRef<AICodeReviewRequest | null>(null);
+    const lastResponseRef = useRef<AICodeReviewResponse | null>(null);
+
+    // Reset cache if challenge ID changes (we can detect this inside generateReview or via useEffect if we had challengeId prop)
+    // But this hook is challenge-agnostic in props. We rely on request.challengeId.
+
     const generateReview = useCallback(async (request: AICodeReviewRequest) => {
+        // Check local cache
+        if (
+            lastRequestRef.current &&
+            lastResponseRef.current &&
+            request.challengeId === lastRequestRef.current.challengeId &&
+            request.code === lastRequestRef.current.code
+            // We can also check testResults if we want to be strict, but code is main factor
+        ) {
+            setReview(lastResponseRef.current);
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
             const response = await codeReviewer.reviewCode(request);
             setReview(response);
+
+            // Update cache
+            lastRequestRef.current = request;
+            lastResponseRef.current = response;
 
             // Persist to Supabase if user is logged in
             if (user?.id) {

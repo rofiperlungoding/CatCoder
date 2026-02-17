@@ -5,19 +5,15 @@ import {
     Sparkles,
     ChevronDown,
     BookOpen,
-    Brain,
     ArrowRight,
     Clock,
     Search,
     Code
 } from 'lucide-react';
-import { Button, Input } from '../../components/ui';
+import { Button, Input, LoadingSpinner } from '../../components/ui';
 import { useUserStore, useProgressStore } from '../../stores';
 import type { Lesson, Language, Tier } from '../../types';
-import { lessons as lessonsData } from '../../data/lessons';
-import { useAIAnalytics } from '../../hooks/useAIAnalytics';
-import { useAIStore } from '../../store/aiStore';
-import AIInsightsPanel from '../../components/ai/AIInsightsPanel';
+import { loadLessonsByLanguage, loadLessonById } from '../../data/lessons';
 import { LessonCarousel } from './LessonCarousel';
 
 const tierMap: Record<string, string> = {
@@ -33,72 +29,50 @@ export const LearnPage: React.FC = () => {
     const navigate = useNavigate();
     const { selectedLanguage, setSelectedLanguage } = useUserStore();
     const { isCompleted } = useProgressStore();
-    const { showInsightsPanel, setShowInsightsPanel } = useAIStore();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTier, setSelectedTier] = useState<Tier | 'all'>('all');
     const [isTierOpen, setIsTierOpen] = useState(false);
     const [isLanguageOpen, setIsLanguageOpen] = useState(false);
 
-    const activeLesson = useMemo(() => {
-        return lessonId ? lessonsData.find(l => l.id === lessonId) || null : null;
-    }, [lessonId]);
+    const [lessons, setLessons] = useState<Lesson[]>([]);
+    const [loadingLessons, setLoadingLessons] = useState(true);
 
-    // Lock body scroll when insights panel is open
+    // Initial load and language change handler
     React.useEffect(() => {
-        if (showInsightsPanel) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-            // Also ensure we remove properties if component unmounts
-        }
-        return () => {
-            document.body.style.overflow = 'unset';
+        let mounted = true;
+        const fetchLessons = async () => {
+            setLoadingLessons(true);
+            try {
+                // If we have a specific lesson ID, we might need to load it first regardless of selected language
+                if (lessonId) {
+                    const specificLesson = await loadLessonById(lessonId);
+                    if (specificLesson && mounted) {
+                        // Ensure we switch language to match the deep-linked lesson
+                        if (selectedLanguage !== specificLesson.language) {
+                            setSelectedLanguage(specificLesson.language as Language);
+                        }
+                    }
+                }
+
+                const loadedLessons = await loadLessonsByLanguage(selectedLanguage);
+                if (mounted) {
+                    setLessons(loadedLessons);
+                }
+            } catch (error) {
+                console.error("Failed to lead lessons", error);
+            } finally {
+                if (mounted) setLoadingLessons(false);
+            }
         };
-    }, [showInsightsPanel]);
 
+        fetchLessons();
+        return () => { mounted = false; };
+    }, [selectedLanguage, lessonId, setSelectedLanguage]);
 
-    const { user } = useUserStore();
-    const { progress: userProgress } = useProgressStore();
-
-    const usageStats = useMemo(() => ({
-        userId: user?.id || 'guest',
-        level: user?.level || 1,
-        totalXP: user?.xp || 0,
-        completedChallenges: userProgress
-            .filter(p => p.status === 'completed')
-            .map(p => p.contentId),
-        currentStreak: user?.streakCurrent || 0
-    }), [user, userProgress]);
-
-    const recentAttempts = useMemo(() => {
-        return userProgress
-            .filter(p => p.completedAt) // Only completed/attempted with timestamp
-            .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
-            .slice(0, 10)
-            .map(p => ({
-                challengeId: p.contentId,
-                timestamp: new Date(p.completedAt!).getTime(),
-                timeSpent: 300, // Duration not tracked in store yet
-                hintsUsed: 0,
-                attemptCount: 1,
-                codeLength: 150, // Length not tracked in store yet
-                passed: p.status === 'completed'
-            }));
-    }, [userProgress]);
-
-    const availableChallenges = useMemo(() => lessonsData.map(l => ({
-        id: l.id,
-        title: l.title,
-        difficulty: 'medium' as const
-    })), []);
-
-    const {
-        insights,
-        skills,
-        recommendation,
-        loading: analyticsLoading
-    } = useAIAnalytics(usageStats, recentAttempts, availableChallenges);
+    const activeLesson = useMemo(() => {
+        return lessonId ? lessons.find(l => l.id === lessonId) || null : null;
+    }, [lessonId, lessons]);
 
     const handleCompleteLesson = async () => {
         // Validation and XP awarding is now handled within LessonCarousel
@@ -106,7 +80,7 @@ export const LearnPage: React.FC = () => {
         navigate('/learn');
     };
 
-    const filteredLessons = lessonsData.filter(lesson => {
+    const filteredLessons = lessons.filter(lesson => {
         const matchesLanguage = lesson.language === selectedLanguage;
         const matchesSearch = lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             lesson.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -121,10 +95,18 @@ export const LearnPage: React.FC = () => {
         return acc;
     }, {} as Record<number, Lesson[]>);
 
-    const completedCount = lessonsData.filter(l =>
+    const completedCount = lessons.filter(l =>
         l.language === selectedLanguage && isCompleted('lesson', l.id)
     ).length;
-    const totalCount = lessonsData.filter(l => l.language === selectedLanguage).length;
+    const totalCount = lessons.filter(l => l.language === selectedLanguage).length;
+
+    if (loadingLessons && lessonId) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background">
+                <LoadingSpinner size={48} className="text-primary" />
+            </div>
+        );
+    }
 
     if (activeLesson) {
         return (
@@ -139,7 +121,7 @@ export const LearnPage: React.FC = () => {
 
     return (
         <>
-            <div className={`space-y-8 animate-in fade-in duration-700 ${showInsightsPanel ? 'pointer-events-none blur-sm' : ''}`}>
+            <div className="space-y-8 animate-in fade-in duration-700">
                 {/* Header Bento */}
                 <div className="relative overflow-hidden bg-black dark:bg-card text-white rounded-[2.5rem] p-8 md:p-12 shadow-xl border border-white/5">
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-lime-500/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none transition-opacity duration-1000"></div>
@@ -156,12 +138,6 @@ export const LearnPage: React.FC = () => {
                             <p className="text-white/60 max-w-lg text-lg leading-relaxed mb-6 font-medium">
                                 Structured paths to take you from beginner to expert. Master concepts one by one.
                             </p>
-                            <Button
-                                onClick={() => setShowInsightsPanel(true)}
-                                className="rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow-lg backdrop-blur-sm transition-all"
-                            >
-                                <Brain size={16} className="mr-2" /> View AI Insights
-                            </Button>
                         </div>
 
                         <div className="w-full md:w-auto min-w-[300px] bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/10 shadow-2xl">
@@ -381,25 +357,7 @@ export const LearnPage: React.FC = () => {
                 )}
             </div>
 
-            {/* AI Insights Modal */}
-            {showInsightsPanel && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 scale-in duration-300 pointer-events-auto">
-                    <div
-                        className="absolute inset-0 bg-black/80 backdrop-blur-xl"
-                        onClick={() => setShowInsightsPanel(false)}
-                    />
-                    <div className="relative w-full max-w-6xl h-[85vh] overflow-hidden rounded-[2.5rem] shadow-2xl ring-1 ring-white/10">
-                        <AIInsightsPanel
-                            insights={insights}
-                            skills={skills}
-                            recommendation={recommendation}
-                            loading={analyticsLoading}
-                            onRefresh={() => { }}
-                            onClose={() => setShowInsightsPanel(false)}
-                        />
-                    </div>
-                </div>
-            )}
+            {/* AI Insights Modal - REMOVED per user request */}
         </>
     );
 };

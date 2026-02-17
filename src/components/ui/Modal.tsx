@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import FocusTrap from 'focus-trap-react';
 
 interface ModalProps {
     isOpen: boolean;
@@ -28,28 +29,38 @@ export const Modal: React.FC<ModalProps> = ({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 dark:bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className={`
-                bg-background dark:bg-gray-900 rounded-[2rem] shadow-2xl dark:shadow-black/50 w-full relative overflow-hidden animate-in zoom-in-95 duration-200 border border-white/50 dark:border-gray-800
-                ${sizes[size]}
-            `}>
-                <div className="flex items-center justify-between p-8 border-b border-gray-100 dark:border-gray-800">
-                    <div>
-                        <h2 className="text-xl font-bold text-primary dark:text-white">{title}</h2>
-                        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+        <FocusTrap active={isOpen} focusTrapOptions={{ initialFocus: false, clickOutsideDeactivates: true, onDeactivate: onClose }}>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 dark:bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" role="presentation">
+                {/* Backdrop click handling is managed by FocusTrap clickOutsideDeactivates or explicit handler if needed */}
+                <div
+                    className={`
+                        bg-background dark:bg-gray-900 rounded-[2rem] shadow-2xl dark:shadow-black/50 w-full relative overflow-hidden animate-in zoom-in-95 duration-200 border border-white/50 dark:border-gray-800
+                        ${sizes[size]}
+                    `}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="modal-title"
+                    aria-describedby={description ? "modal-description" : undefined}
+                >
+                    <div className="flex items-center justify-between p-8 border-b border-gray-100 dark:border-gray-800">
+                        <div>
+                            <h2 id="modal-title" className="text-xl font-bold text-primary dark:text-white">{title}</h2>
+                            {description && <p id="modal-description" className="text-sm text-muted-foreground mt-1">{description}</p>}
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-muted-foreground hover:text-primary dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                            aria-label="Close modal"
+                        >
+                            <X size={20} aria-hidden="true" />
+                        </button>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-muted-foreground hover:text-primary dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-                <div className="p-8">
-                    {children}
+                    <div className="p-8">
+                        {children}
+                    </div>
                 </div>
             </div>
-        </div>,
+        </FocusTrap>,
         document.body
     );
 };

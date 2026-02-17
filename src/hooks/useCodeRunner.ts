@@ -35,6 +35,7 @@ declare global {
 
 // Timeout constant for sandboxed execution - 3 seconds
 const EXECUTION_TIMEOUT_MS = 3000;
+const MAX_CODE_LENGTH = 10000; // Limit code length to prevent abuse (Requirement 4.3)
 
 export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     const [terminalLogs, setTerminalLogs] = useState<LogEntry[]>([]);
@@ -49,6 +50,7 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     // Web Worker ref for sandboxed JS execution
     const workerRef = useRef<Worker | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastRunTime = useRef<number>(0); // Rate limiting ref
 
     useEffect(() => {
         const loadPyodideInstance = async () => {
@@ -242,6 +244,20 @@ sys.stdout = io.StringIO()
     };
 
     const runCode = async (code: string, language: string, expectedOutput?: string): Promise<boolean> => {
+        // Requirement 4.2: Rate Limiting (Client-side Throttling)
+        const now = Date.now();
+        if (now - lastRunTime.current < 2000) { // 2 seconds delay
+            setTerminalLogs(prev => [...prev, { type: 'stderr', message: '⚠️ Please wait a moment before running code again.' }]);
+            return false;
+        }
+        lastRunTime.current = now;
+
+        // Requirement 4.3: Input Sanitization (Length Check)
+        if (code.length > MAX_CODE_LENGTH) {
+            setTerminalLogs([{ type: 'stderr', message: `Error: Code exceeds maximum length of ${MAX_CODE_LENGTH} characters.` }]);
+            return false;
+        }
+
         setIsRunning(true);
         clearLogs();
 
