@@ -1,6 +1,9 @@
 {
-  "name": "catcoder",
-  "private": true,
+  "name": "@rofiperlungoding/catcoder",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "private": false,
   "version": "1.0.0",
   "description": "Enterprise-grade AI-accelerated learning platform for software development featuring real-time mentors and adaptive curriculum.",
   "type": "module",
