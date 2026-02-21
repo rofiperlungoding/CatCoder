@@ -1,119 +1,92 @@
-<div align="center">
-  <h1>🐱 CatCoder</h1>
-  <p>
-    <strong>A Professional, Enterprise-Grade Platform for Mastering Code with AI Assistance.</strong>
-  </p>
-  <p>
-    Free. Open Source. Accessible. Driven by AI Insights.
-  </p>
+# CATCODER(1) User Manual
 
-  <p>
-    <a href="#features">Features</a> •
-    <a href="#tech-stack">Tech Stack</a> •
-    <a href="#getting-started">Getting Started</a> •
-    <a href="#contributing">Contributing</a>
-  </p>
-</div>
+## NAME
+CatCoder — AI-accelerated learning platform for software development
 
----
+## SYNOPSIS
+npm run dev
+npm run build
+npm run storybook
 
-## 🚀 Overview
+## DESCRIPTION
+CatCoder is a curriculum-driven platform designed to modernize the acquisition of software engineering skills. It combines structured learning paths with hands-on practice, gamification, and integrated artificial intelligence to provide a comprehensive educational environment.
 
-**CatCoder** is a next-generation learning platform designed to make coding education accessible and intelligent. We combine structured learning paths with hands-on practice, competitive gamification, and **AI-powered insights**, all wrapped in a premium, professional UI.
+The platform is architected to be accessible, open-source, and performance-optimized, supporting real-time code execution and personalized learning insights.
 
-Whether you're writing your first `Hello World` or mastering complex algorithms, atCoder guides you every step of the way with real-time feedback and personalized recommendations.
+## ARCHITECTURE
+CatCoder utilizes a modern, performance-centric stack for optimal developer and user experience:
 
-## ✨ Key Features
+- UI Framework: React 19 with Vite.
+- Styling: Tailwind CSS 4 using the Emerald design system.
+- State Management: Zustand with persistence capabilities.
+- Backend/Infrastructure: Supabase (PostgreSQL, Authentication, Row-Level Security).
+- Code Execution Engine: Pyodide for WebAssembly-based Python execution and native JavaScript execution.
+- Intelligence: OpenAI integration for personalized progress analysis and real-time mentorship.
+- Deployment: Progressive Web App (PWA) with offline-first capabilities via Vite PWA.
 
-### 🤖 AI-Powered Mentorship
-- **Integrated AI Assistant:** Get real-time hints and explanations directly in your editor.
-- **AI Insights Panel:** Personalized learning recommendations, XP analysis, and "Next Challenge" suggestions based on your performance.
-- **Smart Recommendations:** Never get stuck—AI analyzes your progress to suggest the perfect next step.
+## CORE MODULES
 
-### 📚 Interactive Learning
-- **Step-by-Step Lessons:** Structured curriculum for Python, JavaScript, and C++.
-- **Live Code Execution:** Run your code in-browser with Pyodide (Python) and native JavaScript engines.
-- **Hands-on Challenges:** Learn by doing with immediate validation.
+### AI-Powered Mentorship
+- Integrated assistant providing context-aware hints and explanations.
+- Insights panel offering personalized XP analysis and skill recommendations.
+- Dynamic challenge suggestions based on historical performance metrics.
 
-### ⚔️ Practice Arena
-- **Problem Bank:** Curated collection of coding challenges (Easy / Medium / Hard).
-- **Speedrun Mode:** Track your solve times and improve your coding efficiency.
-- **Multi-Language Support:** Practice in your preferred language with per-challenge configurations.
+### Interactive Pedagogy
+- Structured curriculum for Python, JavaScript, and C++.
+- Browser-resident code execution for immediate feedback loops.
+- Hands-on challenges with automated validation.
 
-### 🏆 Competition Center
-- **Global Leaderboards:** Compete with developers worldwide and climb the leagues.
-- **Succession System:** Progress from **Bronze** to **Diamond** based on your XP.
-- **Daily Challenges:** Maintain your streak and earn bonus rewards.
+### Practice and Competition
+- Curated repository of algorithmic challenges across three difficulty tiers.
+- Global leaderboards and league-based progression (Bronze to Diamond).
+- Daily challenges designed to encourage consistent practice and retention.
 
-### 📱 Progressive Web App (PWA)
-- **Offline Support:** Practice coding even without an internet connection.
-- **Installable:** Add CatCoder to your home screen on mobile and desktop.
-- **App-Like Experience:** Smooth, native-like performance with cached resources.
+### Platform Resilience
+- Full Progressive Web App (PWA) support for installability.
+- Service-worker based caching for offline functionality.
+- Performance monitoring via Web Vitals.
 
-## 🛠️ Tech Stack
+## SYSTEM REQUIREMENTS
+- Node.js version 18.0.0 or higher.
+- npm version 9.0.0 or higher.
+- OpenAI API credentials (for mentorship features).
+- Supabase Project credentials.
 
-Built with modern, performance-focused technologies:
+## INSTALLATION AND SETUP
 
-- **Frontend:** [React 19](https://reactjs.org/) + [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool:** [Vite](https://vitejs.dev/) (Optimized with code splitting & vendor chunks)
-- **Styling:** [TailwindCSS 4](https://tailwindcss.com/) (Emerald/Dark Theme)
-- **State Management:** [Zustand](https://github.com/pmndrs/zustand) (Persistence & Persistence)
-- **AI Integration:** [OpenAI Service](https://openai.com/) (Personalized Analysis)
-- **Backend/Auth:** [Supabase](https://supabase.com/) (PostgreSQL, Auth, RLS)
-- **Execution:** [Pyodide](https://pyodide.org/) (Python in WASM)
-- **PWA:** [Vite PWA](https://vite-pwa-org.netlify.app/) (Offline Support)
-- **Documentation:** [Storybook](https://storybook.js.org/) (UI Components)
-- **Analytics:** [Web Vitals](https://web.dev/vitals/) (Performance Monitoring)
+### 1. Clone the Environment
+```bash
+git clone https://github.com/rofiperlungoding/CatCoder.git
+cd CatCoder
+```
 
-## 💻 Getting Started
+### 2. Dependency Installation
+```bash
+npm install
+```
 
-Follow these steps to set up the project locally:
+### 3. Configuration
+Initialize the environment configuration by creating a `.env` file based on the provided `.env.example`. Ensure the following keys are specified:
+- Supabase URL and Anon Key.
+- OpenAI API Key.
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/rofiperlungoding/CatCoder.git
-    cd CatCoder
-    ```
+### 4. Development Execution
+Launch the local development environment:
+```bash
+npm run dev
+```
 
-2.  **Install dependencies**
-    ```bash
-    npm install
-    ```
+### 5. Specialized Tooling
+To view the UI component library:
+```bash
+npm run storybook
+```
 
-3.  **Environmental Setup**
-    Create a `.env` file based on `.env.example` with your Supabase and OpenAI credentials.
+## DOCUMENTATION
+Technical documentation and component specifications are maintained through Storybook interfaces for high visibility into the design system.
 
-4.  **Start the development server**
-    ```bash
-    npm run dev
-    ```
+## SECURITY
+Data access is enforced through Supabase Row-Level Security (RLS) policies, ensuring that student data remains isolated and secure.
 
-5.  **Run Storybook (Optional)**
-    View the UI component library:
-    ```bash
-    npm run storybook
-    ```
-
-5.  **Open your browser**
-    Navigate to `http://localhost:5173` to start your coding journey.
-
-## 🤝 Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-<div align="center">
-  <p>Made with ❤️ by the CatCoder Team</p>
-  <p><em>Last Updated: February 17, 2026</em></p>
-</div>
+## LICENSE
+Copyright (c) 2026 CatCoder Project. Distributed under the MIT License.

@@ -28,3 +28,7 @@ storybook-static
 .env
 .env.local
 .env.*.local
+
+# Agent context
+.agent
+.kiro
