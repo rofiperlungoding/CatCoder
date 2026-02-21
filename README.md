@@ -13,6 +13,30 @@ CatCoder is a curriculum-driven platform designed to modernize the acquisition o
 
 The platform is architected to be accessible, open-source, and performance-optimized, supporting real-time code execution and personalized learning insights.
 
+## VISUAL INTERFACE REPRESENTATION
+The following sequence provides a technical overview of the platform's primary user interfaces and workflow cycles:
+
+### FIG. 1: PRIMARY DASHBOARD AND ANALYTICS OVERVIEW
+![Primary Dashboard](public/ss%20catcoder/1.png)
+
+### FIG. 2: AI-INTEGRATED CODE EDITOR CONTEXT
+![Code Editor](public/ss%20catcoder/2.png)
+
+### FIG. 3: INTERACTIVE LESSON MODULE ARCHITECTURE
+![Lesson Module](public/ss%20catcoder/3.png)
+
+### FIG. 4: COMPETITION CENTER AND LEADERBOARD SYSTEM
+![Competition Center](public/ss%20catcoder/4.png)
+
+### FIG. 5: PROBLEM REPOSITORY AND CHALLENGE SELECTION
+![Problem Repository](public/ss%20catcoder/5.png)
+
+### FIG. 6: PERFORMANCE ANALYTICS AND XP PROGRESSION
+![Performance Analytics](public/ss%20catcoder/6.png)
+
+### FIG. 7: USER CONFIGURATION AND SECURITY SETTINGS
+![User Configuration](public/ss%20catcoder/7.png)
+
 ## ARCHITECTURE
 CatCoder utilizes a modern, performance-centric stack for optimal developer and user experience:
 
