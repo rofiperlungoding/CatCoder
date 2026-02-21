@@ -1,9 +1,19 @@
 # CATCODER(1) User Manual
 
-[![Design: Industrial Luxury](https://img.shields.io/badge/DESIGN-INDUSTRIAL_LUXURY-black?style=for-the-badge&labelColor=555555)]()
-[![Core: AI Accelerated](https://img.shields.io/badge/CORE-AI_ACCELERATED-FF6F61?style=for-the-badge&labelColor=555555&logo=openai)]()
-[![Tech: React 19](https://img.shields.io/badge/TECH-REACT_19-61DAFB?style=for-the-badge&labelColor=555555&logo=react)]()
-[![Backend: Supabase](https://img.shields.io/badge/PERSISTENCE-SUPABASE_POSTGRES-3ECF8E?style=for-the-badge&labelColor=555555&logo=supabase)]()
+![Branding: Industrial Luxury](https://img.shields.io/badge/DESIGN-INDUSTRIAL_LUXURY-black?style=for-the-badge&labelColor=555555)
+![Core: AI Accelerated](https://img.shields.io/badge/CORE-AI_ACCELERATED-FF6F61?style=for-the-badge&labelColor=555555&logo=openai)
+![Environment: React 19](https://img.shields.io/badge/ENV-REACT_19-61DAFB?style=for-the-badge&labelColor=555555&logo=react)
+![Build: Vite](https://img.shields.io/badge/BUILD-VITE-646CFF?style=for-the-badge&labelColor=555555&logo=vite)
+
+![Database: Supabase](https://img.shields.io/badge/PERSISTENCE-SUPABASE_POSTGRES-3ECF8E?style=for-the-badge&labelColor=555555&logo=supabase)
+![Styling: Tailwind CSS 4](https://img.shields.io/badge/STYLING-TAILWIND_4-38B2AC?style=for-the-badge&labelColor=555555&logo=tailwind-css)
+![State: Zustand](https://img.shields.io/badge/STATE-ZUSTAND-443322?style=for-the-badge&labelColor=555555)
+![Editor: Monaco](https://img.shields.io/badge/EDITOR-MONACO-007ACC?style=for-the-badge&labelColor=555555&logo=visual-studio-code)
+
+![Execution: Pyodide WASM](https://img.shields.io/badge/RUNTIME-PYODIDE_WASM-3776AB?style=for-the-badge&labelColor=555555&logo=python)
+![Web: PWA](https://img.shields.io/badge/PLATFORM-PWA_OFFLINE-5A0FC8?style=for-the-badge&labelColor=555555&logo=pwa)
+![Testing: Vitest](https://img.shields.io/badge/QUALITY-VITEST-6E9F18?style=for-the-badge&labelColor=555555&logo=vitest)
+![Docs: Storybook](https://img.shields.io/badge/DOCS-STORYBOOK-FF4785?style=for-the-badge&labelColor=555555&logo=storybook)
 
 ## NAME
 CatCoder — AI-accelerated learning platform for software development
