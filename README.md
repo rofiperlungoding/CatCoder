@@ -1,4 +1,4 @@
-# CATCODER(1) User Manual
+# CATCODER
 
 ## NAME
 CatCoder — AI-accelerated learning platform for software development
