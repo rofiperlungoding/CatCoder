@@ -1,4 +1,9 @@
-# CATCODER
+# CATCODER(1) User Manual
+
+[![Design: Industrial Luxury](https://img.shields.io/badge/DESIGN-INDUSTRIAL_LUXURY-black?style=for-the-badge&labelColor=555555)]()
+[![Core: AI Accelerated](https://img.shields.io/badge/CORE-AI_ACCELERATED-FF6F61?style=for-the-badge&labelColor=555555&logo=openai)]()
+[![Tech: React 19](https://img.shields.io/badge/TECH-REACT_19-61DAFB?style=for-the-badge&labelColor=555555&logo=react)]()
+[![Backend: Supabase](https://img.shields.io/badge/PERSISTENCE-SUPABASE_POSTGRES-3ECF8E?style=for-the-badge&labelColor=555555&logo=supabase)]()
 
 ## NAME
 CatCoder — AI-accelerated learning platform for software development
