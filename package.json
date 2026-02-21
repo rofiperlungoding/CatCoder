@@ -1,8 +1,24 @@
 {
-  "name": "chats",
+  "name": "catcoder",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Enterprise-grade AI-accelerated learning platform for software development featuring real-time mentors and adaptive curriculum.",
   "type": "module",
+  "author": "rofiperlungoding <opikopi32@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rofiperlungoding/CatCoder.git"
+  },
+  "keywords": [
+    "ai",
+    "education",
+    "coding",
+    "learning-platform",
+    "react",
+    "supabase",
+    "enterprise"
+  ],
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
