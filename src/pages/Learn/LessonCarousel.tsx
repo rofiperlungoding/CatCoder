@@ -34,8 +34,6 @@ const getDefaultCode = (lang: string) => {
 };
 
 export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, onComplete, onBack }) => {
-    const { addXP } = useUserStore();
-    const { markComplete } = useProgressStore();
     const { addToast } = useUIStore();
     const {
         isRunning,
@@ -88,7 +86,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
             setCode(initialForStep);
             clearLogs();
         }
-    }, [currentStep, activeLesson.id, activeLesson.language, clearLogs]);
+    }, [currentStep, activeLesson.id, activeLesson.language, clearLogs, currentSection]);
 
     const handleNext = async () => {
         if (isLastStep) {
@@ -96,7 +94,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
             try {
                 const user = useUserStore.getState().user;
 
-                if (user && !user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
+                if (user) {
                     try {
                         const result = await useProgressStore.getState().validateAndComplete(
                             'lesson',
@@ -117,9 +115,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                         console.error('Lesson completion error:', error);
                     }
                 } else {
-                    markComplete('lesson', activeLesson.id);
-                    addXP(activeLesson.xpReward);
-                    addToast("success", `Lesson Completed! You've earned ${activeLesson.xpReward} XP.`);
+                    addToast("error", "You must be signed in to complete lessons.");
                 }
 
                 onComplete();

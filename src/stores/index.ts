@@ -157,7 +157,6 @@ const syncProfileToSupabase = async (userId: string, updates: Partial<{
 interface UserState {
     user: User | null;
     isAuthenticated: boolean;
-    isGuest: boolean;
     isLoading: boolean;
     selectedLanguage: Language;
     recentActivities: Activity[];
@@ -165,7 +164,6 @@ interface UserState {
     // Actions
     // Actions
     setUser: (user: User | null) => void;
-    setGuest: () => void;
     logout: () => void;
     signIn: (email: string, password: string) => Promise<{ user: User | null; error: AuthError | null }>;
     signInWithGoogle: () => Promise<{ user: null; error: AuthError | null }>;
@@ -186,42 +184,20 @@ export const useUserStore = create<UserState>()(
         (set, get) => ({
             user: null,
             isAuthenticated: false,
-            isGuest: false,
             isLoading: true,
             selectedLanguage: 'python',
             recentActivities: [],
 
             setUser: (user) => set({
                 user,
-                isAuthenticated: !!user,
-                isGuest: false
+                isAuthenticated: !!user
             }),
-
-            setGuest: () => {
-                const guestUser: User = {
-                    id: 'guest-' + Date.now(),
-                    email: '',
-                    username: 'Guest Coder',
-                    xp: 0,
-                    level: 1,
-                    rank: 'bronze',
-                    streakCurrent: 0,
-                    streakBest: 0,
-                    createdAt: new Date().toISOString()
-                };
-                set({
-                    user: guestUser,
-                    isAuthenticated: false,
-                    isGuest: true
-                });
-            },
 
             logout: () => {
                 // Clear local state IMMEDIATELY for instant feedback
                 set({
                     user: null,
-                    isAuthenticated: false,
-                    isGuest: false
+                    isAuthenticated: false
                 });
                 useUIStore.getState().addToast('success', 'Signed out successfully');
 
@@ -240,24 +216,8 @@ export const useUserStore = create<UserState>()(
                 console.log('[Auth] signIn called with email:', email);
 
                 if (!isSupabaseConfigured()) {
-                    console.log('[Auth] Supabase not configured - using mock login');
-                    useUIStore.getState().addToast('warning', 'Supabase not configured. Using mock login.');
-                    set({
-                        user: {
-                            id: 'mock-user-1',
-                            username: email.split('@')[0],
-                            email: email,
-                            xp: 100,
-                            level: 2,
-                            rank: 'bronze',
-                            streakCurrent: 1,
-                            streakBest: 1,
-                            createdAt: new Date().toISOString()
-                        },
-                        isAuthenticated: true,
-                        isGuest: false
-                    });
-                    return { user: null, error: null };
+                    useUIStore.getState().addToast('error', 'Supabase not configured. Authentication services are offline.');
+                    return { user: null, error: { message: 'Database disconnected.', name: 'ConfigError', status: 500 } as unknown as AuthError };
                 }
 
                 try {
@@ -288,8 +248,7 @@ export const useUserStore = create<UserState>()(
 
                         set({
                             user: basicUser,
-                            isAuthenticated: true,
-                            isGuest: false
+                            isAuthenticated: true
                         });
                         useUIStore.getState().addToast('success', 'Welcome back!');
 
@@ -461,8 +420,7 @@ export const useUserStore = create<UserState>()(
 
                         set({
                             user: basicUser,
-                            isAuthenticated: true,
-                            isGuest: false
+                            isAuthenticated: true
                         });
 
                         // Create profile in database
@@ -557,7 +515,7 @@ export const useUserStore = create<UserState>()(
 
                         if (profile) {
                             profile.email = user.email || '';
-                            set({ user: profile, isAuthenticated: true, isGuest: false, isLoading: false });
+                            set({ user: profile, isAuthenticated: true, isLoading: false });
                             useProgressStore.getState().fetchProgress(user.id);
 
                             // Register device fingerprint for this session (Requirements 5.1, 5.2)
@@ -590,7 +548,7 @@ export const useUserStore = create<UserState>()(
                                 useUIStore.getState().addToast('success', 'Welcome! Signed in with Google');
                             }
                         } else if (event === 'SIGNED_OUT') {
-                            set({ user: null, isAuthenticated: false, isGuest: false });
+                            set({ user: null, isAuthenticated: false });
                         } else if (session?.user) {
                             await handleUserSession(session);
                         }

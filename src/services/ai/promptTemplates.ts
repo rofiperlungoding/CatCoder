@@ -108,7 +108,7 @@ export class PromptTemplates {
     `;
   }
 
-  static generateLearningPathPrompt(userContext: any, nextLessons: any[]): string {
+  static generateLearningPathPrompt(userContext: { level: number; xp: number; recentActivity: unknown[]; streak: number }, nextLessons: { id: string; title: string; topic?: string }[]): string {
     return `
       ${this.SYSTEM_PROMPT}
 

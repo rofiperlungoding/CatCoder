@@ -14,14 +14,7 @@ export interface LeaderboardProfile {
  */
 export const fetchLeaderboard = async (limit: number = 10): Promise<LeaderboardEntry[]> => {
     if (!isSupabaseConfigured()) {
-        // Return mock data if Supabase is not configured
-        return [
-            { rank: 1, user: { id: '1', username: 'CodeMaster', avatarUrl: undefined, rank: 'diamond' }, score: 25000, problemsSolved: 150 },
-            { rank: 2, user: { id: '2', username: 'ByteWizard', avatarUrl: undefined, rank: 'platinum' }, score: 22500, problemsSolved: 130 },
-            { rank: 3, user: { id: '3', username: 'AlgoNinja', avatarUrl: undefined, rank: 'platinum' }, score: 20000, problemsSolved: 120 },
-            { rank: 4, user: { id: '4', username: 'DataDragon', avatarUrl: undefined, rank: 'gold' }, score: 18000, problemsSolved: 100 },
-            { rank: 5, user: { id: '5', username: 'ScriptSamurai', avatarUrl: undefined, rank: 'gold' }, score: 15000, problemsSolved: 90 },
-        ];
+        throw new Error("Supabase is not configured. Real leaderboard logic requires an active database connection.");
     }
 
     const { data, error } = await supabase

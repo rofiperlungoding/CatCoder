@@ -98,8 +98,8 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                 duration: solveTimeSeconds
             });
 
-            if (!user || user.id.startsWith('guest-')) {
-                addToast('success', `✓ Solved in ${timeStr}! (Guest mode - progress not saved)`);
+            if (!user) {
+                addToast('error', `You must be logged in to save progress.`);
                 return;
             }
 

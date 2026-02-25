@@ -2,6 +2,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import wasm from 'vite-plugin-wasm';
+import topLevelAwait from 'vite-plugin-top-level-await';
 
 // https://vite.dev/config/
 import path from 'node:path';
@@ -12,79 +14,83 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  plugins: [react(), VitePWA({
-    registerType: 'autoUpdate',
-    includeAssets: ['logo.png', 'robots.txt', '*.svg', '*.png', '*.ico'],
-    manifest: {
-      name: 'CatCoder',
-      short_name: 'CatCoder',
-      description: 'Professional Coding Platform with AI Assistance',
-      theme_color: '#000000',
-      background_color: '#000000',
-      display: 'standalone',
-      orientation: 'portrait',
-      start_url: '/',
-      scope: '/',
-      icons: [{
-        src: '/logo.png',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'any maskable'
-      }, {
-        src: '/logo.png',
-        sizes: '192x192',
-        type: 'image/png',
-        purpose: 'any maskable'
-      }]
-    },
-    workbox: {
-      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'google-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
+  plugins: [
+    react(),
+    wasm(),
+    topLevelAwait(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['logo.png', 'robots.txt', '*.svg', '*.png', '*.ico'],
+      manifest: {
+        name: 'CatCoder',
+        short_name: 'CatCoder',
+        description: 'Professional Coding Platform with AI Assistance',
+        theme_color: '#000000',
+        background_color: '#000000',
+        display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
+        icons: [{
+          src: '/logo.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable'
+        }, {
+          src: '/logo.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any maskable'
+        }]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gstatic-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+            }
+          },
+          {
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'pyodide-cache',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // <== 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
             }
           }
-        },
-        {
-          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'gstatic-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
-            },
-          }
-        },
-        {
-          urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/.*/i,
-          handler: 'StaleWhileRevalidate',
-          options: {
-            cacheName: 'pyodide-cache',
-            expiration: {
-              maxEntries: 20,
-              maxAgeSeconds: 60 * 60 * 24 * 7 // <== 7 days
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
-            }
-          }
-        }
-      ]
-    }
-  })],
+        ]
+      }
+    })],
   test: {
     globals: true,
     environment: 'jsdom',
@@ -95,27 +101,37 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       include: ['src/lib/**/*.ts', 'src/hooks/**/*.ts']
     },
-    projects: [{
-      extends: true,
-      plugins: [
-        // The plugin will run tests for the stories defined in your Storybook config
-        // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
-        storybookTest({
-          configDir: path.join(dirname, '.storybook')
-        })],
-      test: {
-        name: 'storybook',
-        browser: {
-          enabled: true,
-          headless: true,
-          provider: playwright({}),
-          instances: [{
-            browser: 'chromium'
-          }]
-        },
-        setupFiles: ['.storybook/vitest.setup.ts']
-      }
-    }]
+    projects: [
+      {
+        test: {
+          name: 'unit',
+          globals: true,
+          environment: 'jsdom',
+          include: ['src/lib/**/*.{test,spec}.ts', 'src/hooks/**/*.{test,spec}.ts'],
+          setupFiles: ['./src/test/setup.ts'],
+        }
+      },
+      {
+        extends: true,
+        plugins: [
+          // The plugin will run tests for the stories defined in your Storybook config
+          // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
+          storybookTest({
+            configDir: path.join(dirname, '.storybook')
+          })],
+        test: {
+          name: 'storybook',
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright({}),
+            instances: [{
+              browser: 'chromium'
+            }]
+          },
+          setupFiles: ['.storybook/vitest.setup.ts']
+        }
+      }]
   },
   build: {
     rollupOptions: {

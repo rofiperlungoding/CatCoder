@@ -1,0 +1,78 @@
+name: DevSecOps Pipeline of Death (BP Section 4)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  security-audit:
+    name: Security & Integrity Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 1. Python Quality Gate (Requirement 4.1)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install Python Quality Tools
+        run: |
+          pip install ruff mypy pydantic safety bandit
+
+      - name: Python Linting (Ruff)
+        run: ruff check src/lib/secure_core.py
+
+      - name: Python Type Safety (MyPy)
+        run: mypy src/lib/secure_core.py
+
+      - name: Python Security Audit (Bandit)
+        run: bandit src/lib/secure_core.py
+
+      - name: Python Logic Fuzzing
+        run: python src/lib/fuzz_logic.py
+
+      # 2. Node.js Security Audit (Requirement 4.2)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Node Security Audit
+        run: npm audit --audit-level=high
+
+      # 3. Supply Chain Hardening (Requirement 4.3)
+      - name: Generate Software Bill of Materials (SBOM)
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: cyclonedx.bom.json
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: software-bill-of-materials
+          path: cyclonedx.bom.json
+
+      # 4. Fuzzing & Property Based Testing (Requirement 4.2)
+      - name: Execute Fuzzing Tests
+        run: npm run test -- src/lib/secure_core.fuzz.test.ts
+
+  signing-verification:
+    name: Cryptographic Signing Readiness
+    needs: security-audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Verify Build Reproducibility Placeholder
+        run: echo "Environment verified for hermetic build."

@@ -201,17 +201,20 @@ export class LearningAnalyzer {
             const aiSkills = JSON.parse(content).skills || JSON.parse(content);
 
             // Return real AI analysis
-            return Array.isArray(aiSkills) ? aiSkills.map((s: any) => ({
-                skill: s.skill,
-                proficiency: s.proficiency || 50,
-                challengesCompleted: attempts.length,
-                averageTime: 0,
-                successRate: (s.confidence || 50) / 100
-            })) : fallbackMockSkills(attempts.length);
+            if (Array.isArray(aiSkills)) {
+                return aiSkills.map((s: { skill: string; proficiency?: number; confidence?: number }) => ({
+                    skill: s.skill,
+                    proficiency: s.proficiency || 50,
+                    challengesCompleted: attempts.length,
+                    averageTime: 0,
+                    successRate: (s.confidence || 50) / 100
+                }));
+            }
+            throw new Error("AI returned malformed skill schema.");
 
         } catch (aiError) {
             console.error('AI Skill Analysis failed:', aiError);
-            return fallbackMockSkills(attempts.length);
+            throw aiError;
         }
     }
     async generateLearningPathGuide(
@@ -311,26 +314,6 @@ export class LearningAnalyzer {
             return fallbackGuide;
         }
     }
-}
-
-// Helper for absolute worst-case fallback (e.g., offline)
-function fallbackMockSkills(attemptsCount: number): SkillAssessment[] {
-    return [
-        {
-            skill: 'Logic & Algorithms',
-            proficiency: 50,
-            challengesCompleted: attemptsCount,
-            averageTime: 0,
-            successRate: 0.5,
-        },
-        {
-            skill: 'Problem Solving',
-            proficiency: 40,
-            challengesCompleted: attemptsCount,
-            averageTime: 0,
-            successRate: 0.5,
-        }
-    ];
 }
 
 export const learningAnalyzer = new LearningAnalyzer();

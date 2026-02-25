@@ -34,9 +34,9 @@ const getEncryptionKey = (): string => {
         return envKey;
     }
 
-    // Fallback key for development only
-    // In production, VITE_STORAGE_ENCRYPTION_KEY should be set
-    return 'catcoder-dev-fallback-key-2024';
+    // Fallback key for development only (REMOVED: Move to .env)
+    // In production, VITE_STORAGE_ENCRYPTION_KEY must be set
+    return undefined as unknown as string;
 };
 
 const SECRET_KEY = getEncryptionKey();
@@ -56,6 +56,10 @@ export const encrypt = (value: string): string => {
  */
 export const decrypt = (encrypted: string): string | null => {
     try {
+        if (!isEncrypted(encrypted)) {
+            return null;
+        }
+
         const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
 

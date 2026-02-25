@@ -18,7 +18,7 @@ import { syncUserXP } from '../../lib/sync';
 import type { LeaderboardEntry } from '../../types';
 
 export const HomePage: React.FC = () => {
-    const { user, isGuest, recentActivities } = useUserStore();
+    const { user, recentActivities } = useUserStore();
     const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardEntry[]>([]);
     const [loadingLeaderboard, setLoadingLeaderboard] = React.useState(true);
     const [isActivityExpanded, setIsActivityExpanded] = React.useState(false);
@@ -35,17 +35,17 @@ export const HomePage: React.FC = () => {
             }
         };
 
-        if (user || isGuest) {
+        if (user) {
             loadLeaderboard();
         }
 
         // Sync XP with history to ensure accuracy
-        if (user && !isGuest) {
+        if (user) {
             syncUserXP(user.id).catch(err => console.error('XP Sync failed:', err));
         }
-    }, [user, isGuest]);
+    }, [user]);
 
-    if (!user && !isGuest) {
+    if (!user) {
         return (
             <div className="bento-grid">
                 <div className="bento-card col-span-full min-h-[60vh] flex flex-col items-center justify-center text-center p-12 bg-white">

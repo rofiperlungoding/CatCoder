@@ -1,48 +1,46 @@
-import { useEffect } from 'react';
-// @ts-ignore - virtual module
+import { useEffect, useCallback } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { useUIStore } from '../../stores';
 
 export const ReloadPrompt = () => {
     const { addToast } = useUIStore();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const {
         offlineReady: [offlineReady, setOfflineReady],
         needRefresh: [needRefresh, setNeedRefresh],
         updateServiceWorker,
     } = useRegisterSW({
-        onRegistered(r: any) {
+        onRegistered(r: ServiceWorkerRegistration | undefined) {
             console.log('SW Registered: ' + r);
         },
-        onRegisterError(error: any) {
+        onRegisterError(error: unknown) {
             console.log('SW registration error', error);
         },
     });
 
-    const close = () => {
+    const close = useCallback(() => {
         setOfflineReady(false);
         setNeedRefresh(false);
-    };
+    }, [setOfflineReady, setNeedRefresh]);
 
     useEffect(() => {
         if (offlineReady) {
             addToast('success', 'App ready to work offline');
             close();
         }
-    }, [offlineReady, addToast]);
+    }, [offlineReady, addToast, close]);
 
     useEffect(() => {
         if (needRefresh) {
-            // In a real app, show a toast with an action button
-            // For now, simpler approach or integrating with existing toast system if it supports actions
-            // We'll use a direct confirm for simplicity as adding actions to toast requires store refactor
+            addToast('info', 'New content available, click to update');
+            // In a real app, we might show a toast with a "Reload" button.
+            // For now, we'll just automatically prompt the user if they want to update.
             if (window.confirm('New content available, click OK to reload.')) {
                 updateServiceWorker(true);
             }
             close();
         }
-    }, [needRefresh, updateServiceWorker]);
+    }, [needRefresh, updateServiceWorker, addToast, close]);
 
     return null;
-}
+};

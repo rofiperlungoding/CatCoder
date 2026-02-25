@@ -32,6 +32,9 @@ export interface DOMMonitorConfig {
 const DEFAULT_BLOCKED_TAGS: string[] = [
     'script',
     'iframe',
+    'object',
+    'embed',
+    'base'
 ];
 
 /**
@@ -168,7 +171,7 @@ export function shouldBlockElement(element: Element): boolean {
 function handleViolation(element: Element): void {
     const tagName = element.tagName.toLowerCase();
     const src = (element as HTMLScriptElement | HTMLIFrameElement).src || 'inline';
-    
+
     // Log the violation
     console.warn(`[DOMMonitor] Detected unauthorized ${tagName} injection:`, {
         tagName,
@@ -197,6 +200,34 @@ function handleViolation(element: Element): void {
 }
 
 /**
+ * Strip dangerous inline events from an element and its descendants
+ */
+function stripInlineEvents(element: Element): void {
+    const checkAndStrip = (el: Element) => {
+        if (!el.attributes) return;
+        const attributes = Array.from(el.attributes);
+        for (const attr of attributes) {
+            if (attr.name.toLowerCase().startsWith('on')) {
+                el.removeAttribute(attr.name);
+                console.warn(`[DOMMonitor] Removed dangerous inline event ${attr.name} from element`, el);
+                logDOMViolation('inline_event', 'removed', {
+                    src: 'inline',
+                    element_id: el.id || undefined,
+                    element_class: el.className || undefined,
+                    metadata: { attribute: attr.name }
+                });
+            }
+        }
+    };
+
+    checkAndStrip(element);
+    const descendants = element.getElementsByTagName('*');
+    for (const descendant of Array.from(descendants)) {
+        checkAndStrip(descendant);
+    }
+}
+
+/**
  * Process mutations detected by the observer
  */
 function processMutations(mutations: MutationRecord[]): void {
@@ -206,7 +237,10 @@ function processMutations(mutations: MutationRecord[]): void {
             for (const node of mutation.addedNodes) {
                 if (node.nodeType === Node.ELEMENT_NODE) {
                     const element = node as Element;
-                    
+
+                    // Remove inline events globally
+                    stripInlineEvents(element);
+
                     // Check the element itself
                     if (shouldBlockElement(element)) {
                         handleViolation(element);
@@ -223,6 +257,18 @@ function processMutations(mutations: MutationRecord[]): void {
                         }
                     }
                 }
+            }
+        } else if (mutation.type === 'attributes') {
+            const target = mutation.target as Element;
+            if (mutation.attributeName && mutation.attributeName.toLowerCase().startsWith('on')) {
+                target.removeAttribute(mutation.attributeName);
+                console.warn(`[DOMMonitor] Removed dangerous mutated inline event ${mutation.attributeName} from element`, target);
+                logDOMViolation('inline_event', 'removed', {
+                    src: 'inline',
+                    element_id: target.id || undefined,
+                    element_class: target.className || undefined,
+                    metadata: { attribute: mutation.attributeName }
+                });
             }
         }
     }
@@ -273,6 +319,7 @@ export function initializeDOMMonitor(config?: Partial<DOMMonitorConfig>): Mutati
     activeObserver.observe(document.body, {
         childList: true,
         subtree: true,
+        attributes: true,
     });
 
     isInitialized = true;
@@ -287,7 +334,7 @@ export function initializeDOMMonitor(config?: Partial<DOMMonitorConfig>): Mutati
  */
 export function stopDOMMonitor(observer?: MutationObserver | null): void {
     const targetObserver = observer || activeObserver;
-    
+
     if (targetObserver) {
         targetObserver.disconnect();
         console.log('[DOMMonitor] Stopped');
@@ -341,7 +388,7 @@ export function removeBlockedTag(tag: string): void {
  */
 export function scanExistingDOM(): Element[] {
     const violations: Element[] = [];
-    
+
     for (const blockedTag of monitorConfig.blockedTags) {
         const elements = document.getElementsByTagName(blockedTag);
         for (const element of Array.from(elements)) {
@@ -359,7 +406,7 @@ export function scanExistingDOM(): Element[] {
  */
 export function removeExistingViolations(): number {
     const violations = scanExistingDOM();
-    
+
     for (const element of violations) {
         handleViolation(element);
     }

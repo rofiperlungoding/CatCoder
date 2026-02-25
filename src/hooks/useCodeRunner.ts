@@ -190,28 +190,12 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     /**
      * Fallback JavaScript execution (non-sandboxed)
      * Used only when Web Workers are not available
+     * 
+     * Requirement 1.1: ALL code must execute in sandbox. 
+     * We purposefully fail-closed here instead of falling back to unsafe eval.
      */
-    const executeJsFallback = (codeStr: string): string => {
-        try {
-            const logs: string[] = [];
-            const consoleMock = {
-                log: (...args: unknown[]) => {
-                    logs.push(args.map(arg =>
-                        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-                    ).join(' '));
-                },
-                error: (...args: unknown[]) => {
-                    logs.push('Error: ' + args.map(arg => String(arg)).join(' '));
-                },
-                warn: (...args: unknown[]) => {
-                    logs.push('Warning: ' + args.map(arg => String(arg)).join(' '));
-                }
-            };
-            new Function('console', codeStr)(consoleMock);
-            return logs.join('\n');
-        } catch (e: unknown) {
-            return `Error: ${(e as Error).message}`;
-        }
+    const executeJsFallback = (_codeStr: string): string => {
+        return "Error: Secure Sandbox (Web Worker) is required for execution but could not be loaded. Please check your browser settings or refresh the page.";
     };
 
     const executePython = async (codeStr: string): Promise<string> => {

@@ -15,7 +15,7 @@ interface ContributionGraphProps {
 }
 
 export const ContributionGraph: React.FC<ContributionGraphProps> = ({ className }) => {
-    const { user, isGuest } = useUserStore();
+    const { user } = useUserStore();
     const [contributions, setContributions] = useState<Map<string, number>>(new Map());
     const [isLoading, setIsLoading] = useState(true);
     const [hoveredDay, setHoveredDay] = useState<ContributionDay | null>(null);
@@ -46,7 +46,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ className 
     // Fetch contribution data from Supabase
     useEffect(() => {
         const fetchContributions = async () => {
-            if (!user || isGuest || !isSupabaseConfigured()) {
+            if (!user || !isSupabaseConfigured()) {
                 setIsLoading(false);
                 return;
             }
@@ -86,7 +86,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ className 
         };
 
         fetchContributions();
-    }, [user, isGuest]);
+    }, [user]);
 
     // Merge contribution counts with days array
     const daysWithCounts = useMemo(() => {

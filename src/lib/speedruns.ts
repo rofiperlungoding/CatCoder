@@ -68,30 +68,7 @@ export const formatTimeAgo = (timestamp: string): string => {
  */
 export const fetchSpeedRuns = async (limit: number = 20): Promise<SpeedRunEntry[]> => {
     if (!isSupabaseConfigured()) {
-        // Return mock data if Supabase not configured
-        return [
-            {
-                id: '1',
-                user: { id: '1', username: 'kucing_glitch', league: 'diamond' },
-                problem: { id: 'two-sum', title: 'Two Sum', difficulty: 'easy' },
-                durationSeconds: 45,
-                completedAt: new Date().toISOString()
-            },
-            {
-                id: '2',
-                user: { id: '2', username: 'keyboard_warrior', league: 'gold' },
-                problem: { id: 'merge-sort', title: 'Merge Sort Implementation', difficulty: 'medium' },
-                durationSeconds: 730,
-                completedAt: new Date(Date.now() - 120000).toISOString()
-            },
-            {
-                id: '3',
-                user: { id: '3', username: 'algo_master', league: 'platinum' },
-                problem: { id: 'dijkstra', title: 'Dijkstra Pathfinding', difficulty: 'hard' },
-                durationSeconds: 2700,
-                completedAt: new Date(Date.now() - 300000).toISOString()
-            },
-        ];
+        throw new Error("Supabase is not configured. Speedruns require an active database connection.");
     }
 
     const { data, error } = await supabase
@@ -157,9 +134,7 @@ export const fetchSpeedRuns = async (limit: number = 20): Promise<SpeedRunEntry[
  */
 export const fetchSpeedRunById = async (id: string): Promise<SpeedRunEntry | null> => {
     if (!isSupabaseConfigured()) {
-        // Return mock data if Supabase not configured
-        const entry = await fetchSpeedRuns();
-        return entry.find(e => e.id === id) || null;
+        throw new Error("Supabase is not configured. Speedruns require an active database connection.");
     }
 
     const { data, error } = await supabase

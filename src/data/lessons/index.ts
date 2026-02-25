@@ -13,15 +13,18 @@ export const lessons: Lesson[] = [
 // Async loaders for Code Splitting
 export const loadLessonsByLanguage = async (language: string): Promise<Lesson[]> => {
     switch (language) {
-        case 'python':
+        case 'python': {
             const py = await import('./python');
             return py.pythonLessons;
-        case 'javascript':
+        }
+        case 'javascript': {
             const js = await import('./javascript');
             return js.javascriptLessons;
-        case 'cpp':
+        }
+        case 'cpp': {
             const cpp = await import('./cpp');
             return cpp.cppLessons;
+        }
         default:
             return [];
     }

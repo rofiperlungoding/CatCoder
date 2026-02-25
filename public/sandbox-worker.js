@@ -10,15 +10,15 @@
  */
 
 // Handle incoming code execution requests
-self.onmessage = function(event) {
+self.onmessage = function (event) {
     const { code, language, executionId } = event.data;
-    
+
     // Only support JavaScript execution in this worker
     if (language !== 'javascript') {
-        self.postMessage({ 
-            type: 'error', 
+        self.postMessage({
+            type: 'error',
             data: `Language "${language}" is not supported in sandbox worker`,
-            executionId 
+            executionId
         });
         self.postMessage({ type: 'complete', executionId });
         return;
@@ -26,8 +26,8 @@ self.onmessage = function(event) {
 
     // Safe console implementation that captures output via postMessage
     const safeConsole = {
-        log: (...args) => self.postMessage({ 
-            type: 'log', 
+        log: (...args) => self.postMessage({
+            type: 'log',
             data: args.map(a => {
                 try {
                     return typeof a === 'object' ? JSON.stringify(a) : String(a);
@@ -37,18 +37,18 @@ self.onmessage = function(event) {
             }).join(' '),
             executionId
         }),
-        error: (...args) => self.postMessage({ 
-            type: 'error', 
+        error: (...args) => self.postMessage({
+            type: 'error',
             data: args.map(a => String(a)).join(' '),
             executionId
         }),
-        warn: (...args) => self.postMessage({ 
-            type: 'warn', 
+        warn: (...args) => self.postMessage({
+            type: 'warn',
             data: args.map(a => String(a)).join(' '),
             executionId
         }),
-        info: (...args) => self.postMessage({ 
-            type: 'log', 
+        info: (...args) => self.postMessage({
+            type: 'log',
             data: args.map(a => {
                 try {
                     return typeof a === 'object' ? JSON.stringify(a) : String(a);
@@ -58,8 +58,8 @@ self.onmessage = function(event) {
             }).join(' '),
             executionId
         }),
-        debug: (...args) => self.postMessage({ 
-            type: 'log', 
+        debug: (...args) => self.postMessage({
+            type: 'log',
             data: args.map(a => {
                 try {
                     return typeof a === 'object' ? JSON.stringify(a) : String(a);
@@ -72,12 +72,24 @@ self.onmessage = function(event) {
     };
 
     try {
+        // Secure the worker environment to prevent constructor prototype escapes
+        ['fetch', 'localStorage', 'sessionStorage', 'indexedDB'].forEach(g => {
+            try {
+                delete self[g];
+                if (typeof globalThis !== 'undefined') delete globalThis[g];
+                Object.defineProperty(self, g, { value: null, configurable: false, writable: false });
+                if (typeof globalThis !== 'undefined') {
+                    Object.defineProperty(globalThis, g, { value: null, configurable: false, writable: false });
+                }
+            } catch (e) { }
+        });
+
         // Create sandboxed function with blocked globals
         // All dangerous APIs are passed as null to prevent access
         const sandboxedFn = new Function(
             'console',
             'window',
-            'document', 
+            'document',
             'fetch',
             'XMLHttpRequest',
             'localStorage',
@@ -92,7 +104,7 @@ self.onmessage = function(event) {
             'EventSource',
             `"use strict";\n${code}`
         );
-        
+
         // Execute with null references for dangerous APIs
         // This prevents code from accessing browser APIs
         sandboxedFn(
@@ -112,22 +124,22 @@ self.onmessage = function(event) {
             null,         // WebSocket - blocked
             null          // EventSource - blocked
         );
-        
+
         self.postMessage({ type: 'complete', executionId });
     } catch (error) {
-        self.postMessage({ 
-            type: 'error', 
+        self.postMessage({
+            type: 'error',
             data: error.toString(),
-            executionId 
+            executionId
         });
         self.postMessage({ type: 'complete', executionId });
     }
 };
 
 // Handle worker errors
-self.onerror = function(error) {
-    self.postMessage({ 
-        type: 'error', 
+self.onerror = function (error) {
+    self.postMessage({
+        type: 'error',
         data: `Worker error: ${error.message || 'Unknown error'}`,
         executionId: null
     });
