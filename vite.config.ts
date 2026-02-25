@@ -132,17 +132,5 @@ export default defineConfig({
           setupFiles: ['.storybook/vitest.setup.ts']
         }
       }]
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-monaco': ['@monaco-editor/react'],
-          'vendor-ui': ['lucide-react', 'clsx', 'zustand']
-        }
-      }
-    }
   }
 });
