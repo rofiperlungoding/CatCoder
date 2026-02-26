@@ -1,6 +1,7 @@
+import { CheckmarkCircle01Icon, Alert01Icon, InformationCircleIcon, Cancel01Icon, EnergyIcon } from '@hugeicons/core-free-icons';
+import { Icon } from './';
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle, AlertCircle, Info, X, Zap } from 'lucide-react';
 import { useUIStore } from '../../stores';
 import type { ToastType } from '../../stores';
 
@@ -22,11 +23,11 @@ const ToastItem: React.FC<{
     };
 
     const icons = {
-        success: <CheckCircle size={18} className="text-lime-500" />,
-        error: <AlertCircle size={18} className="text-red-500" />,
-        info: <Info size={18} className="text-gray-400" />,
-        warning: <AlertCircle size={18} className="text-amber-500" />,
-        xp: <Zap size={18} className="text-lime-500 fill-lime-200" />
+        success: <Icon icon={CheckmarkCircle01Icon} size={18} className="text-lime-500" />,
+        error: <Icon icon={Alert01Icon} size={18} className="text-red-500" />,
+        info: <Icon icon={InformationCircleIcon} size={18} className="text-gray-400" />,
+        warning: <Icon icon={Alert01Icon} size={18} className="text-amber-500" />,
+        xp: <Icon icon={EnergyIcon} size={18} className="text-lime-500 fill-lime-200" />
     };
 
     return (
@@ -41,7 +42,7 @@ const ToastItem: React.FC<{
                 onClick={() => onClose(id)}
                 className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
             >
-                <X size={14} className="opacity-50" />
+                <Icon icon={Cancel01Icon} size={14} className="opacity-50" />
             </button>
         </div>
     );

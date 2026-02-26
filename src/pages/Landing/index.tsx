@@ -1,7 +1,7 @@
+import { ProgrammingFlagIcon, BookOpen01Icon, SparklesIcon, Target01Icon, EnergyIcon, Trophy } from '@hugeicons/core-free-icons';
+import { Icon } from '../../components/ui';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Code2, Zap, Trophy, BookOpen, Sparkles, Target } from 'lucide-react';
-
 export const LandingPage: React.FC = () => {
     const navigate = useNavigate();
 
@@ -72,7 +72,7 @@ export const LandingPage: React.FC = () => {
                         <div className="absolute bottom-10 left-10 bg-black/60 backdrop-blur-md border border-white/10 p-6 rounded-3xl text-white min-w-[280px] animate-in slide-in-from-bottom-8 duration-700 delay-500">
                             <div className="mb-4">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <Trophy className="text-yellow-400" size={24} />
+                                    <Icon icon={Trophy} className="text-yellow-400" size={24} />
                                     <span className="text-2xl font-bold">Level 12</span>
                                 </div>
                                 <div className="w-full bg-white/10 rounded-full h-2">
@@ -98,7 +98,7 @@ export const LandingPage: React.FC = () => {
                                 className="flex items-center gap-2 bg-lime-400 text-black px-6 py-3 rounded-full font-bold shadow-lg hover:bg-lime-300 transition-all hover:scale-105 active:scale-95 duration-200 ease-out"
                             >
                                 Start Coding
-                                <Sparkles size={16} />
+                                <Icon icon={SparklesIcon} size={16} />
                             </button>
                         </div>
                     </div>
@@ -129,7 +129,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <div className="mt-8">
                             <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20">
-                                <Code2 strokeWidth={1.5} className="w-8 h-8" />
+                                <Icon icon={ProgrammingFlagIcon} strokeWidth={1.5} className="w-8 h-8" />
                             </div>
                         </div>
                     </div>
@@ -155,7 +155,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <div className="mt-8">
                             <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-400 border border-amber-500/20">
-                                <Zap strokeWidth={1.5} className="w-8 h-8" />
+                                <Icon icon={EnergyIcon} strokeWidth={1.5} className="w-8 h-8" />
                             </div>
                         </div>
                     </div>
@@ -170,7 +170,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <div className="mt-8">
                             <div className="w-16 h-16 bg-lime-500/10 rounded-2xl flex items-center justify-center text-lime-400 border border-lime-500/20">
-                                <Trophy strokeWidth={1.5} className="w-8 h-8" />
+                                <Icon icon={Trophy} strokeWidth={1.5} className="w-8 h-8" />
                             </div>
                         </div>
                     </div>
@@ -185,7 +185,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <div className="mt-8">
                             <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-400 border border-purple-500/20">
-                                <BookOpen strokeWidth={1.5} className="w-8 h-8" />
+                                <Icon icon={BookOpen01Icon} strokeWidth={1.5} className="w-8 h-8" />
                             </div>
                         </div>
                     </div>
@@ -200,7 +200,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <div className="mt-8">
                             <div className="w-16 h-16 bg-black/10 rounded-2xl flex items-center justify-center text-black backdrop-blur-sm">
-                                <Target strokeWidth={1.5} className="w-8 h-8" />
+                                <Icon icon={Target01Icon} strokeWidth={1.5} className="w-8 h-8" />
                             </div>
                         </div>
                         <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl opacity-50 translate-x-10 translate-y-10"></div>

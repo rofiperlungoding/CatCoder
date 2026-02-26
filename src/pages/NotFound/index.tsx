@@ -1,6 +1,6 @@
-import { Cat, Home, ArrowLeft } from 'lucide-react';
+import { GithubIcon, Home01Icon, ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 import { Link } from 'react-router-dom';
-import { Button } from '../../components/ui';
+import { Icon, Button } from '../../components/ui';
 
 export const NotFoundPage = () => {
     return (
@@ -8,7 +8,7 @@ export const NotFoundPage = () => {
             {/* Animated Cat Icon */}
             {/* Cat Icon */}
             <div className="relative mb-8 z-10">
-                <Cat size={120} className="text-lime-500 drop-shadow-2xl" />
+                <Icon icon={GithubIcon} size={120} className="text-lime-500 drop-shadow-2xl" />
             </div>
 
             {/* 404 Text */}
@@ -28,7 +28,7 @@ export const NotFoundPage = () => {
             <div className="relative z-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Link to="/">
                     <Button size="lg" className="w-full sm:w-auto shadow-xl shadow-lime-500/20">
-                        <Home size={18} className="mr-2" />
+                        <Icon icon={Home01Icon} size={18} className="mr-2" />
                         Go Home
                     </Button>
                 </Link>
@@ -38,7 +38,7 @@ export const NotFoundPage = () => {
                     onClick={() => window.history.back()}
                     className="w-full sm:w-auto"
                 >
-                    <ArrowLeft size={18} className="mr-2" />
+                    <Icon icon={ArrowLeft01Icon} size={18} className="mr-2" />
                     Go Back
                 </Button>
             </div>

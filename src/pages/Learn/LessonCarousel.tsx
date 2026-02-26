@@ -1,12 +1,6 @@
+import { CheckmarkCircle02Icon, ArrowRight01Icon, ArrowLeft01Icon, PlayIcon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-    CheckCircle2,
-    ChevronRight,
-    ChevronLeft,
-    Play,
-    X
-} from 'lucide-react';
-import { Button, LoadingSpinner } from '../../components/ui';
+import { Icon, Button, LoadingSpinner } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
 import { useProgressStore, useUIStore, useUserStore } from '../../stores';
 import { useCodeRunner, type LogEntry } from '../../hooks/useCodeRunner';
@@ -176,7 +170,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
             <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 mb-10">
                 <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
                     <Button variant="ghost" size="sm" className="rounded-full gap-2 text-muted-foreground hover:text-primary transition-colors hover:bg-transparent" onClick={onBack}>
-                        <ChevronLeft size={18} /> <span className="font-medium">Library</span>
+                        <Icon icon={ArrowLeft01Icon} size={18} /> <span className="font-medium">Library</span>
                     </Button>
 
                     <div className="flex-1 max-w-sm mx-auto px-4">
@@ -285,7 +279,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                                             className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                                             size="sm"
                                         >
-                                            {isRunning ? <LoadingSpinner size={14} className="mr-2" /> : <Play className="mr-2" size={14} />}
+                                            {isRunning ? <LoadingSpinner size={14} className="mr-2" /> : <Icon icon={PlayIcon} className="mr-2" size={14} />}
                                             Run Code
                                         </Button>
                                     </div>
@@ -298,7 +292,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                                         <div className="flex items-center justify-between sticky top-0 bg-card px-5 py-3 z-10 border-b border-border shadow-sm">
                                             <h1 className="text-lg font-bold">Hint</h1>
                                             <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onClick={() => setShowHintPanel(false)}>
-                                                <X size={14} />
+                                                <Icon icon={Cancel01Icon} size={14} />
                                             </Button>
                                         </div>
                                         <div className="p-5">
@@ -326,7 +320,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                                         <div className="flex items-center justify-between sticky top-0 bg-card px-5 py-3 z-10 border-b border-border shadow-sm">
                                             <h1 className="text-lg font-bold">Review</h1>
                                             <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onClick={() => setShowReviewPanel(false)}>
-                                                <X size={14} />
+                                                <Icon icon={Cancel01Icon} size={14} />
                                             </Button>
                                         </div>
                                         <div className="p-5">
@@ -346,7 +340,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                                 <div className="p-5 flex-1 font-mono text-xs overflow-y-auto custom-scrollbar space-y-2">
                                     {terminalLogs.length > 0 ? (
                                         <>
-                                            {codeValidated && <div className="mb-4 flex items-center gap-2 text-emerald-500 font-bold bg-emerald-500/10 p-2 rounded border border-emerald-500/20"><CheckCircle2 size={14} /> Solution Passed!</div>}
+                                            {codeValidated && <div className="mb-4 flex items-center gap-2 text-emerald-500 font-bold bg-emerald-500/10 p-2 rounded border border-emerald-500/20"><Icon icon={CheckmarkCircle02Icon} size={14} /> Solution Passed!</div>}
                                             {terminalLogs.map((log, i) => (
                                                 <div key={i} className="animate-in fade-in duration-200 break-words">
                                                     {log.type === 'command' && <span className="text-cyan-500 font-bold opacity-80 block mb-1">$ {log.message}</span>}
@@ -360,7 +354,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                                         </>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center h-40 text-muted-foreground opacity-30 text-center">
-                                            <Play size={24} className="mb-2 opacity-50" />
+                                            <Icon icon={PlayIcon} size={24} className="mb-2 opacity-50" />
                                             <p className="text-sm">Run your code to see the output here.</p>
                                         </div>
                                     )}
@@ -402,7 +396,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                                         </div>
                                         <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end">
                                             <Button onClick={handleRunCode} disabled={isRunning} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" size="sm">
-                                                {isRunning ? <LoadingSpinner size={14} className="mr-2" /> : <Play className="mr-2" size={14} />}
+                                                {isRunning ? <LoadingSpinner size={14} className="mr-2" /> : <Icon icon={PlayIcon} className="mr-2" size={14} />}
                                                 Run Solution
                                             </Button>
                                         </div>
@@ -453,7 +447,7 @@ export const LessonCarousel: React.FC<LessonCarouselProps> = ({ activeLesson, on
                             ) : (
                                 <>
                                     <span>{isLastStep ? 'Complete' : 'Next Step'}</span>
-                                    {isLastStep ? <CheckCircle2 size={16} className="ml-2" /> : <ChevronRight size={16} className="ml-2" />}
+                                    {isLastStep ? <Icon icon={CheckmarkCircle02Icon} size={16} className="ml-2" /> : <Icon icon={ArrowRight01Icon} size={16} className="ml-2" />}
                                 </>
                             )}
                         </Button>

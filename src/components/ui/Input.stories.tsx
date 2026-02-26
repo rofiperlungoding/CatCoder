@@ -1,7 +1,7 @@
+import { Mail01Icon, LockPasswordIcon } from '@hugeicons/core-free-icons';
+import { Icon } from './';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Input } from './Input';
-import { Mail, Lock } from 'lucide-react';
-
 const meta: Meta<typeof Input> = {
     title: 'UI/Input',
     component: Input,
@@ -38,7 +38,7 @@ export const WithIcon: Story = {
         label: 'Email',
         type: 'email',
         placeholder: 'john@example.com',
-        icon: <Mail size={18} />,
+        icon: <Icon icon={Mail01Icon} size={18} />,
     },
 };
 
@@ -47,7 +47,7 @@ export const WithError: Story = {
         label: 'Password',
         type: 'password',
         value: '123',
-        icon: <Lock size={18} />,
+        icon: <Icon icon={LockPasswordIcon} size={18} />,
         error: 'Password must be at least 8 characters',
     },
 };

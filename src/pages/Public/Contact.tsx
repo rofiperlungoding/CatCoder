@@ -1,11 +1,6 @@
+import { Location01Icon, CallIcon, Mail01Icon, SentIcon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react';
-import {
-    Mail,
-    MapPin,
-    Phone,
-    Send
-} from 'lucide-react';
-import { Button, Input } from '../../components/ui';
+import { Icon, Button, Input } from '../../components/ui';
 
 export const ContactPage: React.FC = () => {
     const [submitted, setSubmitted] = useState(false);
@@ -34,7 +29,7 @@ export const ContactPage: React.FC = () => {
                         <div className="space-y-8">
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
-                                    <Mail size={18} />
+                                    <Icon icon={Mail01Icon} size={18} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold mb-1">Email</h3>
@@ -44,7 +39,7 @@ export const ContactPage: React.FC = () => {
                             </div>
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
-                                    <Phone size={18} />
+                                    <Icon icon={CallIcon} size={18} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold mb-1">Phone</h3>
@@ -54,7 +49,7 @@ export const ContactPage: React.FC = () => {
                             </div>
                             <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
-                                    <MapPin size={18} />
+                                    <Icon icon={Location01Icon} size={18} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold mb-1">Office</h3>
@@ -122,7 +117,7 @@ export const ContactPage: React.FC = () => {
                             disabled={submitted}
                         >
                             {submitted ? (
-                                <span className="flex items-center gap-2">Message Sent! <Send size={18} /></span>
+                                <span className="flex items-center gap-2">Message Sent! <Icon icon={SentIcon} size={18} /></span>
                             ) : (
                                 "Send Message"
                             )}

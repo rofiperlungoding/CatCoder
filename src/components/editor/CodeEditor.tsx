@@ -1,6 +1,8 @@
+import { Loading02Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import React, { lazy, Suspense } from 'react';
 import type { EditorProps, OnMount, BeforeMount } from '@monaco-editor/react';
-// import { Loader2 } from 'lucide-react'; // Removed unused import
+//  // Removed unused import
 import { LoadingSpinner } from '../ui';
 import { useThemeStore } from '../../stores';
 

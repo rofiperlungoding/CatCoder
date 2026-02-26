@@ -1,12 +1,6 @@
+import { Globe, Server, MapsIcon, LockPasswordIcon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import React from 'react';
-import {
-    Lock,
-    Globe,
-    Server,
-    Map,
-    ArrowRight
-} from 'lucide-react';
-import { Button, ProgressBar, Badge } from '../../components/ui';
+import { Icon, Button, ProgressBar, Badge } from '../../components/ui';
 import { useUserStore } from '../../stores';
 import type { RoadmapPath } from '../../types';
 
@@ -43,7 +37,7 @@ export const RoadmapPage: React.FC = () => {
                 <div>
                     <h1 className="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
                         Career Roadmaps
-                        <Map size={24} className="text-lime-500" />
+                        <Icon icon={MapsIcon} size={24} className="text-lime-500" />
                     </h1>
                     <p className="text-muted-foreground">Structured paths to guide your learning journey.</p>
                 </div>
@@ -56,7 +50,7 @@ export const RoadmapPage: React.FC = () => {
 
                     <div className="relative z-10 max-w-lg mx-auto">
                         <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-8 backdrop-blur-md border border-black/10 dark:border-white/5">
-                            <Lock size={32} className="text-lime-400" />
+                            <Icon icon={LockPasswordIcon} size={32} className="text-lime-400" />
                         </div>
                         <h2 className="text-3xl font-bold mb-4 text-white">Unlock Roadmaps at Level 5</h2>
                         <p className="text-white/60 mb-10 text-lg">
@@ -81,7 +75,7 @@ export const RoadmapPage: React.FC = () => {
                             <div>
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="w-16 h-16 rounded-[1.5rem] bg-gray-50 dark:bg-muted flex items-center justify-center text-primary dark:text-white group-hover:bg-lime-400 group-hover:text-black dark:group-hover:text-black transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-lime-400/20">
-                                        {map.icon === 'Web' ? <Globe size={32} strokeWidth={1.5} /> : <Server size={32} strokeWidth={1.5} />}
+                                        {map.icon === 'Web' ? <Icon icon={Globe} size={32} strokeWidth={1.5} /> : <Icon icon={Server} size={32} strokeWidth={1.5} />}
                                     </div>
                                     <Badge variant="secondary" className="bg-gray-50 dark:bg-muted text-muted-foreground group-hover:bg-primary dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors">Career Path</Badge>
                                 </div>
@@ -95,7 +89,7 @@ export const RoadmapPage: React.FC = () => {
                                 </div>
                                 <ProgressBar value={0} max={12} size="sm" className="mb-6" />
                                 <Button className="w-full rounded-full group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shadow-md shadow-gray-200 dark:shadow-none group-hover:shadow-xl group-hover:shadow-black/10">
-                                    Start Journey <ArrowRight size={16} className="ml-2" />
+                                    Start Journey <Icon icon={ArrowRight01Icon} size={16} className="ml-2" />
                                 </Button>
                             </div>
                         </div>

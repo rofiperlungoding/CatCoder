@@ -1,10 +1,6 @@
+import { SparklesIcon, CheckmarkBadge01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react';
-import {
-    Check,
-    X,
-    Sparkles
-} from 'lucide-react';
-import { Button, Badge } from '../../components/ui';
+import { Icon, Button, Badge } from '../../components/ui';
 import { useNavigate } from 'react-router-dom';
 
 export const PricingPage: React.FC = () => {
@@ -93,7 +89,7 @@ export const PricingPage: React.FC = () => {
                     >
                         {plan.popular && (
                             <div className="absolute top-0 right-1/2 md:right-12 translate-x-1/2 md:translate-x-0 -translate-y-1/2 bg-lime-500 text-black px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-lg shadow-lime-500/20">
-                                <Sparkles size={14} fill="currentColor" /> Most Popular
+                                <Icon icon={SparklesIcon} size={14} fill="currentColor" /> Most Popular
                             </div>
                         )}
 
@@ -118,7 +114,7 @@ export const PricingPage: React.FC = () => {
                             {plan.features.map((feature, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm font-medium text-gray-300">
                                     <div className="w-5 h-5 rounded-full bg-lime-500/10 text-lime-400 flex items-center justify-center shrink-0 mt-0.5 border border-lime-500/20">
-                                        <Check size={12} strokeWidth={3} />
+                                        <Icon icon={CheckmarkBadge01Icon} size={12} strokeWidth={3} />
                                     </div>
                                     {feature}
                                 </li>
@@ -126,7 +122,7 @@ export const PricingPage: React.FC = () => {
                             {plan.missing.map((feature, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm font-medium text-gray-600">
                                     <div className="w-5 h-5 rounded-full bg-white/5 text-gray-600 flex items-center justify-center shrink-0 mt-0.5">
-                                        <X size={12} strokeWidth={3} />
+                                        <Icon icon={Cancel01Icon} size={12} strokeWidth={3} />
                                     </div>
                                     {feature}
                                 </li>

@@ -1,16 +1,7 @@
+import { CheckmarkCircle02Icon, SparklesIcon, BookOpen01Icon, Clock01Icon, ArrowDown01Icon, ArrowRight01Icon, Search01Icon, CodeIcon } from '@hugeicons/core-free-icons';
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-    CheckCircle2,
-    Sparkles,
-    ChevronDown,
-    BookOpen,
-    ArrowRight,
-    Clock,
-    Search,
-    Code
-} from 'lucide-react';
-import { Button, Input, LoadingSpinner } from '../../components/ui';
+import { Icon, Button, Input, LoadingSpinner } from '../../components/ui';
 import { useUserStore, useProgressStore } from '../../stores';
 import type { Lesson, Language, Tier } from '../../types';
 import { loadLessonsByLanguage, loadLessonById } from '../../data/lessons';
@@ -129,7 +120,7 @@ export const LearnPage: React.FC = () => {
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                         <div>
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold mb-6">
-                                <Sparkles size={12} className="text-lime-400" />
+                                <Icon icon={SparklesIcon} size={12} className="text-lime-400" />
                                 <span>Interactive Curriculum</span>
                             </div>
                             <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tighter">
@@ -181,11 +172,11 @@ export const LearnPage: React.FC = () => {
                                 onClick={() => setIsLanguageOpen(!isLanguageOpen)}
                                 className="h-12 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 flex items-center gap-3 shadow-md hover:shadow-lg transition-all text-primary dark:text-white font-bold"
                             >
-                                <Code size={18} className="text-primary/60" />
+                                <Icon icon={CodeIcon} size={18} className="text-primary/60" />
                                 <span className="min-w-[80px] text-left">
                                     {selectedLanguage === 'python' ? 'Python' : selectedLanguage === 'javascript' ? 'JavaScript' : 'C++'}
                                 </span>
-                                <ChevronDown size={16} className={`transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                                <Icon icon={ArrowDown01Icon} size={16} className={`transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             {isLanguageOpen && (
@@ -204,7 +195,7 @@ export const LearnPage: React.FC = () => {
                                                 }`}
                                         >
                                             <span className="capitalize">{lang === 'cpp' ? 'C++' : lang}</span>
-                                            {selectedLanguage === lang && <CheckCircle2 size={16} className="text-primary" />}
+                                            {selectedLanguage === lang && <Icon icon={CheckmarkCircle02Icon} size={16} className="text-primary" />}
                                         </button>
                                     ))}
                                 </div>
@@ -217,11 +208,11 @@ export const LearnPage: React.FC = () => {
                                 onClick={() => setIsTierOpen(!isTierOpen)}
                                 className="h-12 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-full text-sm px-6 flex items-center gap-3 shadow-md hover:shadow-lg transition-all text-primary dark:text-white font-bold"
                             >
-                                <BookOpen size={18} className="text-primary/60" />
+                                <Icon icon={BookOpen01Icon} size={18} className="text-primary/60" />
                                 <span className="min-w-[100px] text-left">
                                     {selectedTier === 'all' ? 'All Tiers' : `Tier ${selectedTier}: ${tierMap[selectedTier]}`}
                                 </span>
-                                <ChevronDown size={16} className={`transition-transform duration-300 ${isTierOpen ? 'rotate-180' : ''}`} />
+                                <Icon icon={ArrowDown01Icon} size={16} className={`transition-transform duration-300 ${isTierOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             {isTierOpen && (
@@ -243,7 +234,7 @@ export const LearnPage: React.FC = () => {
                                                 }`}
                                         >
                                             <span>Tier {tier}: {tierMap[tier]}</span>
-                                            {selectedTier === Number(tier) && <CheckCircle2 size={16} className="text-primary" />}
+                                            {selectedTier === Number(tier) && <Icon icon={CheckmarkCircle02Icon} size={16} className="text-primary" />}
                                         </button>
                                     ))}
                                 </div>
@@ -252,7 +243,7 @@ export const LearnPage: React.FC = () => {
                     </div>
 
                     <div className="relative w-full md:w-96 group">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5 group-focus-within:text-primary transition-colors" />
+                        <Icon icon={Search01Icon} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5 group-focus-within:text-primary transition-colors" />
                         <Input
                             placeholder="Search lessons..."
                             value={searchQuery}
@@ -287,7 +278,7 @@ export const LearnPage: React.FC = () => {
                                         {isCompleted('lesson', lesson.id) && (
                                             <div className="absolute top-6 right-6">
                                                 <div className="bg-lime-500/10 text-lime-600 dark:text-lime-400 p-2 rounded-xl border border-lime-500/20">
-                                                    <CheckCircle2 size={16} />
+                                                    <Icon icon={CheckmarkCircle02Icon} size={16} />
                                                 </div>
                                             </div>
                                         )}
@@ -309,16 +300,16 @@ export const LearnPage: React.FC = () => {
                                             <div className="flex items-center justify-between pt-4 border-t border-border/50">
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                                                        <Clock size={14} className="text-primary/40" />
+                                                        <Icon icon={Clock01Icon} size={14} className="text-primary/40" />
                                                         {lesson.estimatedTime}m
                                                     </div>
                                                     <div className="flex items-center gap-1.5 text-xs font-bold text-lime-600 dark:text-lime-400">
-                                                        <Sparkles size={14} />
+                                                        <Icon icon={SparklesIcon} size={14} />
                                                         +{lesson.xpReward} XP
                                                     </div>
                                                 </div>
                                                 <div className="bg-primary/5 group-hover:bg-primary text-primary group-hover:text-white p-2.5 rounded-2xl transition-all duration-300">
-                                                    <ArrowRight size={18} />
+                                                    <Icon icon={ArrowRight01Icon} size={18} />
                                                 </div>
                                             </div>
                                         </div>
@@ -331,7 +322,7 @@ export const LearnPage: React.FC = () => {
                     {filteredLessons.length === 0 && (
                         <div className="text-center py-32 bg-secondary/20 rounded-[3rem] border-2 border-dashed border-border flex flex-col items-center gap-4">
                             <div className="w-20 h-20 bg-muted/20 rounded-full flex items-center justify-center">
-                                <Search size={32} className="text-muted-foreground/30" />
+                                <Icon icon={Search01Icon} size={32} className="text-muted-foreground/30" />
                             </div>
                             <div>
                                 <p className="text-xl font-bold text-foreground">No lessons found</p>

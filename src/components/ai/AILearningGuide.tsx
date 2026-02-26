@@ -1,6 +1,7 @@
+import { Loading02Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '../ui';
 import { useUserStore, useProgressStore } from '../../stores';
 import { learningAnalyzer } from '../../services/ai/learningAnalyzer';
@@ -63,7 +64,7 @@ export const AILearningGuide: React.FC = () => {
         return (
             <div className="w-full bg-white dark:bg-card border border-gray-200 dark:border-white/10 rounded-[2rem] p-8 shadow-lg flex items-center justify-center min-h-[200px] animate-pulse">
                 <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                    <Loader2 size={24} className="animate-spin text-lime-500" />
+                    <Icon icon={Loading02Icon} size={24} className="animate-spin text-lime-500" />
                     <span className="text-xs font-medium uppercase tracking-wider">Analyzing Progress...</span>
                 </div>
             </div>
@@ -107,7 +108,7 @@ export const AILearningGuide: React.FC = () => {
                         className="w-full md:w-auto bg-gradient-to-r from-lime-400 to-emerald-400 hover:from-lime-300 hover:to-emerald-300 text-slate-950 font-bold border-0 shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_30px_rgba(132,204,22,0.5)] transition-all duration-300 transform hover:scale-105"
                     >
                         {guide.actionLabel}
-                        <ArrowRight size={18} className="ml-2" />
+                        <Icon icon={ArrowRight01Icon} size={18} className="ml-2" />
                     </Button>
                 </div>
             </div>

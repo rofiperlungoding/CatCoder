@@ -1,5 +1,6 @@
+import { SparklesIcon, Activity01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import { useEffect, useState } from 'react';
-import { Sparkles, Info, Activity } from 'lucide-react';
 import { openaiClient } from '../../services/ai/openaiClient';
 
 export default function AISettings() {
@@ -27,7 +28,7 @@ export default function AISettings() {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <Icon icon={SparklesIcon} className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                     AI Features
                 </h2>
@@ -38,7 +39,7 @@ export default function AISettings() {
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${enabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                            <Activity className="w-5 h-5" />
+                            <Icon icon={Activity01Icon} className="w-5 h-5" />
                         </div>
                         <div>
                             <h3 className="font-medium text-gray-900 dark:text-white">
@@ -76,7 +77,7 @@ export default function AISettings() {
             {/* Info Card */}
             <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-6 border border-blue-100 dark:border-blue-900/30">
                 <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <Icon icon={InformationCircleIcon} className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                     <div className="space-y-3">
                         <h3 className="font-medium text-blue-900 dark:text-blue-100">
                             What AI features are enabled?

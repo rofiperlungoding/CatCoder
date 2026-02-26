@@ -1,7 +1,7 @@
+import { GithubIcon, ArrowLeft01Icon, Mail01Icon, SentIcon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Cat, ArrowLeft, Mail, Send, CheckCircle } from 'lucide-react';
-import { Button, Input, LoadingSpinner } from '../../components/ui';
+import { Button, Input, LoadingSpinner, Icon } from '../../components/ui';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useUIStore } from '../../stores';
 
@@ -55,7 +55,7 @@ export const ForgotPasswordPage: React.FC = () => {
             <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-700">
                 {/* Logo */}
                 <div className="flex items-center justify-center gap-2 text-white cursor-pointer" onClick={() => navigate('/')}>
-                    <Cat size={32} strokeWidth={2.5} />
+                    <Icon icon={GithubIcon} size={32} strokeWidth={2.5} />
                     <span className="font-bold text-2xl tracking-tight">CatCoder</span>
                 </div>
 
@@ -65,7 +65,7 @@ export const ForgotPasswordPage: React.FC = () => {
                         // Success State
                         <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="w-20 h-20 bg-lime-500/10 rounded-full flex items-center justify-center mx-auto border border-lime-500/20">
-                                <CheckCircle size={40} className="text-lime-400" />
+                                <Icon icon={CheckmarkCircle01Icon} size={40} className="text-lime-400" />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-white mb-2">Check your email</h2>
@@ -105,7 +105,7 @@ export const ForgotPasswordPage: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-300 ml-1">Email Address</label>
                                     <div className="relative group">
-                                        <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Icon icon={Mail01Icon} size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300 z-10 pointer-events-none" />
                                         <Input
                                             type="email"
                                             placeholder="name@example.com"
@@ -131,7 +131,7 @@ export const ForgotPasswordPage: React.FC = () => {
                                     ) : (
                                         <span className="flex items-center gap-2">
                                             Send Reset Link
-                                            <Send size={18} />
+                                            <Icon icon={SentIcon} size={18} />
                                         </span>
                                     )}
                                 </Button>
@@ -142,7 +142,7 @@ export const ForgotPasswordPage: React.FC = () => {
                                     to="/login"
                                     className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
                                 >
-                                    <ArrowLeft size={16} />
+                                    <Icon icon={ArrowLeft01Icon} size={16} />
                                     Back to Login
                                 </Link>
                             </div>

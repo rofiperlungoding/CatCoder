@@ -1,6 +1,6 @@
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from './';
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
-
 interface Option {
     value: string;
     label: string;
@@ -38,7 +38,7 @@ export const Select: React.FC<SelectProps> = ({ options, label, error, className
                     ))}
                 </select>
                 <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                    <ChevronDown size={16} />
+                    <Icon icon={ArrowDown01Icon} size={16} />
                 </div>
             </div>
             {error && <p className="mt-1 text-xs text-rose-500 font-medium">{error}</p>}

@@ -1,21 +1,7 @@
+import { SparklesIcon, CheckmarkCircle02Icon, Lightbulb, ReloadIcon, Search01Icon, Trophy, ArrowRight01Icon, CodeIcon, ComputerTerminal01Icon, PlayIcon, EnergyIcon, ArrowLeft01Icon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-    Sparkles,
-    Search,
-    Trophy,
-    ArrowRight,
-    CheckCircle2,
-    Code,
-    Terminal,
-    Play,
-    Zap,
-    ChevronLeft,
-    Lightbulb,
-    ChevronDown,
-    RotateCw
-} from 'lucide-react';
-import { Badge, Button, Input, LoadingSpinner } from '../../components/ui';
+import { Icon, Badge, Button, Input, LoadingSpinner } from '../../components/ui';
 import { CodeEditor } from '../../components/editor';
 import { useProgressStore, useUIStore, useUserStore } from '../../stores';
 import { useCodeRunner } from '../../hooks';
@@ -187,7 +173,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
             <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/5 mb-6">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <Button variant="ghost" size="sm" className="rounded-full gap-2 text-muted-foreground hover:text-primary transition-colors hover:bg-transparent" onClick={onBack}>
-                        <ChevronLeft size={18} /> <span className="font-medium">All Problems</span>
+                        <Icon icon={ArrowLeft01Icon} size={18} /> <span className="font-medium">All Problems</span>
                     </Button>
                     <h1 className="font-bold text-lg truncate px-4">{problem.title}</h1>
                     <div className="flex items-center gap-4">
@@ -201,7 +187,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                                     <span className="font-medium truncate flex items-center gap-2">
                                         {selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}
                                     </span>
-                                    <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
+                                    <Icon icon={ArrowDown01Icon} size={14} className={`text-muted-foreground transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
                                 </button>
                                 {/* Language selection is effectively handled by remounting via key in parent */}
                             </div>
@@ -223,7 +209,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                                 </Badge>
                             </div>
                             <div className="flex items-center gap-1.5 text-amber-500 font-bold bg-amber-500/10 px-3 py-1 rounded-full text-xs">
-                                <Trophy size={14} />
+                                <Icon icon={Trophy} size={14} />
                                 +{problem.xpReward} XP
                             </div>
                         </div>
@@ -236,7 +222,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
 
                     <div className="space-y-4">
                         <h3 className="font-bold text-lg flex items-center gap-2">
-                            <Sparkles size={18} className="text-primary" /> Examples
+                            <Icon icon={SparklesIcon} size={18} className="text-primary" /> Examples
                         </h3>
                         {problem.examples.map((ex, i) => (
                             <div key={i} className="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl border border-gray-100 dark:border-white/5 font-mono text-sm">
@@ -259,7 +245,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                     {problem.hints.length > 0 && (
                         <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/10 p-6 rounded-3xl">
                             <div className="flex items-center gap-3 mb-4 text-amber-600 dark:text-amber-500 font-bold">
-                                <Lightbulb size={20} />
+                                <Icon icon={Lightbulb} size={20} />
                                 <span>Hints</span>
                             </div>
                             <ul className="list-disc list-inside space-y-2 text-amber-900/70 dark:text-amber-200/70 text-sm">
@@ -275,7 +261,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                     <div className="flex flex-col flex-1 rounded-2xl overflow-hidden border border-border shadow-2xl bg-[#1e1e1e]">
                         <div className="bg-[#1e1e1e] px-4 py-3 flex items-center justify-between border-b border-white/5">
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                <Code size={14} /> Code Editor
+                                <Icon icon={CodeIcon} size={14} /> Code Editor
                             </span>
                         </div>
                         <div className="flex-1 min-h-0">
@@ -293,7 +279,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                                 disabled={isRunning}
                                 className="rounded-full font-semibold"
                             >
-                                {isRunning ? <LoadingSpinner size={16} className="mr-2" /> : <Play size={16} className="mr-2" />}
+                                {isRunning ? <LoadingSpinner size={16} className="mr-2" /> : <Icon icon={PlayIcon} size={16} className="mr-2" />}
                                 Run Code
                             </Button>
                         </div>
@@ -305,16 +291,16 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                             <>
                                 <div className="px-4 py-3 bg-[#1e1e1e] border-b border-white/5 flex items-center justify-between">
                                     <span className="font-bold text-xs uppercase tracking-wider text-gray-400 flex items-center gap-2">
-                                        <Terminal size={14} /> Output
+                                        <Icon icon={ComputerTerminal01Icon} size={14} /> Output
                                     </span>
                                     {isValidated && (
                                         <span className="text-emerald-400 text-xs font-bold flex items-center gap-1">
-                                            <CheckCircle2 size={14} /> Passed
+                                            <Icon icon={CheckmarkCircle02Icon} size={14} /> Passed
                                         </span>
                                     )}
                                     {validationError && (
                                         <span className="text-rose-400 text-xs font-bold flex items-center gap-1">
-                                            <Zap size={14} /> Failed
+                                            <Icon icon={EnergyIcon} size={14} /> Failed
                                         </span>
                                     )}
                                 </div>
@@ -332,7 +318,7 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                             </>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                <Terminal size={24} className="mb-2 opacity-20" />
+                                <Icon icon={ComputerTerminal01Icon} size={24} className="mb-2 opacity-20" />
                                 <p className="text-xs">Run your code to see output</p>
                             </div>
                         )}
@@ -390,9 +376,9 @@ export const PracticePage: React.FC = () => {
     }, {} as Record<number, Problem[]>);
 
     const languageTabs = [
-        { id: 'python', label: 'Python', icon: <Code size={16} /> },
-        { id: 'javascript', label: 'JavaScript', icon: <Code size={16} /> },
-        { id: 'cpp', label: 'C++', icon: <Code size={16} /> }
+        { id: 'python', label: 'Python', icon: <Icon icon={CodeIcon} size={16} /> },
+        { id: 'javascript', label: 'JavaScript', icon: <Icon icon={CodeIcon} size={16} /> },
+        { id: 'cpp', label: 'C++', icon: <Icon icon={CodeIcon} size={16} /> }
     ];
 
     if (activeProblem) {
@@ -417,7 +403,7 @@ export const PracticePage: React.FC = () => {
                     <div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 flex items-center gap-3">
                             Practice Arena
-                            <Sparkles className="text-lime-500 ml-2" strokeWidth={2.5} size={32} />
+                            <Icon icon={SparklesIcon} className="text-lime-500 ml-2" strokeWidth={2.5} size={32} />
                         </h1>
                         <p className="text-lg text-muted-foreground max-w-2xl">
                             Master your skills with <span className="text-foreground font-semibold">interactive challenges</span>.
@@ -436,7 +422,7 @@ export const PracticePage: React.FC = () => {
                                     <span className="font-medium truncate flex items-center gap-2">
                                         {languageTabs.find(t => t.id === selectedLanguage)?.label}
                                     </span>
-                                    <ChevronDown size={14} className={`text-muted-foreground transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                                    <Icon icon={ArrowDown01Icon} size={14} className={`text-muted-foreground transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {isLanguageOpen && (
@@ -457,7 +443,7 @@ export const PracticePage: React.FC = () => {
                                             >
                                                 <span>{tab.label}</span>
                                                 {selectedLanguage === tab.id && (
-                                                    <CheckCircle2 size={14} className="text-primary" />
+                                                    <Icon icon={CheckmarkCircle02Icon} size={14} className="text-primary" />
                                                 )}
                                             </button>
                                         ))}
@@ -479,7 +465,7 @@ export const PracticePage: React.FC = () => {
             <div className="max-w-7xl mx-auto px-6 space-y-16">
                 <div className="relative max-w-xl">
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                        <Search size={20} className="text-muted-foreground" />
+                        <Icon icon={Search01Icon} size={20} className="text-muted-foreground" />
                     </div>
                     <Input
                         placeholder="Search problems by title or tag..."
@@ -543,7 +529,7 @@ export const PracticePage: React.FC = () => {
                                                     </Badge>
                                                     {completed && (
                                                         <div className="bg-emerald-500/10 p-1.5 rounded-full ring-1 ring-emerald-500/20">
-                                                            <CheckCircle2 size={16} className="text-emerald-500" />
+                                                            <Icon icon={CheckmarkCircle02Icon} size={16} className="text-emerald-500" />
                                                         </div>
                                                     )}
                                                 </div>
@@ -579,7 +565,7 @@ export const PracticePage: React.FC = () => {
                                                         transition-all -mr-2
                                                     `}
                                                     >
-                                                        {completed ? <RotateCw size={14} /> : <ArrowRight size={16} />}
+                                                        {completed ? <Icon icon={ReloadIcon} size={14} /> : <Icon icon={ArrowRight01Icon} size={16} />}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -593,7 +579,7 @@ export const PracticePage: React.FC = () => {
 
                 {filteredProblems.length === 0 && (
                     <div className="text-center py-20 opacity-50">
-                        <Trophy size={48} className="mx-auto mb-4" />
+                        <Icon icon={Trophy} size={48} className="mx-auto mb-4" />
                         <p className="text-xl font-bold">No challenges found</p>
                         <p>Try adjusting your search terms.</p>
                     </div>

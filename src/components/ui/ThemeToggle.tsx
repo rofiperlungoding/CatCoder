@@ -1,5 +1,6 @@
+import { Moon02Icon, Sun01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from './';
 import React from 'react';
-import { Moon, Sun } from 'lucide-react';
 import { useThemeStore } from '../../stores';
 
 export const ThemeToggle: React.FC = () => {
@@ -13,8 +14,8 @@ export const ThemeToggle: React.FC = () => {
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         >
             {/* Toggle Track Icons */}
-            <Sun size={14} className="absolute left-1.5 top-1/2 -translate-y-1/2 text-amber-500" />
-            <Moon size={14} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-blue-300" />
+            <Icon icon={Sun01Icon} size={14} className="absolute left-1.5 top-1/2 -translate-y-1/2 text-amber-500" />
+            <Icon icon={Moon02Icon} size={14} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-blue-300" />
 
             {/* Toggle Thumb */}
             <div
@@ -26,9 +27,9 @@ export const ThemeToggle: React.FC = () => {
                 `}
             >
                 {isDark ? (
-                    <Moon size={12} className="text-blue-400" />
+                    <Icon icon={Moon02Icon} size={12} className="text-blue-400" />
                 ) : (
-                    <Sun size={12} className="text-amber-500" />
+                    <Icon icon={Sun01Icon} size={12} className="text-amber-500" />
                 )}
             </div>
         </button>

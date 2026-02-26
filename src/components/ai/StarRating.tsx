@@ -1,5 +1,5 @@
-import { Star } from 'lucide-react';
-
+import { StarIcon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 interface StarRatingProps {
     rating: number; // 1-5
     maxRating?: number;
@@ -18,7 +18,7 @@ export default function StarRating({ rating, maxRating = 5, size = 'md' }: StarR
     return (
         <div className="flex items-center gap-1">
             {stars.map((star) => (
-                <Star
+                <Icon icon={StarIcon}
                     key={star}
                     className={`${sizeClasses[size]} ${star <= rating
                             ? 'fill-yellow-400 text-yellow-400'

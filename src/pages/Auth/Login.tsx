@@ -1,7 +1,7 @@
+import { GithubIcon, ArrowRight01Icon, Mail01Icon, LockPasswordIcon } from '@hugeicons/core-free-icons';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cat, ArrowRight, Mail, Lock } from 'lucide-react';
-import { Button, Input, Toaster, LoadingSpinner } from '../../components/ui';
+import { Icon, Button, Input, Toaster, LoadingSpinner } from '../../components/ui';
 import { useUserStore, useUIStore } from '../../stores';
 
 // Google Icon SVG Component
@@ -104,7 +104,7 @@ export const LoginPage: React.FC = () => {
 
                     <div className="relative z-10 animate-in fade-in slide-in-from-top-8 duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
                         <div className="flex items-center gap-2 mb-12 cursor-pointer w-fit" onClick={() => navigate('/')}>
-                            <Cat size={32} strokeWidth={2.5} className="text-white" />
+                            <Icon icon={GithubIcon} size={32} strokeWidth={2.5} className="text-white" />
                             <span className="font-bold text-2xl tracking-tight text-white">CatCoder</span>
                         </div>
 
@@ -130,7 +130,7 @@ export const LoginPage: React.FC = () => {
                         <div className="text-center lg:text-left transition-all duration-300">
                             <div className="flex justify-center lg:justify-start lg:hidden mb-8">
                                 <div className="flex items-center gap-2 text-white">
-                                    <Cat size={32} strokeWidth={2.5} />
+                                    <Icon icon={GithubIcon} size={32} strokeWidth={2.5} />
                                     <span className="font-bold text-2xl tracking-tight">CatCoder</span>
                                 </div>
                             </div>
@@ -174,7 +174,7 @@ export const LoginPage: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-300 ml-1">Email</label>
                                     <div className="relative group">
-                                        <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Icon icon={Mail01Icon} size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300 z-10 pointer-events-none" />
                                         <Input
                                             type="email"
                                             placeholder="name@example.com"
@@ -188,7 +188,7 @@ export const LoginPage: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-300 ml-1">Password</label>
                                     <div className="relative group">
-                                        <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Icon icon={LockPasswordIcon} size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300 z-10 pointer-events-none" />
                                         <Input
                                             type="password"
                                             placeholder="••••••••"
@@ -222,7 +222,7 @@ export const LoginPage: React.FC = () => {
                                         ) : (
                                             <>
                                                 <span>{isSignUp ? "Create Account" : "Sign in"}</span>
-                                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                                <Icon icon={ArrowRight01Icon} size={18} className="group-hover:translate-x-1 transition-transform" />
                                             </>
                                         )}
                                     </span>
@@ -263,7 +263,7 @@ export const LoginPage: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-300 ml-1">Email Address</label>
                                     <div className="relative group">
-                                        <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Icon icon={Mail01Icon} size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300 z-10 pointer-events-none" />
                                         <Input
                                             type="email"
                                             value={email}
@@ -289,7 +289,7 @@ export const LoginPage: React.FC = () => {
                                             </>
                                         ) : (
                                             <>
-                                                Send Magic Link <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                                Send Magic Link <Icon icon={ArrowRight01Icon} size={18} className="group-hover:translate-x-1 transition-transform" />
                                             </>
                                         )}
                                     </span>

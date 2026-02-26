@@ -1,12 +1,7 @@
+import { Timer02Icon, ArrowUpRight01Icon, EnergyIcon, Search01Icon } from '@hugeicons/core-free-icons';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    Zap,
-    Timer,
-    ArrowUpRight,
-    Search,
-} from 'lucide-react';
-import { Button, LoadingSpinner } from '../../components/ui';
+import { Icon, Button, LoadingSpinner } from '../../components/ui';
 import { fetchSpeedRuns, formatDuration, formatTimeAgo, type SpeedRunEntry } from '../../lib/speedruns';
 export { SpeedRunDetail } from './SpeedRunDetail';
 
@@ -39,7 +34,7 @@ export const CompetePage: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-primary mb-2 flex items-center gap-3 tracking-tight">
-                        <Zap size={32} className="text-yellow-500 fill-yellow-500" />
+                        <Icon icon={EnergyIcon} size={32} className="text-yellow-500 fill-yellow-500" />
                         Live Speed Runs
                     </h1>
                     <p className="text-muted-foreground text-lg">
@@ -50,7 +45,7 @@ export const CompetePage: React.FC = () => {
                 <div className="flex gap-3 w-full md:w-auto">
                     {/* Search Bar */}
                     <div className="relative group w-full md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors" size={18} />
+                        <Icon icon={Search01Icon} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Search racer..."
@@ -145,7 +140,7 @@ export const CompetePage: React.FC = () => {
                                     <div className="md:hidden text-sm font-semibold text-muted-foreground">Duration</div>
                                     <div className="flex flex-col items-end">
                                         <div className="text-2xl font-black text-primary font-mono tracking-tight flex items-center gap-2">
-                                            <Timer size={20} className="text-lime-500" />
+                                            <Icon icon={Timer02Icon} size={20} className="text-lime-500" />
                                             {formatDuration(run.durationSeconds)}
                                         </div>
                                         <div className="text-[10px] font-bold text-lime-600 dark:text-lime-400 uppercase tracking-wide bg-lime-100 dark:bg-lime-900/30 px-2 py-0.5 rounded-full mt-1">
@@ -157,7 +152,7 @@ export const CompetePage: React.FC = () => {
                                 {/* Action Button (Desktop) */}
                                 <div className="hidden md:block pl-4">
                                     <Button size="sm" variant="ghost" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-primary">
-                                        <ArrowUpRight size={20} />
+                                        <Icon icon={ArrowUpRight01Icon} size={20} />
                                     </Button>
                                 </div>
 

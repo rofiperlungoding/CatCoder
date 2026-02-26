@@ -1,14 +1,6 @@
+import { ProgrammingFlagIcon, BookOpen01Icon, Location01Icon, Edit02Icon, FireIcon, Settings01Icon, CheckmarkBadge01Icon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react';
-import {
-    Flame,
-    Code2,
-    BookOpen,
-    MapPin,
-    Settings,
-    Edit2,
-    Check
-} from 'lucide-react';
-import { Avatar, ProgressBar, Button } from '../../components/ui';
+import { Icon, Avatar, ProgressBar, Button } from '../../components/ui';
 import { EditProfileModal } from '../../components/profile/EditProfileModal';
 import { ContributionGraph } from '../../components/profile/ContributionGraph';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
@@ -52,7 +44,7 @@ export const ProfilePage: React.FC = () => {
                     <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]"></div>
 
                     <Button variant="ghost" className="absolute top-8 right-8 text-white/60 hover:text-white hover:bg-white/10 rounded-full p-2 h-auto transition-colors">
-                        <Settings size={22} />
+                        <Icon icon={Settings01Icon} size={22} />
                     </Button>
                 </div>
 
@@ -73,7 +65,7 @@ export const ProfilePage: React.FC = () => {
                             <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">{user.username}</h1>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-muted-foreground">
                                 <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-                                    <MapPin size={16} /> Global
+                                    <Icon icon={Location01Icon} size={16} /> Global
                                 </span>
                                 <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                 <span className="text-gray-500 dark:text-gray-400">Joined Dec 2024</span>
@@ -90,14 +82,14 @@ export const ProfilePage: React.FC = () => {
                                 onClick={handleShare}
                                 className="px-6 py-2.5 rounded-full border-gray-200 dark:border-border bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-muted text-gray-700 dark:text-white font-bold h-auto shadow-sm flex items-center gap-2"
                             >
-                                {copied ? <Check size={16} className="text-lime-500" /> : null}
+                                {copied ? <Icon icon={CheckmarkBadge01Icon} size={16} className="text-lime-500" /> : null}
                                 {copied ? 'Copied' : 'Share Profile'}
                             </Button>
                             <Button
                                 onClick={() => setIsEditModalOpen(true)}
                                 className="px-6 py-2.5 rounded-full bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-gray-200 text-white dark:text-gray-900 font-bold h-auto shadow-lg shadow-black/20 dark:shadow-white/5 flex items-center gap-2"
                             >
-                                <Edit2 size={16} />
+                                <Icon icon={Edit02Icon} size={16} />
                                 Edit Profile
                             </Button>
                         </div>
@@ -122,21 +114,21 @@ export const ProfilePage: React.FC = () => {
                     <div className="space-y-4">
                         <div className="p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-primary dark:text-white group-hover:scale-110 transition-transform"><Code2 size={20} /></div>
+                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-primary dark:text-white group-hover:scale-110 transition-transform"><Icon icon={ProgrammingFlagIcon} size={20} /></div>
                                 <span className="text-sm font-bold text-muted-foreground">Problems</span>
                             </div>
                             <span className="font-bold text-xl text-primary dark:text-white">{completedProblems.size}</span>
                         </div>
                         <div className="p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-lime-600 dark:text-lime-400 group-hover:scale-110 transition-transform"><BookOpen size={20} /></div>
+                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-lime-600 dark:text-lime-400 group-hover:scale-110 transition-transform"><Icon icon={BookOpen01Icon} size={20} /></div>
                                 <span className="text-sm font-bold text-muted-foreground">Lessons</span>
                             </div>
                             <span className="font-bold text-xl text-primary dark:text-white">{completedLessons.size}</span>
                         </div>
                         <div className="p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                             <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-orange-500 dark:text-orange-400 group-hover:scale-110 transition-transform"><Flame size={20} /></div>
+                                <div className="p-2.5 bg-white dark:bg-card rounded-xl shadow-sm text-orange-500 dark:text-orange-400 group-hover:scale-110 transition-transform"><Icon icon={FireIcon} size={20} /></div>
                                 <span className="text-sm font-bold text-muted-foreground">Streak</span>
                             </div>
                             <span className="font-bold text-xl text-primary dark:text-white">{user.streakCurrent} days</span>

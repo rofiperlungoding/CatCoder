@@ -1,4 +1,5 @@
-import { Brain, RotateCw, Sparkles, ArrowRight, X, Zap, Trophy } from 'lucide-react';
+import { AiBrainIcon, ReloadIcon, SparklesIcon, ArrowRight01Icon, Cancel01Icon, EnergyIcon, Trophy } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import SkillProgressBar from './SkillProgressBar';
 import InsightCard from './InsightCard';
 import { LoadingSpinner } from '../ui';
@@ -55,7 +56,7 @@ export default function AIInsightsPanel({
                                 className="border-white/20 border-t-white text-white"
                             />
                         ) : (
-                            <RotateCw className="w-5 h-5" />
+                            <Icon icon={ReloadIcon} className="w-5 h-5" />
                         )}
                     </button>
                     {onClose && (
@@ -63,7 +64,7 @@ export default function AIInsightsPanel({
                             onClick={onClose}
                             className="p-2 text-gray-400 hover:text-red-400 rounded-xl hover:bg-white/5"
                         >
-                            <X className="w-5 h-5" />
+                            <Icon icon={Cancel01Icon} className="w-5 h-5" />
                         </button>
                     )}
                 </div>
@@ -86,7 +87,7 @@ export default function AIInsightsPanel({
                             {recommendation && (
                                 <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-900/40 to-teal-900/20 border border-emerald-500/20 p-8 space-y-6 shadow-2xl">
                                     <div className="flex items-center gap-3 text-emerald-300 text-sm font-bold uppercase tracking-wider">
-                                        <Zap className="w-4 h-4" />
+                                        <Icon icon={EnergyIcon} className="w-4 h-4" />
                                         <span>Recommended for you</span>
                                     </div>
 
@@ -115,7 +116,7 @@ export default function AIInsightsPanel({
                                         >
                                             <div className="relative flex items-center justify-center gap-3">
                                                 <span>Start Challenge</span>
-                                                <ArrowRight className="w-5 h-5" />
+                                                <Icon icon={ArrowRight01Icon} className="w-5 h-5" />
                                             </div>
                                         </button>
                                     )}
@@ -128,7 +129,7 @@ export default function AIInsightsPanel({
                                     <div className="relative z-10">
                                         <div className="flex items-center gap-3 mb-6 text-gray-200">
                                             <div className="p-2 bg-orange-500/20 rounded-lg text-orange-400 border border-orange-500/20">
-                                                <Trophy className="w-5 h-5" />
+                                                <Icon icon={Trophy} className="w-5 h-5" />
                                             </div>
                                             <h3 className="font-bold text-lg text-emerald-50">Skill Mastery</h3>
                                         </div>
@@ -153,7 +154,7 @@ export default function AIInsightsPanel({
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-3 mb-8 text-gray-200">
                                         <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400 border border-blue-500/20">
-                                            <Brain className="w-5 h-5" />
+                                            <Icon icon={AiBrainIcon} className="w-5 h-5" />
                                         </div>
                                         <h3 className="font-bold text-lg text-emerald-50">Analysis & Patterns</h3>
                                     </div>
@@ -168,7 +169,7 @@ export default function AIInsightsPanel({
                                         </div>
                                     ) : (
                                         <div className="text-center py-20 text-emerald-100/50">
-                                            <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                            <Icon icon={SparklesIcon} className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                             <p>Keep coding to unlock detailed insights</p>
                                         </div>
                                     )}

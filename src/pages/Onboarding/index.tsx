@@ -1,8 +1,7 @@
+import { ProgrammingFlagIcon, GithubIcon, Trophy, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../../components/ui';
-import { Cat, Code2, Trophy, ArrowRight } from 'lucide-react';
-
+import { Icon, Button } from '../../components/ui';
 export const OnboardingPage: React.FC = () => {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
@@ -12,19 +11,19 @@ export const OnboardingPage: React.FC = () => {
         {
             title: "Welcome to CatCoder",
             description: "The ultimate platform to master coding through interactive challenges and gamified learning.",
-            icon: <Cat size={64} className="text-lime-400" />,
+            icon: <Icon icon={GithubIcon} size={64} className="text-lime-400" />,
             bg: "bg-lime-500/10"
         },
         {
             title: "Learn by Doing",
             description: "Solve real-world problems with our powerful in-browser code editor. Get instant feedback and improve fast.",
-            icon: <Code2 size={64} className="text-blue-400" />,
+            icon: <Icon icon={ProgrammingFlagIcon} size={64} className="text-blue-400" />,
             bg: "bg-blue-500/10"
         },
         {
             title: "Compete & Win",
             description: "Climb the global leaderboards, earn badges, and showcase your skills to the community.",
-            icon: <Trophy size={64} className="text-amber-400" />,
+            icon: <Icon icon={Trophy} size={64} className="text-amber-400" />,
             bg: "bg-amber-500/10"
         }
     ];
@@ -100,7 +99,7 @@ export const OnboardingPage: React.FC = () => {
                         >
                             <span className="relative z-10 flex items-center gap-2">
                                 {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
-                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                                <Icon icon={ArrowRight01Icon} size={20} className="group-hover:translate-x-1 transition-transform" />
                             </span>
                             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
                         </Button>

@@ -1,16 +1,7 @@
+import { PlayIcon, Trophy, FireIcon, ArrowRight01Icon, CodeIcon, EnergyIcon, ArrowDown01Icon, ArrowUp01Icon } from '@hugeicons/core-free-icons';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {
-    Play,
-    Trophy,
-    Flame,
-    ArrowRight,
-    Code,
-    Zap,
-    ChevronDown,
-    ChevronUp
-} from 'lucide-react';
-import { Button, ProgressBar, Badge, Avatar } from '../../components/ui';
+import { Icon, Button, ProgressBar, Badge, Avatar } from '../../components/ui';
 import { AILearningGuide } from '../../components/ai/AILearningGuide';
 import { useUserStore } from '../../stores';
 import { fetchLeaderboard } from '../../lib/leaderboard';
@@ -82,7 +73,7 @@ export const HomePage: React.FC = () => {
                 </div>
                 <div className="flex gap-3">
                     <Button variant="secondary" size="sm" className="hidden md:flex rounded-full">
-                        <Code size={16} className="mr-2" />
+                        <Icon icon={CodeIcon} size={16} className="mr-2" />
                         Daily Code
                     </Button>
                 </div>
@@ -115,7 +106,7 @@ export const HomePage: React.FC = () => {
                             <ProgressBar value={45} max={100} className="mb-6 h-2" />
                             <Link to="/learn/py-intro-1">
                                 <Button className="w-full sm:w-auto gap-2 group-hover:bg-black/80">
-                                    Continue Learning <ArrowRight size={16} />
+                                    Continue Learning <Icon icon={ArrowRight01Icon} size={16} />
                                 </Button>
                             </Link>
                         </div>
@@ -125,7 +116,7 @@ export const HomePage: React.FC = () => {
                 {/* 2. Stats Block - XP */}
                 <div className="bento-card flex flex-col justify-center items-center text-center border-0 shadow-sm hover:shadow-md transition-all">
                     <div className="w-14 h-14 bg-lime-100 dark:bg-lime-500/20 text-lime-600 dark:text-lime-400 rounded-2xl flex items-center justify-center mb-4">
-                        <Zap size={28} strokeWidth={1.5} />
+                        <Icon icon={EnergyIcon} size={28} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-3xl font-bold text-primary dark:text-white mb-1">{user?.xp || 0}</h3>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total XP</p>
@@ -134,7 +125,7 @@ export const HomePage: React.FC = () => {
                 {/* 3. Streak Block */}
                 <div className="bento-card flex flex-col justify-center items-center text-center border-0 shadow-sm hover:shadow-md transition-all">
                     <div className="w-14 h-14 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center mb-4">
-                        <Flame size={28} strokeWidth={1.5} />
+                        <Icon icon={FireIcon} size={28} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-3xl font-bold text-primary mb-1">{user?.streakCurrent || 0}</h3>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Day Streak</p>
@@ -172,7 +163,7 @@ export const HomePage: React.FC = () => {
                     <div className="flex items-center justify-between mb-6 relative z-10">
                         <h3 className="font-bold text-primary dark:text-white flex items-center gap-2 text-lg">
                             <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg text-yellow-600 dark:text-yellow-500">
-                                <Trophy size={18} />
+                                <Icon icon={Trophy} size={18} />
                             </div>
                             Leaderboard
                         </h3>
@@ -242,7 +233,7 @@ export const HomePage: React.FC = () => {
                         )}
                         {!loadingLeaderboard && leaderboardData.length === 0 && (
                             <div className="text-center py-6 text-muted-foreground">
-                                <Trophy size={24} className="mx-auto mb-2 opacity-20" />
+                                <Icon icon={Trophy} size={24} className="mx-auto mb-2 opacity-20" />
                                 <p className="text-xs">No pioneers yet.</p>
                                 <p className="text-[10px] opacity-60">Be the first to join!</p>
                             </div>
@@ -250,7 +241,7 @@ export const HomePage: React.FC = () => {
                     </div>
                     <div className="mt-6 pt-3 border-t border-gray-100 dark:border-white/5 text-center relative z-10">
                         <Link to="/compete" className="inline-flex items-center gap-1 text-xs font-bold text-primary dark:text-white hover:text-lime-600 dark:hover:text-lime-400 transition-colors">
-                            View Full Standings <ArrowRight size={12} />
+                            View Full Standings <Icon icon={ArrowRight01Icon} size={12} />
                         </Link>
                     </div>
                 </div>
@@ -262,7 +253,7 @@ export const HomePage: React.FC = () => {
                         {(!recentActivities || recentActivities.length === 0) ? (
                             <div className="text-center py-8 text-muted-foreground flex flex-col items-center">
                                 <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center mb-3">
-                                    <Code size={20} className="text-gray-400" />
+                                    <Icon icon={CodeIcon} size={20} className="text-gray-400" />
                                 </div>
                                 <p>No activity yet.</p>
                                 <p className="text-xs mt-1">Start learning or solving problems to see your progress!</p>
@@ -277,10 +268,10 @@ export const HomePage: React.FC = () => {
                                                     activity.type === 'level_up' ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
                                                         'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
                                                 }`}>
-                                                {activity.type === 'lesson_completed' ? <Play size={18} /> :
-                                                    activity.type === 'problem_solved' ? <Code size={18} /> :
-                                                        activity.type === 'level_up' ? <Zap size={18} /> :
-                                                            <Trophy size={18} />}
+                                                {activity.type === 'lesson_completed' ? <Icon icon={PlayIcon} size={18} /> :
+                                                    activity.type === 'problem_solved' ? <Icon icon={CodeIcon} size={18} /> :
+                                                        activity.type === 'level_up' ? <Icon icon={EnergyIcon} size={18} /> :
+                                                            <Icon icon={Trophy} size={18} />}
                                             </div>
                                             <div>
                                                 <p className="font-bold text-primary dark:text-white">{activity.title}</p>
@@ -308,10 +299,10 @@ export const HomePage: React.FC = () => {
                                                             activity.type === 'level_up' ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
                                                                 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
                                                         }`}>
-                                                        {activity.type === 'lesson_completed' ? <Play size={18} /> :
-                                                            activity.type === 'problem_solved' ? <Code size={18} /> :
-                                                                activity.type === 'level_up' ? <Zap size={18} /> :
-                                                                    <Trophy size={18} />}
+                                                        {activity.type === 'lesson_completed' ? <Icon icon={PlayIcon} size={18} /> :
+                                                            activity.type === 'problem_solved' ? <Icon icon={CodeIcon} size={18} /> :
+                                                                activity.type === 'level_up' ? <Icon icon={EnergyIcon} size={18} /> :
+                                                                    <Icon icon={Trophy} size={18} />}
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-primary dark:text-white">{activity.title}</p>
@@ -340,9 +331,9 @@ export const HomePage: React.FC = () => {
                                             className="text-xs font-bold text-muted-foreground hover:text-primary gap-2"
                                         >
                                             {isActivityExpanded ? (
-                                                <>Show Less <ChevronUp size={14} /></>
+                                                <>Show Less <Icon icon={ArrowUp01Icon} size={14} /></>
                                             ) : (
-                                                <>View All Activity <ChevronDown size={14} /></>
+                                                <>View All Activity <Icon icon={ArrowDown01Icon} size={14} /></>
                                             )}
                                         </Button>
                                     </div>

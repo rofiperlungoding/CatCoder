@@ -1,8 +1,7 @@
+import { ArrowUpRight01Icon, GithubIcon, Menu01Icon, Cancel01Icon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Cat, Menu, X, ArrowUpRight, ChevronDown } from 'lucide-react';
-
-
 const links = [
     { path: '/', label: 'Home' },
     { path: '/features', label: 'Features' },
@@ -81,7 +80,7 @@ export const PublicLayout: React.FC = () => {
                     {/* Logo Section */}
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
                         <div className="flex items-center justify-center text-white">
-                            <Cat size={20} strokeWidth={2.5} />
+                            <Icon icon={GithubIcon} size={20} strokeWidth={2.5} />
                         </div>
                         <span className="font-bold text-lg tracking-tight text-white hidden sm:block">CatCoder</span>
                     </div>
@@ -126,16 +125,16 @@ export const PublicLayout: React.FC = () => {
                             className="hidden md:flex items-center gap-2 bg-white hover:bg-gray-200 text-black rounded-full px-6 py-2.5 text-sm font-medium transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md group"
                         >
                             Start Learning
-                            <ArrowUpRight size={16} strokeWidth={2} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            <Icon icon={ArrowUpRight01Icon} size={16} strokeWidth={2} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                         </button>
                         <button className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-sm font-medium transition-colors text-white hover:border-white/20">
                             <span>eng</span>
-                            <ChevronDown size={14} strokeWidth={2} className="text-gray-400" />
+                            <Icon icon={ArrowDown01Icon} size={14} strokeWidth={2} className="text-gray-400" />
                         </button>
 
                         {/* Mobile Menu Toggle */}
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-                            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                            {isMenuOpen ? <Icon icon={Cancel01Icon} size={20} /> : <Icon icon={Menu01Icon} size={20} />}
                         </button>
                     </div>
                 </nav>
@@ -167,7 +166,7 @@ export const PublicLayout: React.FC = () => {
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
                         <div className="flex flex-col gap-6 max-w-sm">
                             <div className="flex items-center gap-2">
-                                <Cat size={24} strokeWidth={2.5} className="text-white" />
+                                <Icon icon={GithubIcon} size={24} strokeWidth={2.5} className="text-white" />
                                 <span className="font-bold text-2xl tracking-tight text-white">CatCoder</span>
                             </div>
                             <p className="text-gray-400 leading-relaxed">

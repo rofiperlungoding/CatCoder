@@ -1,7 +1,7 @@
+import { Delete02Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from './';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from './Button';
-import { ArrowRight, Trash2 } from 'lucide-react';
-
 const meta: Meta<typeof Button> = {
     title: 'UI/Button',
     component: Button,
@@ -91,7 +91,7 @@ export const WithIcon: Story = {
         variant: 'primary',
         children: (
             <>
-                Get Started <ArrowRight size={16} className="ml-2" />
+                Get Started <Icon icon={ArrowRight01Icon} size={16} className="ml-2" />
             </>
         ),
     },
@@ -101,7 +101,7 @@ export const IconOnly: Story = {
     args: {
         variant: 'danger',
         size: 'sm',
-        children: <Trash2 size={16} />,
+        children: <Icon icon={Delete02Icon} size={16} />,
         'aria-label': 'Delete',
     }
 }

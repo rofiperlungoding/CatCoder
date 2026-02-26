@@ -1,10 +1,10 @@
-import { Sparkles } from 'lucide-react';
-
+import { SparklesIcon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 export default function AILoadingState() {
     return (
         <div className="flex flex-col items-center justify-center p-6 space-y-4">
             <div className="relative">
-                <Sparkles className="w-8 h-8 text-purple-500 animate-pulse" />
+                <Icon icon={SparklesIcon} className="w-8 h-8 text-purple-500 animate-pulse" />
                 <div className="absolute inset-0 bg-purple-500 blur-xl opacity-20 animate-pulse" />
             </div>
             <div className="w-full space-y-2">

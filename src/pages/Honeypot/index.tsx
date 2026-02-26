@@ -1,3 +1,4 @@
+import { Shield01Icon } from '@hugeicons/core-free-icons';
 /**
  * Honeypot Page Component
  * 
@@ -9,9 +10,8 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield } from 'lucide-react';
 import { logHoneypotAccess } from '../../lib/securityLogger';
-import { LoadingSpinner } from '../../components/ui';
+import { Icon, LoadingSpinner } from '../../components/ui';
 
 // Delay before redirecting (in milliseconds)
 const REDIRECT_DELAY_MS = 3000;
@@ -62,7 +62,7 @@ export const HoneypotPage = () => {
             <div className="flex flex-col items-center gap-6 max-w-md text-center">
                 {/* Shield icon with loading animation */}
                 <div className="relative">
-                    <Shield size={64} className="text-muted-foreground" />
+                    <Icon icon={Shield01Icon} size={64} className="text-muted-foreground" />
                     <div className="absolute -bottom-1 -right-1">
                         <LoadingSpinner size={24} className="text-primary" />
                     </div>

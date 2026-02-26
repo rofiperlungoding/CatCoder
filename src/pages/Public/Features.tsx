@@ -1,14 +1,5 @@
-import {
-    TerminalSquare,
-    Activity,
-    Crown,
-    MessageSquareCode,
-    BrainCircuit,
-    Briefcase,
-    ArrowRight,
-    Zap
-} from 'lucide-react';
-import { Button } from '../../components/ui';
+import { ComputerTerminal01Icon, Activity01Icon, CrownIcon, MessageProgrammingIcon, BrainIcon, Briefcase01Icon, ArrowRight01Icon, EnergyIcon } from '@hugeicons/core-free-icons';
+import { Icon, Button } from '../../components/ui';
 import { useNavigate } from 'react-router-dom';
 
 export const FeaturesPage: React.FC = () => {
@@ -16,42 +7,42 @@ export const FeaturesPage: React.FC = () => {
 
     const features = [
         {
-            icon: <TerminalSquare size={32} />,
+            icon: <Icon icon={ComputerTerminal01Icon} size={32} />,
             title: "Interactive Code Editor",
             description: "Write, run, and debug code directly in your browser with our powerful Monaco-based editor. Supports Python, JavaScript, and C++.",
             color: "text-blue-400",
             bg: "bg-blue-500/10"
         },
         {
-            icon: <Activity size={32} />,
+            icon: <Icon icon={Activity01Icon} size={32} />,
             title: "Instant Feedback",
             description: "Get real-time feedback on your code. Our automated testing engine checks your solutions against multiple test cases in milliseconds.",
             color: "text-amber-400",
             bg: "bg-amber-500/10"
         },
         {
-            icon: <Crown size={32} />,
+            icon: <Icon icon={CrownIcon} size={32} />,
             title: "Gamified Learning",
             description: "Earn XP, maintain streaks, and climb the leaderboards. Unlock badges and achievements as you master new skills.",
             color: "text-lime-400",
             bg: "bg-lime-500/10"
         },
         {
-            icon: <MessageSquareCode size={32} />,
+            icon: <Icon icon={MessageProgrammingIcon} size={32} />,
             title: "Community & Peer Review",
             description: "Connect with other learners, discuss solutions, and review code. Learning is better when we do it together.",
             color: "text-purple-400",
             bg: "bg-purple-500/10"
         },
         {
-            icon: <BrainCircuit size={32} />,
+            icon: <Icon icon={BrainIcon} size={32} />,
             title: "AI-Powered Hints",
             description: "Stuck on a problem? Our intelligent hints system guides you to the solution without giving it away instantly.",
             color: "text-rose-400",
             bg: "bg-rose-500/10"
         },
         {
-            icon: <Briefcase size={32} />,
+            icon: <Icon icon={Briefcase01Icon} size={32} />,
             title: "Real-world Scenarios",
             description: "Practice with challenges inspired by real-world interview questions and industry use cases.",
             color: "text-teal-400",
@@ -64,7 +55,7 @@ export const FeaturesPage: React.FC = () => {
             {/* Hero Section */}
             <section className="px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lime-500/10 text-lime-400 border border-lime-500/20 text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <Zap size={16} fill="currentColor" />
+                    <Icon icon={EnergyIcon} size={16} fill="currentColor" />
                     <span>Supercharge your coding skills</span>
                 </div>
 
@@ -79,7 +70,7 @@ export const FeaturesPage: React.FC = () => {
 
                 <div className="flex gap-4">
                     <Button size="lg" className="rounded-full px-8 h-14 text-lg shadow-xl shadow-lime-500/20 bg-lime-400 text-black hover:bg-lime-300" onClick={() => navigate('/learn')}>
-                        Start for Free <ArrowRight className="ml-2" />
+                        Start for Free <Icon icon={ArrowRight01Icon} className="ml-2" />
                     </Button>
                 </div>
             </section>

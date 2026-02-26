@@ -1,11 +1,11 @@
+import { GithubIcon } from '@hugeicons/core-free-icons';
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { ScrollToTop } from './components/layout';
-import { Toaster } from './components/ui';
+import { Icon, Toaster } from './components/ui';
 import { useUserStore, useUIStore } from './stores';
-import { Cat } from 'lucide-react';
 import { analytics } from './services/analytics';
 
 // Lazy load page components for code splitting
@@ -34,7 +34,7 @@ const PublicProfilePage = lazy(() => import('./pages/PublicProfile').then(m => (
 const LoadingScreen = () => (
   <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
     <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white animate-pulse">
-      <Cat size={32} />
+      <Icon icon={GithubIcon} size={32} />
     </div>
     <div className="text-sm font-medium text-muted-foreground">Loading...</div>
   </div>

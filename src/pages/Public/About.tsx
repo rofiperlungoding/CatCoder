@@ -1,11 +1,6 @@
+import { FavouriteIcon, Target01Icon, Globe, UserGroupIcon } from '@hugeicons/core-free-icons';
+import { Icon } from '../../components/ui';
 import React from 'react';
-import {
-    Heart,
-    Target,
-    Globe,
-    Users
-} from 'lucide-react';
-
 export const AboutPage: React.FC = () => {
     return (
         <div className="pt-32 pb-20 space-y-24">
@@ -29,28 +24,28 @@ export const AboutPage: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-lime-400 border border-white/5">
-                                    <Target size={24} />
+                                    <Icon icon={Target01Icon} size={24} />
                                 </div>
                                 <h3 className="text-xl font-bold text-white">Excellence</h3>
                                 <p className="text-gray-400">We strive for the highest quality in our curriculum and platform experience.</p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-rose-400 border border-white/5">
-                                    <Heart size={24} />
+                                    <Icon icon={FavouriteIcon} size={24} />
                                 </div>
                                 <h3 className="text-xl font-bold text-white">Passion</h3>
                                 <p className="text-gray-400">We love code, and we want to share that excitement with the world.</p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-blue-400 border border-white/5">
-                                    <Globe size={24} />
+                                    <Icon icon={Globe} size={24} />
                                 </div>
                                 <h3 className="text-xl font-bold text-white">Accessibility</h3>
                                 <p className="text-gray-400">Education should be open to everyone, everywhere, regardless of background.</p>
                             </div>
                             <div className="space-y-4">
                                 <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-amber-400 border border-white/5">
-                                    <Users size={24} />
+                                    <Icon icon={UserGroupIcon} size={24} />
                                 </div>
                                 <h3 className="text-xl font-bold text-white">Community</h3>
                                 <p className="text-gray-400">Learning is a social activity. We build bridges between learners.</p>

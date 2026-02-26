@@ -1,7 +1,7 @@
+import { GithubIcon, LockPasswordIcon, CheckmarkCircle01Icon, ViewIcon, ViewOffIcon } from '@hugeicons/core-free-icons';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cat, Lock, CheckCircle, Eye, EyeOff } from 'lucide-react';
-import { Button, Input, LoadingSpinner } from '../../components/ui';
+import { Icon, Button, Input, LoadingSpinner } from '../../components/ui';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useUIStore } from '../../stores';
 
@@ -110,7 +110,7 @@ export const ResetPasswordPage: React.FC = () => {
             <div className="min-h-screen flex items-center justify-center bg-[#050505] p-8">
                 <div className="w-full max-w-md text-center space-y-6">
                     <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20">
-                        <Lock size={40} className="text-red-400" />
+                        <Icon icon={LockPasswordIcon} size={40} className="text-red-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-white">Invalid or Expired Link</h2>
                     <p className="text-gray-400">
@@ -137,7 +137,7 @@ export const ResetPasswordPage: React.FC = () => {
             <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-700">
                 {/* Logo */}
                 <div className="flex items-center justify-center gap-2 text-white cursor-pointer" onClick={() => navigate('/')}>
-                    <Cat size={32} strokeWidth={2.5} />
+                    <Icon icon={GithubIcon} size={32} strokeWidth={2.5} />
                     <span className="font-bold text-2xl tracking-tight">CatCoder</span>
                 </div>
 
@@ -147,7 +147,7 @@ export const ResetPasswordPage: React.FC = () => {
                         // Success State
                         <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="w-20 h-20 bg-lime-500/10 rounded-full flex items-center justify-center mx-auto border border-lime-500/20">
-                                <CheckCircle size={40} className="text-lime-400" />
+                                <Icon icon={CheckmarkCircle01Icon} size={40} className="text-lime-400" />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-white mb-2">Password Updated!</h2>
@@ -178,7 +178,7 @@ export const ResetPasswordPage: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-300 ml-1">New Password</label>
                                     <div className="relative group">
-                                        <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Icon icon={LockPasswordIcon} size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300 z-10 pointer-events-none" />
                                         <Input
                                             type={showPassword ? 'text' : 'password'}
                                             placeholder="••••••••"
@@ -191,7 +191,7 @@ export const ResetPasswordPage: React.FC = () => {
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
                                         >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            {showPassword ? <Icon icon={ViewOffIcon} size={18} /> : <Icon icon={ViewIcon} size={18} />}
                                         </button>
                                     </div>
                                 </div>
@@ -199,7 +199,7 @@ export const ResetPasswordPage: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-300 ml-1">Confirm Password</label>
                                     <div className="relative group">
-                                        <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300" />
+                                        <Icon icon={LockPasswordIcon} size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-lime-500 transition-colors duration-300 z-10 pointer-events-none" />
                                         <Input
                                             type={showConfirmPassword ? 'text' : 'password'}
                                             placeholder="••••••••"
@@ -212,7 +212,7 @@ export const ResetPasswordPage: React.FC = () => {
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                             className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
                                         >
-                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            {showConfirmPassword ? <Icon icon={ViewOffIcon} size={18} /> : <Icon icon={ViewIcon} size={18} />}
                                         </button>
                                     </div>
                                 </div>

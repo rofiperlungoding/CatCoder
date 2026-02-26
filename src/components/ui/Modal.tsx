@@ -1,6 +1,7 @@
+import { Cancel01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from './';
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import { FocusTrap } from 'focus-trap-react';
 
 interface ModalProps {
@@ -52,7 +53,7 @@ export const Modal: React.FC<ModalProps> = ({
                             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-muted-foreground hover:text-primary dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                             aria-label="Close modal"
                         >
-                            <X size={20} aria-hidden="true" />
+                            <Icon icon={Cancel01Icon} size={20} aria-hidden="true" />
                         </button>
                     </div>
                     <div className="p-8">

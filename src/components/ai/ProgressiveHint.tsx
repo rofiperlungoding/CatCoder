@@ -1,4 +1,5 @@
-import { Lightbulb, BookOpen, MessageSquareCode } from 'lucide-react';
+import { Lightbulb, BookOpen01Icon, MessageProgrammingIcon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import { clsx } from 'clsx';
 
 interface ProgressiveHintProps {

@@ -1,6 +1,7 @@
+import { ReloadIcon, GithubIcon, Home01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import { Cat, RefreshCw, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui';
 
@@ -44,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
                     {/* Error Icon */}
                     <div className="relative mb-6">
-                        <Cat size={100} className="text-red-500 drop-shadow-2xl" />
+                        <Icon icon={GithubIcon} size={100} className="text-red-500 drop-shadow-2xl" />
                     </div>
 
                     {/* Error Message */}
@@ -73,12 +74,12 @@ export class ErrorBoundary extends Component<Props, State> {
                             onClick={this.handleReload}
                             className="shadow-lg shadow-lime-500/20"
                         >
-                            <RefreshCw size={18} className="mr-2" />
+                            <Icon icon={ReloadIcon} size={18} className="mr-2" />
                             Try Again
                         </Button>
                         <Link to="/">
                             <Button variant="secondary">
-                                <Home size={18} className="mr-2" />
+                                <Icon icon={Home01Icon} size={18} className="mr-2" />
                                 Go Home
                             </Button>
                         </Link>

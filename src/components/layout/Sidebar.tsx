@@ -1,17 +1,7 @@
+import { BookOpen01Icon, ProgrammingFlagIcon, MapsIcon, Home01Icon, Trophy, UserIcon, Logout01Icon, Menu01Icon, Cancel01Icon, GithubIcon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import {
-    Home,
-    BookOpen,
-    Code2,
-    Trophy,
-    Map,
-    User as UserIcon,
-    LogOut,
-    Menu,
-    X,
-    Cat
-} from 'lucide-react';
 import { useUserStore } from '../../stores';
 import { Avatar, Button } from '../ui';
 
@@ -19,7 +9,7 @@ import type { User } from '../../types';
 
 interface SidebarContentProps {
     location: { pathname: string };
-    navItems: { icon: React.ElementType; label: string; path: string }[];
+    navItems: { icon: any; label: string; path: string }[];
     setIsMobileMenuOpen: (isOpen: boolean) => void;
     user: User | null;
     handleLogout: () => void;
@@ -46,7 +36,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             <div className="p-6 mb-2">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-white to-gray-400 text-black rounded-full flex items-center justify-center shadow-lg shadow-white/5 ring-1 ring-white/20">
-                        <Cat size={20} />
+                        <Icon icon={GithubIcon} size={20} />
                     </div>
                     <h1 className="font-bold text-lg tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
                         CatCoder
@@ -71,7 +61,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                                 }
                             `}
                         >
-                            <item.icon size={20} className={isActive ? 'text-black' : 'group-hover:text-white transition-colors'} />
+                            <Icon icon={item.icon} size={20} className={isActive ? 'text-black' : 'group-hover:text-white transition-colors'} />
                             <span className="font-medium text-sm">{item.label}</span>
                         </NavLink>
                     );
@@ -97,7 +87,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                     ) : (
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                                <UserIcon size={18} className="text-gray-400" />
+                                <Icon icon={UserIcon} size={18} className="text-gray-400" />
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-white">Guest</p>
@@ -118,7 +108,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                         onClick={user ? handleLogout : () => { }}
                         className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-gray-500 hover:text-red-400 py-2 transition-colors"
                     >
-                        <LogOut size={14} />
+                        <Icon icon={Logout01Icon} size={14} />
                         {user ? 'Sign Out' : 'Sign In'}
                     </button>
                 </div>
@@ -141,11 +131,11 @@ export const Sidebar: React.FC = () => {
     };
 
     const navItems = [
-        { icon: Home, label: 'Home', path: '/home' },
-        { icon: BookOpen, label: 'Learn', path: '/learn' },
-        { icon: Code2, label: 'Practice', path: '/practice' },
+        { icon: Home01Icon, label: 'Home', path: '/home' },
+        { icon: BookOpen01Icon, label: 'Learn', path: '/learn' },
+        { icon: ProgrammingFlagIcon, label: 'Practice', path: '/practice' },
         { icon: Trophy, label: 'Compete', path: '/compete' },
-        { icon: Map, label: 'Roadmap', path: '/roadmap' },
+        { icon: MapsIcon, label: 'Roadmap', path: '/roadmap' },
     ];
 
     // Mobile Menu Toggle
@@ -170,7 +160,7 @@ export const Sidebar: React.FC = () => {
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 z-40 px-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground" aria-hidden="true">
-                        <Cat size={16} />
+                        <Icon icon={GithubIcon} size={16} />
                     </div>
                     <span className="font-bold text-primary dark:text-white">CatCoder</span>
                 </div>
@@ -181,7 +171,7 @@ export const Sidebar: React.FC = () => {
                     aria-expanded={isMobileMenuOpen}
                     aria-controls="mobile-menu"
                 >
-                    {isMobileMenuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+                    {isMobileMenuOpen ? <Icon icon={Cancel01Icon} size={20} aria-hidden="true" /> : <Icon icon={Menu01Icon} size={20} aria-hidden="true" />}
                 </button>
             </div>
 

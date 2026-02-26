@@ -1,13 +1,7 @@
+import { Calendar01Icon, Share01Icon, LinkSquare01Icon, ArrowLeft01Icon, EnergyIcon } from '@hugeicons/core-free-icons';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-    Calendar,
-    ArrowLeft,
-    Share2,
-    ExternalLink,
-    Zap
-} from 'lucide-react';
-import { Button } from '../../components/ui';
+import { Icon, Button } from '../../components/ui';
 import { fetchSpeedRunById, formatDuration, formatTimeAgo, type SpeedRunEntry } from '../../lib/speedruns';
 import { useUserStore } from '../../stores';
 
@@ -57,7 +51,7 @@ export const SpeedRunDetail: React.FC = () => {
             {/* Header / Nav */}
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" onClick={() => navigate('/compete')} className="rounded-full p-2">
-                    <ArrowLeft size={20} />
+                    <Icon icon={ArrowLeft01Icon} size={20} />
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -69,7 +63,7 @@ export const SpeedRunDetail: React.FC = () => {
                 </div>
                 <div className="flex-1" />
                 <Button variant="secondary" size="sm" onClick={handleShare} className="gap-2">
-                    <Share2 size={16} />
+                    <Icon icon={Share01Icon} size={16} />
                     Share
                 </Button>
             </div>
@@ -79,7 +73,7 @@ export const SpeedRunDetail: React.FC = () => {
                 {/* Top Banner / Hero */}
                 <div className="bg-gradient-to-r from-violet-600 to-indigo-600 p-8 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-10 -translate-y-10">
-                        <Zap size={140} />
+                        <Icon icon={EnergyIcon} size={140} />
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
@@ -90,7 +84,7 @@ export const SpeedRunDetail: React.FC = () => {
                                 {formatDuration(run.durationSeconds)}
                             </div>
                             <div className="flex items-center gap-2 mt-4 text-violet-100 bg-white/10 px-3 py-1 rounded-full text-sm">
-                                <Calendar size={14} />
+                                <Icon icon={Calendar01Icon} size={14} />
                                 {new Date(run.completedAt).toLocaleDateString(undefined, {
                                     weekday: 'long',
                                     year: 'numeric',
@@ -150,7 +144,7 @@ export const SpeedRunDetail: React.FC = () => {
                             </p>
 
                             <Button className="w-full gap-2" onClick={() => navigate(`/practice/${run.problem.id}`)}>
-                                Try this Problem <ExternalLink size={14} />
+                                Try this Problem <Icon icon={LinkSquare01Icon} size={14} />
                             </Button>
                         </div>
                     </div>

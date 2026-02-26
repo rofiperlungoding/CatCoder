@@ -1,16 +1,7 @@
+import { ProgrammingFlagIcon, BookOpen01Icon, Location01Icon, Share01Icon, FireIcon, ArrowLeft01Icon, GithubIcon, CheckmarkBadge01Icon } from '@hugeicons/core-free-icons';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import {
-    Flame,
-    Code2,
-    BookOpen,
-    MapPin,
-    ArrowLeft,
-    Cat,
-    Share2,
-    Check
-} from 'lucide-react';
-import { Avatar, Button } from '../../components/ui';
+import { Icon, Avatar, Button } from '../../components/ui';
 import { PublicContributionGraph } from '../../components/profile/PublicContributionGraph';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { calculateLevelProgress } from '../../lib/utils';
@@ -134,7 +125,7 @@ export const PublicProfilePage: React.FC = () => {
             <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white animate-pulse">
-                        <Cat size={32} />
+                        <Icon icon={GithubIcon} size={32} />
                     </div>
                     <div className="text-sm font-medium text-muted-foreground">Memuat profil...</div>
                 </div>
@@ -148,7 +139,7 @@ export const PublicProfilePage: React.FC = () => {
             <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center p-4">
                 <div className="text-center max-w-md">
                     <div className="w-20 h-20 bg-gray-100 dark:bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Cat size={40} className="text-gray-400" />
+                        <Icon icon={GithubIcon} size={40} className="text-gray-400" />
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         {error || 'Profil tidak ditemukan'}
@@ -158,7 +149,7 @@ export const PublicProfilePage: React.FC = () => {
                     </p>
                     <Link to="/">
                         <Button className="gap-2">
-                            <ArrowLeft size={16} />
+                            <Icon icon={ArrowLeft01Icon} size={16} />
                             Kembali ke Beranda
                         </Button>
                     </Link>
@@ -174,7 +165,7 @@ export const PublicProfilePage: React.FC = () => {
                 <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
                         <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
-                            <Cat size={24} />
+                            <Icon icon={GithubIcon} size={24} />
                         </div>
                         <span className="font-bold text-xl">CatCoder</span>
                     </Link>
@@ -183,7 +174,7 @@ export const PublicProfilePage: React.FC = () => {
                         onClick={handleShare}
                         className="gap-2"
                     >
-                        {copied ? <Check size={16} className="text-lime-500" /> : <Share2 size={16} />}
+                        {copied ? <Icon icon={CheckmarkBadge01Icon} size={16} className="text-lime-500" /> : <Icon icon={Share01Icon} size={16} />}
                         {copied ? 'Tersalin!' : 'Bagikan'}
                     </Button>
                 </div>
@@ -217,7 +208,7 @@ export const PublicProfilePage: React.FC = () => {
                                 </h1>
                                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 text-sm font-medium text-muted-foreground">
                                     <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-                                        <MapPin size={16} /> Global
+                                        <Icon icon={Location01Icon} size={16} /> Global
                                     </span>
                                     <span className="hidden md:block w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     <span className="text-gray-500 dark:text-gray-400">
@@ -262,7 +253,7 @@ export const PublicProfilePage: React.FC = () => {
                             <div className="p-4 md:p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.25rem] md:rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                                 <div className="flex items-center gap-3 md:gap-4">
                                     <div className="p-2 md:p-2.5 bg-white dark:bg-card rounded-lg md:rounded-xl shadow-sm text-primary dark:text-white group-hover:scale-110 transition-transform">
-                                        <Code2 size={18} />
+                                        <Icon icon={ProgrammingFlagIcon} size={18} />
                                     </div>
                                     <span className="text-sm font-bold text-muted-foreground">Problems</span>
                                 </div>
@@ -271,7 +262,7 @@ export const PublicProfilePage: React.FC = () => {
                             <div className="p-4 md:p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.25rem] md:rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                                 <div className="flex items-center gap-3 md:gap-4">
                                     <div className="p-2 md:p-2.5 bg-white dark:bg-card rounded-lg md:rounded-xl shadow-sm text-lime-600 dark:text-lime-400 group-hover:scale-110 transition-transform">
-                                        <BookOpen size={18} />
+                                        <Icon icon={BookOpen01Icon} size={18} />
                                     </div>
                                     <span className="text-sm font-bold text-muted-foreground">Lessons</span>
                                 </div>
@@ -280,7 +271,7 @@ export const PublicProfilePage: React.FC = () => {
                             <div className="p-4 md:p-5 bg-gray-50 dark:bg-muted/50 rounded-[1.25rem] md:rounded-[1.5rem] flex items-center justify-between group hover:bg-gray-100/80 dark:hover:bg-muted transition-colors">
                                 <div className="flex items-center gap-3 md:gap-4">
                                     <div className="p-2 md:p-2.5 bg-white dark:bg-card rounded-lg md:rounded-xl shadow-sm text-orange-500 dark:text-orange-400 group-hover:scale-110 transition-transform">
-                                        <Flame size={18} />
+                                        <Icon icon={FireIcon} size={18} />
                                     </div>
                                     <span className="text-sm font-bold text-muted-foreground">Streak</span>
                                 </div>

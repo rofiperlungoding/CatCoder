@@ -1,5 +1,6 @@
+import { Cancel01Icon, UserIcon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import React, { useState } from 'react';
-import { X, User as UserIcon } from 'lucide-react';
 import { Button, LoadingSpinner } from '../ui';
 import { useUserStore } from '../../stores';
 
@@ -35,7 +36,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                     onClick={onClose}
                     className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
                 >
-                    <X size={20} />
+                    <Icon icon={Cancel01Icon} size={20} />
                 </button>
 
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Profile</h2>

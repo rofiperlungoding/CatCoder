@@ -1,4 +1,5 @@
-import { TrendingUp, AlertCircle, Target, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowUpRight01Icon, Target01Icon, SparklesIcon, Alert01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from '../ui';
 import type { LearningInsight } from '../../types/analytics';
 
 interface InsightCardProps {
@@ -62,7 +63,7 @@ export default function InsightCard({ insight }: InsightCardProps) {
                     </div>
 
                     <div className="flex items-center gap-2 text-sm group cursor-default text-emerald-100/80 hover:text-white transition-colors">
-                        <ArrowRight className={`w-4 h-4 ${style.iconColor} group-hover:translate-x-1 transition-transform`} />
+                        <Icon icon={ArrowRight01Icon} className={`w-4 h-4 ${style.iconColor} group-hover:translate-x-1 transition-transform`} />
                         <span className="font-medium">
                             {insight.actionable}
                         </span>

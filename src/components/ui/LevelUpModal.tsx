@@ -1,6 +1,7 @@
+import { Trophy, StarIcon, ArrowRight01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
+import { Icon } from './';
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, Star, ArrowRight, X } from 'lucide-react';
 import { useUIStore } from '../../stores';
 import { Button } from './index';
 
@@ -20,13 +21,13 @@ export const LevelUpModal: React.FC = () => {
                     onClick={hideLevelUp}
                     className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors z-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50"
                 >
-                    <X size={20} className="text-muted-foreground" />
+                    <Icon icon={Cancel01Icon} size={20} className="text-muted-foreground" />
                 </button>
 
                 <div className="relative z-10 flex flex-col items-center text-center p-10 pt-14">
                     {/* Icon */}
                     <div className="w-28 h-28 bg-lime-100 dark:bg-lime-900/30 rounded-full flex items-center justify-center mb-8 shadow-xl shadow-lime-100/50 dark:shadow-lime-900/20 ring-8 ring-white dark:ring-white/5">
-                        <Trophy size={56} className="text-lime-600 dark:text-lime-400 fill-lime-300 dark:fill-lime-400/20" />
+                        <Icon icon={Trophy} size={56} className="text-lime-600 dark:text-lime-400 fill-lime-300 dark:fill-lime-400/20" />
                     </div>
 
                     {/* Content */}
@@ -39,7 +40,7 @@ export const LevelUpModal: React.FC = () => {
                     <div className="w-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-[2rem] p-5 mb-8 shadow-sm">
                         <div className="flex items-center gap-4 text-left">
                             <div className="p-3 bg-lime-50 dark:bg-lime-900/30 rounded-full text-lime-600 dark:text-lime-400">
-                                <Star size={24} className="fill-lime-200 dark:fill-lime-400/20" />
+                                <Icon icon={StarIcon} size={24} className="fill-lime-200 dark:fill-lime-400/20" />
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-gray-900 dark:text-white">New Tier Unlocked</p>
@@ -54,7 +55,7 @@ export const LevelUpModal: React.FC = () => {
                         onClick={hideLevelUp}
                         className="bg-gray-900 hover:bg-black text-white dark:bg-white dark:text-black dark:hover:bg-gray-200 shadow-xl shadow-black/10 rounded-full"
                     >
-                        Continue Learning <ArrowRight size={18} />
+                        Continue Learning <Icon icon={ArrowRight01Icon} size={18} />
                     </Button>
                 </div>
             </div>
