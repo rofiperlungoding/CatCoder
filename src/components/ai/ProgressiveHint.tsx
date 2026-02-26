@@ -23,7 +23,7 @@ export default function ProgressiveHint({ onSelectLevel, disabled }: Progressive
             label: 'Detailed Help',
             desc: 'Explanation of the logic needed.',
             cost: 15,
-            icon: BookOpen,
+            icon: BookOpen01Icon,
             color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
             border: 'hover:border-blue-400',
         },
@@ -32,7 +32,7 @@ export default function ProgressiveHint({ onSelectLevel, disabled }: Progressive
             label: 'Show Solution',
             desc: 'Complete code with explanation.',
             cost: 30,
-            icon: MessageSquareCode,
+            icon: MessageProgrammingIcon,
             color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
             border: 'hover:border-red-400',
         },
@@ -41,7 +41,7 @@ export default function ProgressiveHint({ onSelectLevel, disabled }: Progressive
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {levels.map((level) => {
-                const Icon = level.icon;
+                const IconCmp = level.icon;
                 return (
                     <button
                         key={level.id}
@@ -55,7 +55,7 @@ export default function ProgressiveHint({ onSelectLevel, disabled }: Progressive
                         )}
                     >
                         <div className={clsx("p-2 mb-3 rounded-lg", level.color)}>
-                            <Icon className="w-5 h-5" />
+                            <Icon icon={IconCmp} className="w-5 h-5" />
                         </div>
 
                         <h3 className="font-semibold text-gray-900 dark:text-white mb-1">

@@ -12,40 +12,40 @@ export default function InsightCard({ insight }: InsightCardProps) {
             border: 'border-emerald-500/20',
             bg: 'bg-emerald-500/10',
             text: 'text-emerald-200',
-            icon: TrendingUp,
+            icon: ArrowUpRight01Icon,
             iconColor: 'text-emerald-400',
         },
         weakness: {
             border: 'border-orange-500/20',
             bg: 'bg-orange-500/10',
             text: 'text-orange-200',
-            icon: AlertCircle,
+            icon: Alert01Icon,
             iconColor: 'text-orange-400',
         },
         recommendation: {
             border: 'border-blue-500/20',
             bg: 'bg-blue-500/10',
             text: 'text-blue-200',
-            icon: Target,
+            icon: Target01Icon,
             iconColor: 'text-blue-400',
         },
         pattern: {
             border: 'border-purple-500/20',
             bg: 'bg-purple-500/10',
             text: 'text-purple-200',
-            icon: Sparkles,
+            icon: SparklesIcon,
             iconColor: 'text-purple-400',
         },
     };
 
     const style = styles[insight.type];
-    const Icon = style.icon;
+    const IconCmp = style.icon;
 
     return (
         <div className={`p-4 rounded-2xl border ${style.border} ${style.bg} backdrop-blur-sm`}>
             <div className="flex items-start gap-4">
                 <div className={`p-2.5 rounded-xl bg-black/20 ${style.iconColor} shadow-inner`}>
-                    <Icon className="w-5 h-5" />
+                    <Icon icon={IconCmp} className="w-5 h-5" />
                 </div>
                 <div className="flex-1 space-y-2">
                     <div>

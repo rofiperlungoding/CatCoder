@@ -48,7 +48,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                                <UserIcon size={18} />
+                                <Icon icon={UserIcon} size={18} />
                             </div>
                             <input
                                 type="text"
