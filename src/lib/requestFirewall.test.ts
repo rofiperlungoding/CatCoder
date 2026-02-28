@@ -16,8 +16,7 @@ import {
     isFirewallActive,
     getAllowedDomains,
     addAllowedDomain,
-    removeAllowedDomain,
-} from './requestFirewall';
+    removeAllowedDomain } from './requestFirewall';
 
 // Mock window.location for testing
 const mockWindowLocation = (hostname: string) => {

@@ -1,4 +1,4 @@
-import { ProgrammingFlagIcon, BookOpen01Icon, Location01Icon, Share01Icon, FireIcon, ArrowLeft01Icon, GithubIcon, CheckmarkBadge01Icon } from '@hugeicons/core-free-icons';
+import { ProgrammingFlagIcon, BookOpen01Icon, Location01Icon, Share01Icon, FireIcon, ArrowLeft01Icon,  CheckmarkBadge01Icon } from '@hugeicons/core-free-icons';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Icon, Avatar, Button } from '../../components/ui';
@@ -125,7 +125,7 @@ export const PublicProfilePage: React.FC = () => {
             <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white animate-pulse">
-                        <Icon icon={GithubIcon} size={32} />
+                        <img src="/logo.png" alt="CatCoder Logo" className="w-8 h-8 object-contain" />
                     </div>
                     <div className="text-sm font-medium text-muted-foreground">Memuat profil...</div>
                 </div>
@@ -139,7 +139,7 @@ export const PublicProfilePage: React.FC = () => {
             <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center p-4">
                 <div className="text-center max-w-md">
                     <div className="w-20 h-20 bg-gray-100 dark:bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Icon icon={GithubIcon} size={40} className="text-gray-400" />
+                        <img src="/logo.png" alt="CatCoder Logo" className="w-10 h-10 object-contain text-gray-400" />
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         {error || 'Profil tidak ditemukan'}
@@ -165,7 +165,7 @@ export const PublicProfilePage: React.FC = () => {
                 <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
                         <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
-                            <Icon icon={GithubIcon} size={24} />
+                            <img src="/logo.png" alt="CatCoder Logo" className="w-6 h-6 object-contain" />
                         </div>
                         <span className="font-bold text-xl">CatCoder</span>
                     </Link>

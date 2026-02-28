@@ -1,4 +1,4 @@
-import { GithubIcon, Home01Icon, ArrowLeft01Icon } from '@hugeicons/core-free-icons';
+import {  Home01Icon, ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 import { Link } from 'react-router-dom';
 import { Icon, Button } from '../../components/ui';
 
@@ -8,7 +8,7 @@ export const NotFoundPage = () => {
             {/* Animated Cat Icon */}
             {/* Cat Icon */}
             <div className="relative mb-8 z-10">
-                <Icon icon={GithubIcon} size={120} className="text-lime-500 drop-shadow-2xl" />
+                <img src="/logo.png" alt="CatCoder Logo" className="w-30 h-30 object-contain text-lime-500 drop-shadow-2xl" />
             </div>
 
             {/* 404 Text */}

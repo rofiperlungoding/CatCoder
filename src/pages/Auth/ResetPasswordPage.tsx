@@ -1,4 +1,4 @@
-import { GithubIcon, LockPasswordIcon, CheckmarkCircle01Icon, ViewIcon, ViewOffIcon } from '@hugeicons/core-free-icons';
+import {  LockPasswordIcon, CheckmarkCircle01Icon, ViewIcon, ViewOffIcon } from '@hugeicons/core-free-icons';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon, Button, Input, LoadingSpinner } from '../../components/ui';
@@ -137,7 +137,7 @@ export const ResetPasswordPage: React.FC = () => {
             <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-700">
                 {/* Logo */}
                 <div className="flex items-center justify-center gap-2 text-white cursor-pointer" onClick={() => navigate('/')}>
-                    <Icon icon={GithubIcon} size={32} strokeWidth={2.5} />
+                    <img src="/logo.png" alt="CatCoder Logo" className="w-8 h-8 object-contain" />
                     <span className="font-bold text-2xl tracking-tight">CatCoder</span>
                 </div>
 

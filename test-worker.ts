@@ -2,7 +2,7 @@ import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
 
 if (isMainThread) {
   function runSandbox(code: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const worker = new Worker(__filename, {
         workerData: { code },
       });
@@ -38,11 +38,11 @@ if (isMainThread) {
   const errors: string[] = [];
 
   const safeConsole = {
-    log: (...args: any[]) => output.push(args.map(String).join(' ')),
-    error: (...args: any[]) => errors.push(args.map(String).join(' ')),
-    warn: (...args: any[]) => output.push('Warning: ' + args.map(String).join(' ')),
-    info: (...args: any[]) => output.push(args.map(String).join(' ')),
-    debug: (...args: any[]) => output.push(args.map(String).join(' ')),
+    log: (...args: unknown[]) => output.push(args.map(String).join(' ')),
+    error: (...args: unknown[]) => errors.push(args.map(String).join(' ')),
+    warn: (...args: unknown[]) => output.push('Warning: ' + args.map(String).join(' ')),
+    info: (...args: unknown[]) => output.push(args.map(String).join(' ')),
+    debug: (...args: unknown[]) => output.push(args.map(String).join(' ')),
   };
 
   try {
@@ -57,8 +57,8 @@ if (isMainThread) {
     sandboxedFn(
       safeConsole, null, null, null, null, null, null, null, null, null, null, null, null, null, null
     );
-  } catch (err: any) {
-    errors.push(err.message || String(err));
+  } catch (err: unknown) {
+    errors.push((err as Error).message || String(err));
   }
 
   parentPort?.postMessage({ output, errors });

@@ -197,7 +197,8 @@ export const useUserStore = create<UserState>()(
                 // Clear local state IMMEDIATELY for instant feedback
                 set({
                     user: null,
-                    isAuthenticated: false
+                    isAuthenticated: false,
+                    recentActivities: []
                 });
                 useUIStore.getState().addToast('success', 'Signed out successfully');
 
@@ -548,7 +549,7 @@ export const useUserStore = create<UserState>()(
                                 useUIStore.getState().addToast('success', 'Welcome! Signed in with Google');
                             }
                         } else if (event === 'SIGNED_OUT') {
-                            set({ user: null, isAuthenticated: false });
+                            set({ user: null, isAuthenticated: false, recentActivities: [] });
                         } else if (session?.user) {
                             await handleUserSession(session);
                         }
@@ -775,6 +776,44 @@ export const useProgressStore = create<ProgressState>()(
                         if (p.contentType === 'lesson') completedLessons.add(p.contentId);
                         if (p.contentType === 'problem') completedProblems.add(p.contentId);
                     }
+                });
+
+                import('../data/lessons').then(({ lessons }) => {
+                    import('../data/problems').then(({ problems }) => {
+                        const activities = progress
+                            .filter(p => p.status === 'completed' && p.completedAt)
+                            .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+                            .slice(0, 20)
+                            .map(p => {
+                                let title = p.contentType === 'lesson' ? 'Completed Lesson' : 'Solved Problem';
+                                if (p.contentType === 'lesson') {
+                                    const lesson = lessons.find(l => l.id === p.contentId);
+                                    if (lesson) title = `Completed lesson: ${lesson.title}`;
+                                    else title = `Completed lesson: ${p.contentId}`;
+                                } else if (p.contentType === 'problem') {
+                                    const prob = problems.find(pr => pr.id === p.contentId);
+                                    if (prob) title = `Solved: ${prob.title}`;
+                                    else title = `Solved problem: ${p.contentId}`;
+                                }
+
+                                return {
+                                    id: p.id,
+                                    type: p.contentType === 'lesson' ? 'lesson_completed' : 'problem_solved',
+                                    title,
+                                    xpEarned: p.score || (p.contentType === 'lesson' ? 50 : 100),
+                                    timestamp: p.completedAt!
+                                } as Activity;
+                            });
+
+                        // Merge with existing level up activities that aren't in progress table
+                        const existingLevelUps = useUserStore.getState().recentActivities.filter(a => a.type === 'level_up');
+
+                        const mergedActivities = [...activities, ...existingLevelUps]
+                            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                            .slice(0, 20);
+
+                        useUserStore.setState({ recentActivities: mergedActivities });
+                    });
                 });
 
                 set({ progress, completedLessons, completedProblems, isLoaded: true });

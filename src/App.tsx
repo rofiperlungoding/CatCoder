@@ -1,10 +1,9 @@
-import { GithubIcon } from '@hugeicons/core-free-icons';
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { ScrollToTop } from './components/layout';
-import { Icon, Toaster } from './components/ui';
+import { Toaster } from './components/ui';
 import { useUserStore, useUIStore } from './stores';
 import { analytics } from './services/analytics';
 
@@ -32,11 +31,21 @@ const PublicProfilePage = lazy(() => import('./pages/PublicProfile').then(m => (
 
 // Loading screen component
 const LoadingScreen = () => (
-  <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-    <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white animate-pulse">
-      <Icon icon={GithubIcon} size={32} />
+  <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-700">
+      <div className="relative flex items-center justify-center">
+        <div className="w-16 h-16 flex items-center justify-center text-foreground z-10 relative animate-pulse">
+          <img src="/logo.png" alt="CatCoder Logo" className="w-8 h-8 object-contain" />
+        </div>
+        <div className="absolute inset-0 rounded-full border border-foreground/10"></div>
+        <div className="absolute -inset-1 rounded-full border-[1.5px] border-foreground/80 border-t-transparent border-l-transparent animate-spin duration-1000"></div>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="text-xs font-medium tracking-[0.4em] text-foreground/60 uppercase pl-1 animate-pulse">
+          CatCoder
+        </div>
+      </div>
     </div>
-    <div className="text-sm font-medium text-muted-foreground">Loading...</div>
   </div>
 );
 

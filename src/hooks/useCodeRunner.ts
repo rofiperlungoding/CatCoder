@@ -182,7 +182,7 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
             } catch (error) {
                 // Handle worker creation errors - fall back to non-sandboxed execution
                 console.warn('Web Worker not available, falling back to direct execution', error);
-                resolve(executeJsFallback(codeStr));
+                resolve(executeJsFallback());
             }
         });
     };
@@ -194,7 +194,7 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
      * Requirement 1.1: ALL code must execute in sandbox. 
      * We purposefully fail-closed here instead of falling back to unsafe eval.
      */
-    const executeJsFallback = (_codeStr: string): string => {
+    const executeJsFallback = (): string => {
         return "Error: Secure Sandbox (Web Worker) is required for execution but could not be loaded. Please check your browser settings or refresh the page.";
     };
 

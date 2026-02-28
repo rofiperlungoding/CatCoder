@@ -1,4 +1,4 @@
-import { ReloadIcon, GithubIcon, Home01Icon } from '@hugeicons/core-free-icons';
+import { ReloadIcon,  Home01Icon } from '@hugeicons/core-free-icons';
 import { Icon } from '../ui';
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
                     {/* Error Icon */}
                     <div className="relative mb-6">
-                        <Icon icon={GithubIcon} size={100} className="text-red-500 drop-shadow-2xl" />
+                        <img src="/logo.png" alt="CatCoder Logo" className="w-25 h-25 object-contain text-red-500 drop-shadow-2xl" />
                     </div>
 
                     {/* Error Message */}

@@ -1,4 +1,4 @@
-import { ArrowUpRight01Icon, GithubIcon, Menu01Icon, Cancel01Icon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { ArrowUpRight01Icon,  Menu01Icon, Cancel01Icon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
 import { Icon } from '../ui';
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
@@ -80,7 +80,7 @@ export const PublicLayout: React.FC = () => {
                     {/* Logo Section */}
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
                         <div className="flex items-center justify-center text-white">
-                            <Icon icon={GithubIcon} size={20} strokeWidth={2.5} />
+                            <img src="/logo.png" alt="CatCoder Logo" className="w-5 h-5 object-contain" />
                         </div>
                         <span className="font-bold text-lg tracking-tight text-white hidden sm:block">CatCoder</span>
                     </div>
@@ -166,7 +166,7 @@ export const PublicLayout: React.FC = () => {
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
                         <div className="flex flex-col gap-6 max-w-sm">
                             <div className="flex items-center gap-2">
-                                <Icon icon={GithubIcon} size={24} strokeWidth={2.5} className="text-white" />
+                                <img src="/logo.png" alt="CatCoder Logo" className="w-6 h-6 object-contain text-white" />
                                 <span className="font-bold text-2xl tracking-tight text-white">CatCoder</span>
                             </div>
                             <p className="text-gray-400 leading-relaxed">

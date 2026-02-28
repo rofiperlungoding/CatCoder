@@ -1,4 +1,4 @@
-import { GithubIcon, ArrowLeft01Icon, Mail01Icon, SentIcon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons';
+import {  ArrowLeft01Icon, Mail01Icon, SentIcon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Input, LoadingSpinner, Icon } from '../../components/ui';
@@ -55,7 +55,7 @@ export const ForgotPasswordPage: React.FC = () => {
             <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-700">
                 {/* Logo */}
                 <div className="flex items-center justify-center gap-2 text-white cursor-pointer" onClick={() => navigate('/')}>
-                    <Icon icon={GithubIcon} size={32} strokeWidth={2.5} />
+                    <img src="/logo.png" alt="CatCoder Logo" className="w-8 h-8 object-contain" />
                     <span className="font-bold text-2xl tracking-tight">CatCoder</span>
                 </div>
 

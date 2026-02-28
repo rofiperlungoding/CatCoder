@@ -1,4 +1,4 @@
-import { ProgrammingFlagIcon, GithubIcon, Trophy, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { ProgrammingFlagIcon,  Trophy, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon, Button } from '../../components/ui';
@@ -11,7 +11,7 @@ export const OnboardingPage: React.FC = () => {
         {
             title: "Welcome to CatCoder",
             description: "The ultimate platform to master coding through interactive challenges and gamified learning.",
-            icon: <Icon icon={GithubIcon} size={64} className="text-lime-400" />,
+            icon: <img src="/logo.png" alt="CatCoder Logo" className="w-16 h-16 object-contain text-lime-400" />,
             bg: "bg-lime-500/10"
         },
         {

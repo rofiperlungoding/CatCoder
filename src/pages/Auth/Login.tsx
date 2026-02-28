@@ -1,4 +1,4 @@
-import { GithubIcon, ArrowRight01Icon, Mail01Icon, LockPasswordIcon } from '@hugeicons/core-free-icons';
+import {  ArrowRight01Icon, Mail01Icon, LockPasswordIcon } from '@hugeicons/core-free-icons';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon, Button, Input, Toaster, LoadingSpinner } from '../../components/ui';
@@ -104,7 +104,7 @@ export const LoginPage: React.FC = () => {
 
                     <div className="relative z-10 animate-in fade-in slide-in-from-top-8 duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
                         <div className="flex items-center gap-2 mb-12 cursor-pointer w-fit" onClick={() => navigate('/')}>
-                            <Icon icon={GithubIcon} size={32} strokeWidth={2.5} className="text-white" />
+                            <img src="/logo.png" alt="CatCoder Logo" className="w-8 h-8 object-contain text-white" />
                             <span className="font-bold text-2xl tracking-tight text-white">CatCoder</span>
                         </div>
 
@@ -130,7 +130,7 @@ export const LoginPage: React.FC = () => {
                         <div className="text-center lg:text-left transition-all duration-300">
                             <div className="flex justify-center lg:justify-start lg:hidden mb-8">
                                 <div className="flex items-center gap-2 text-white">
-                                    <Icon icon={GithubIcon} size={32} strokeWidth={2.5} />
+                                    <img src="/logo.png" alt="CatCoder Logo" className="w-8 h-8 object-contain" />
                                     <span className="font-bold text-2xl tracking-tight">CatCoder</span>
                                 </div>
                             </div>

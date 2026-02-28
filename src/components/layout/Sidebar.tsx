@@ -1,15 +1,16 @@
-import { BookOpen01Icon, ProgrammingFlagIcon, MapsIcon, Home01Icon, Trophy, UserIcon, Logout01Icon, Menu01Icon, Cancel01Icon, GithubIcon } from '@hugeicons/core-free-icons';
+import { BookOpen01Icon, ProgrammingFlagIcon, MapsIcon, Home01Icon, Trophy, UserIcon, Logout01Icon, Menu01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { Icon } from '../ui';
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../../stores';
 import { Avatar, Button } from '../ui';
 
+import { HugeiconsIcon } from '@hugeicons/react';
 import type { User } from '../../types';
 
 interface SidebarContentProps {
     location: { pathname: string };
-    navItems: { icon: any; label: string; path: string }[];
+    navItems: { icon: React.ComponentProps<typeof HugeiconsIcon>['icon']; label: string; path: string }[];
     setIsMobileMenuOpen: (isOpen: boolean) => void;
     user: User | null;
     handleLogout: () => void;
@@ -36,7 +37,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             <div className="p-6 mb-2">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-white to-gray-400 text-black rounded-full flex items-center justify-center shadow-lg shadow-white/5 ring-1 ring-white/20">
-                        <Icon icon={GithubIcon} size={20} />
+                        <img src="/logo.png" alt="CatCoder Logo" className="w-5 h-5 object-contain" />
                     </div>
                     <h1 className="font-bold text-lg tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
                         CatCoder
@@ -160,7 +161,7 @@ export const Sidebar: React.FC = () => {
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 z-40 px-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground" aria-hidden="true">
-                        <Icon icon={GithubIcon} size={16} />
+                        <img src="/logo.png" alt="CatCoder Logo" className="w-4 h-4 object-contain" />
                     </div>
                     <span className="font-bold text-primary dark:text-white">CatCoder</span>
                 </div>

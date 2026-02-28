@@ -18,8 +18,7 @@ import {
     getBlockedTags,
     addBlockedTag,
     removeBlockedTag,
-    scanExistingDOM,
-} from './domMonitor';
+    scanExistingDOM } from './domMonitor';
 
 // Helper to create script elements
 function createScriptElement(options: { src?: string; inline?: string; id?: string } = {}): HTMLScriptElement {

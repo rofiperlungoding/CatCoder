@@ -46,7 +46,9 @@ const SECRET_KEY = getEncryptionKey();
  * Requirements 3.1: Encrypt data before writing to localStorage
  */
 export const encrypt = (value: string): string => {
-    return CryptoJS.AES.encrypt(value, SECRET_KEY).toString();
+    const encrypted = CryptoJS.AES.encrypt(value, SECRET_KEY).toString();
+    const hmac = CryptoJS.HmacSHA256(encrypted, SECRET_KEY).toString();
+    return `${hmac}.${encrypted}`;
 };
 
 /**
@@ -54,23 +56,40 @@ export const encrypt = (value: string): string => {
  * Requirements 3.2: Decrypt data when reading from localStorage
  * Requirements 3.4: Return null and clear entry on decryption failure
  */
-export const decrypt = (encrypted: string): string | null => {
+export const decrypt = (value: string): string | null => {
     try {
-        if (!isEncrypted(encrypted)) {
+        if (!value) return null;
+
+        let ciphertext = value;
+        let hmac: string | null = null;
+
+        if (value.includes('.')) {
+            const parts = value.split('.');
+            hmac = parts[0];
+            ciphertext = parts[1];
+        }
+
+        // Integrity Check: Verify HMAC if present
+        if (hmac) {
+            const expectedHmac = CryptoJS.HmacSHA256(ciphertext, SECRET_KEY).toString();
+            if (hmac !== expectedHmac) {
+                console.warn('[SecureStorage] Tampering detected!');
+                return null;
+            }
+        } else if (!isEncrypted(ciphertext)) {
+            // Not a legacy encrypted string either
             return null;
         }
 
-        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
+        const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
 
-        // If decryption produces empty string, data is corrupted/tampered
         if (!decrypted) {
             return null;
         }
 
         return decrypted;
     } catch {
-        // Decryption failed - data is corrupted or tampered
         return null;
     }
 };
@@ -145,8 +164,11 @@ export const secureStorage: SecureStorage = {
  * Useful for migration from unencrypted to encrypted storage
  */
 export const isEncrypted = (value: string): boolean => {
-    // CryptoJS AES encrypted strings are base64 encoded and typically
-    // start with "U2FsdGVkX1" (which is "Salted__" in base64)
+    // New format: hmac.ciphertext
+    if (value.includes('.') && value.split('.').length === 2) {
+        return true;
+    }
+    // Legacy format: Salted__ (U2FsdGVkX1)
     return value.startsWith('U2FsdGVkX1');
 };
 
