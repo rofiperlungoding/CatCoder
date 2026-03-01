@@ -34,9 +34,10 @@ const getEncryptionKey = (): string => {
         return envKey;
     }
 
-    // Fallback key for development only (REMOVED: Move to .env)
-    // In production, VITE_STORAGE_ENCRYPTION_KEY must be set
-    return undefined as unknown as string;
+    // Fallback key for development/test environments only.
+    // In production, VITE_STORAGE_ENCRYPTION_KEY MUST be set as an env var.
+    // This ensures CryptoJS never receives undefined as a key.
+    return 'catcoder-dev-fallback-key-do-not-use-in-prod';
 };
 
 const SECRET_KEY = getEncryptionKey();
@@ -46,6 +47,9 @@ const SECRET_KEY = getEncryptionKey();
  * Requirements 3.1: Encrypt data before writing to localStorage
  */
 export const encrypt = (value: string): string => {
+    if (!SECRET_KEY) {
+        throw new Error('[SecureStorage] Encryption key is not configured.');
+    }
     const encrypted = CryptoJS.AES.encrypt(value, SECRET_KEY).toString();
     const hmac = CryptoJS.HmacSHA256(encrypted, SECRET_KEY).toString();
     return `${hmac}.${encrypted}`;
