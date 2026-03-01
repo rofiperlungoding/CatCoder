@@ -70,9 +70,12 @@ jobs:
           set +e
           npm audit --json > audit_raw.json 2>&1 || true
           set -e
-          CRITICAL=$(cat audit_raw.json | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo "0")
-          HIGH=$(cat audit_raw.json | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
-          MODERATE=$(cat audit_raw.json | jq '.metadata.vulnerabilities.moderate // 0' 2>/dev/null || echo "0")
+          CRITICAL=$(cat audit_raw.json | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || true)
+          [ -z "$CRITICAL" ] && CRITICAL=0
+          HIGH=$(cat audit_raw.json | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || true)
+          [ -z "$HIGH" ] && HIGH=0
+          MODERATE=$(cat audit_raw.json | jq '.metadata.vulnerabilities.moderate // 0' 2>/dev/null || true)
+          [ -z "$MODERATE" ] && MODERATE=0
           echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
           echo "high=$HIGH" >> $GITHUB_OUTPUT
           echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
@@ -117,8 +120,10 @@ jobs:
           npm run lint 2>&1 | tee lint_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
-          WARNINGS=$(grep -c "warning" lint_output.txt 2>/dev/null || echo "0")
-          ERRORS=$(grep -c " error " lint_output.txt 2>/dev/null || echo "0")
+          WARNINGS=$(grep -c "warning" lint_output.txt 2>/dev/null || true)
+          [ -z "$WARNINGS" ] && WARNINGS=0
+          ERRORS=$(grep -c " error " lint_output.txt 2>/dev/null || true)
+          [ -z "$ERRORS" ] && ERRORS=0
           echo "warnings=${WARNINGS}" >> $GITHUB_OUTPUT
           echo "errors=${ERRORS}" >> $GITHUB_OUTPUT
           if [ "$EXIT_CODE" -ne 0 ]; then
@@ -140,7 +145,8 @@ jobs:
           npx tsc -b 2>&1 | tee typecheck_output.txt
           EXIT_CODE=$?
           set -e
-          TS_ERRORS=$(grep -c "error TS" typecheck_output.txt 2>/dev/null || echo "0")
+          TS_ERRORS=$(grep -c "error TS" typecheck_output.txt 2>/dev/null || true)
+          [ -z "$TS_ERRORS" ] && TS_ERRORS=0
           echo "errors=${TS_ERRORS}" >> $GITHUB_OUTPUT
           if [ "$EXIT_CODE" -ne 0 ]; then
             echo "status=FAIL" >> $GITHUB_OUTPUT
@@ -159,10 +165,12 @@ jobs:
           npx vitest run --config vitest.pentest.config.ts 2>&1 | tee pentest_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
-          PASSED=$(grep -oP '\d+(?=\s+passed)' pentest_output.txt | head -1 || echo "0")
-          FAILED=$(grep -oP '\d+(?=\s+failed)' pentest_output.txt | head -1 || echo "0")
-          echo "passed=${PASSED:-0}" >> $GITHUB_OUTPUT
-          echo "failed=${FAILED:-0}" >> $GITHUB_OUTPUT
+          PASSED=$(grep -oP '\d+(?=\s+passed)' pentest_output.txt | head -1 || true)
+          [ -z "$PASSED" ] && PASSED=0
+          FAILED=$(grep -oP '\d+(?=\s+failed)' pentest_output.txt | head -1 || true)
+          [ -z "$FAILED" ] && FAILED=0
+          echo "passed=${PASSED}" >> $GITHUB_OUTPUT
+          echo "failed=${FAILED}" >> $GITHUB_OUTPUT
           if [ "$EXIT_CODE" -ne 0 ]; then
             echo "status=FAIL" >> $GITHUB_OUTPUT
           else
