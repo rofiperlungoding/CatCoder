@@ -1,0 +1,440 @@
+name: "🚀 Universal CI/CD Pipeline"
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate-all:
+    name: "🛡️ Setup, Security, Quality & Build"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # ── Inject Env ──
+      - name: Inject Secure Environment Variables
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          VITE_STORAGE_ENCRYPTION_KEY: ${{ secrets.VITE_STORAGE_ENCRYPTION_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        run: |
+          echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" >> .env
+          echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env
+          echo "VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY" >> .env
+          echo "VITE_STORAGE_ENCRYPTION_KEY=$VITE_STORAGE_ENCRYPTION_KEY" >> .env
+          echo "VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY" >> .env
+          echo "VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN" >> .env
+          echo "VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID" >> .env
+          echo "VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET" >> .env
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID" >> .env
+          echo "VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID" >> .env
+
+      # ── Setup Runtimes ──
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # ── Install Dependencies ──
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Install Python Quality Tools
+        run: pip install ruff mypy pydantic safety bandit
+
+      # ══════════════════════════════════════════
+      #  CHECK 1: Supply Chain (NPM Audit)
+      # ══════════════════════════════════════════
+      - name: "🔍 NPM Security Audit"
+        id: npm_audit
+        continue-on-error: true
+        run: |
+          set +e
+          npm audit --json > audit_raw.json 2>&1 || true
+          set -e
+          CRITICAL=$(cat audit_raw.json | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo "0")
+          HIGH=$(cat audit_raw.json | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
+          MODERATE=$(cat audit_raw.json | jq '.metadata.vulnerabilities.moderate // 0' 2>/dev/null || echo "0")
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          elif [ "$HIGH" -gt 0 ]; then
+            echo "status=WARN" >> $GITHUB_OUTPUT
+          elif [ "$MODERATE" -gt 0 ]; then
+            echo "status=WARN" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 2: Secrets Leakage Scan (Gitleaks)
+      # ══════════════════════════════════════════
+      - name: "🕵️ Secrets Leakage Scan"
+        id: gitleaks
+        continue-on-error: true
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Record Gitleaks Result
+        if: always()
+        id: gitleaks_result
+        run: |
+          if [ "${{ steps.gitleaks.outcome }}" = "failure" ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 3: ESLint (Frontend)
+      # ══════════════════════════════════════════
+      - name: "📏 ESLint — Zero Tolerance"
+        id: lint
+        continue-on-error: true
+        run: |
+          set +e
+          npm run lint 2>&1 | tee lint_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          WARNINGS=$(grep -c "warning" lint_output.txt 2>/dev/null || echo "0")
+          ERRORS=$(grep -c " error " lint_output.txt 2>/dev/null || echo "0")
+          echo "warnings=${WARNINGS}" >> $GITHUB_OUTPUT
+          echo "errors=${ERRORS}" >> $GITHUB_OUTPUT
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          elif [ "$WARNINGS" -gt 0 ]; then
+            echo "status=WARN" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 4: TypeScript (Frontend)
+      # ══════════════════════════════════════════
+      - name: "🔧 TypeScript Strict Check"
+        id: typecheck
+        continue-on-error: true
+        run: |
+          set +e
+          npx tsc -b 2>&1 | tee typecheck_output.txt
+          EXIT_CODE=$?
+          set -e
+          TS_ERRORS=$(grep -c "error TS" typecheck_output.txt 2>/dev/null || echo "0")
+          echo "errors=${TS_ERRORS}" >> $GITHUB_OUTPUT
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 5: Pentest Suite
+      # ══════════════════════════════════════════
+      - name: "⚔️ Pentest Suite"
+        id: pentest
+        continue-on-error: true
+        run: |
+          set +e
+          npx vitest run --config vitest.pentest.config.ts 2>&1 | tee pentest_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          PASSED=$(grep -oP '\d+(?=\s+passed)' pentest_output.txt | head -1 || echo "0")
+          FAILED=$(grep -oP '\d+(?=\s+failed)' pentest_output.txt | head -1 || echo "0")
+          echo "passed=${PASSED:-0}" >> $GITHUB_OUTPUT
+          echo "failed=${FAILED:-0}" >> $GITHUB_OUTPUT
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 6: Python Linting (Ruff)
+      # ══════════════════════════════════════════
+      - name: "📏 Python Linting (Ruff)"
+        id: ruff
+        continue-on-error: true
+        run: |
+          set +e
+          ruff check src/lib/secure_core.py 2>&1 | tee ruff_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 7: Python Type Safety (MyPy)
+      # ══════════════════════════════════════════
+      - name: "🔧 Python Type Safety (MyPy)"
+        id: mypy
+        continue-on-error: true
+        run: |
+          set +e
+          mypy src/lib/secure_core.py 2>&1 | tee mypy_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 8: Python Security Audit (Bandit)
+      # ══════════════════════════════════════════
+      - name: "🔒 Python Security Audit (Bandit)"
+        id: bandit
+        continue-on-error: true
+        run: |
+          set +e
+          bandit src/lib/secure_core.py 2>&1 | tee bandit_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 9: Python Logic Fuzzing
+      # ══════════════════════════════════════════
+      - name: "🎲 Python Logic Fuzzing"
+        id: fuzz
+        continue-on-error: true
+        run: |
+          set +e
+          python src/lib/fuzz_logic.py 2>&1 | tee fuzz_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 10: Production Build Verification
+      # ══════════════════════════════════════════
+      - name: "🏗️ Production Build Verification"
+        id: build
+        continue-on-error: true
+        run: |
+          set +e
+          npm run build 2>&1 | tee build_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            TOTAL_SIZE=$(du -sb dist/ | cut -f1)
+            SIZE_MB=$(echo "scale=2; $TOTAL_SIZE / 1048576" | bc)
+            echo "bundle_size=${SIZE_MB}MB" >> $GITHUB_OUTPUT
+            if (( $(echo "$SIZE_MB > 5.0" | bc -l) )); then
+              echo "status=WARN" >> $GITHUB_OUTPUT
+            else
+              echo "status=PASS" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 11: Generate SBOM
+      # ══════════════════════════════════════════
+      - name: "📦 Generate SBOM"
+        uses: anchore/sbom-action@v0
+        with:
+          format: 'cyclonedx-json'
+          output-file: 'sbom.json'
+
+      # ── Upload Artifacts ──
+      - name: Upload Build Artifacts
+        if: steps.build.outputs.status != 'FAIL'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-assets
+          path: |
+            dist/
+            sbom.json
+
+      # ── Generate Report ──
+      - name: "📋 Generate Comprehensive Report"
+        if: always()
+        id: report
+        run: |
+          HAS_FAIL="false"
+          HAS_WARN="false"
+
+          declare -A CHECK_STATUS
+          CHECK_STATUS[npm_audit]="${{ steps.npm_audit.outputs.status }}"
+          CHECK_STATUS[gitleaks]="${{ steps.gitleaks_result.outputs.status }}"
+          CHECK_STATUS[lint]="${{ steps.lint.outputs.status }}"
+          CHECK_STATUS[typecheck]="${{ steps.typecheck.outputs.status }}"
+          CHECK_STATUS[pentest]="${{ steps.pentest.outputs.status }}"
+          CHECK_STATUS[ruff]="${{ steps.ruff.outputs.status }}"
+          CHECK_STATUS[mypy]="${{ steps.mypy.outputs.status }}"
+          CHECK_STATUS[bandit]="${{ steps.bandit.outputs.status }}"
+          CHECK_STATUS[fuzz]="${{ steps.fuzz.outputs.status }}"
+          CHECK_STATUS[build]="${{ steps.build.outputs.status }}"
+
+          for check in "${!CHECK_STATUS[@]}"; do
+            if [ "${CHECK_STATUS[$check]}" = "FAIL" ]; then
+              HAS_FAIL="true"
+            elif [ "${CHECK_STATUS[$check]}" = "WARN" ]; then
+              HAS_WARN="true"
+            fi
+          done
+
+          if [ "$HAS_FAIL" = "true" ]; then
+            OVERALL="🚨 CRITICAL ALERTS"
+          elif [ "$HAS_WARN" = "true" ]; then
+            OVERALL="⚠️ WARNINGS DETECTED"
+          else
+            OVERALL="✅ ALL SECURE"
+          fi
+
+          echo "overall=$OVERALL" >> $GITHUB_OUTPUT
+
+          cat > email_body.html <<'HEREDOC_START'
+          <html><body style="font-family: 'SF Pro Display', -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; padding: 24px;">
+          <div style="max-width: 700px; margin: 0 auto; background: #161b22; border-radius: 12px; border: 1px solid #30363d; overflow: hidden;">
+          <div style="padding: 24px 32px; border-bottom: 1px solid #30363d;">
+            <h1 style="margin: 0; color: #f0f6fc; font-size: 22px;">🚀 CatCoder Universal CI Report</h1>
+            <p style="margin: 8px 0 0; color: #8b949e; font-size: 14px;">
+          HEREDOC_START
+
+          echo "    Pipeline run: $(date -u '+%Y-%m-%d %H:%M UTC') | Branch: ${GITHUB_REF_NAME}" >> email_body.html
+          echo "    </p></div><div style='padding: 24px 32px;'>" >> email_body.html
+
+          if [ "$HAS_FAIL" = "true" ]; then
+            echo "<div style='background: #da36361a; border: 1px solid #da3636; border-radius: 8px; padding: 16px; margin-bottom: 20px;'><h2 style='color: #f85149; margin: 0;'>🚨 CRITICAL — Action Required</h2><p style='color: #f85149; margin: 8px 0 0;'>One or more security/build checks have failed. Immediate attention is required.</p></div>" >> email_body.html
+          elif [ "$HAS_WARN" = "true" ]; then
+            echo "<div style='background: #d29922; border: 1px solid #d29922; border-radius: 8px; padding: 16px; margin-bottom: 20px;'><h2 style='color: #e3b341; margin: 0;'>⚠️ WARNINGS — Review Recommended</h2><p style='color: #e3b341; margin: 8px 0 0;'>No critical failures, but some items deserve attention.</p></div>" >> email_body.html
+          else
+            echo "<div style='background: #238636; border: 1px solid #238636; border-radius: 8px; padding: 16px; margin-bottom: 20px;'><h2 style='color: #56d364; margin: 0;'>✅ ALL CLEAR — Good to Merge!</h2><p style='color: #56d364; margin: 8px 0 0;'>All frontend, python, and pentest checks passed.</p></div>" >> email_body.html
+          fi
+
+          echo "<style>table{width: 100%; border-collapse: collapse; margin-bottom: 20px;} th{text-align: left; padding: 10px; color: #8b949e; border-bottom: 1px solid #30363d;} td{padding: 10px; border-bottom: 1px solid #21262d;}</style>" >> email_body.html
+          echo "<table><tr><th>Domain</th><th>Status</th><th>Details</th></tr>" >> email_body.html
+
+          icon() { [ "$1" = "FAIL" ] && echo "🚨" || ([ "$1" = "WARN" ] && echo "⚠️" || echo "✅"); }
+
+          # Supply chain
+          echo "<tr><td>NPM Audit</td><td style='text-align: center'>$(icon "${{ steps.npm_audit.outputs.status }}")</td><td>C: ${{ steps.npm_audit.outputs.critical }} | H: ${{ steps.npm_audit.outputs.high }} | M: ${{ steps.npm_audit.outputs.moderate }}</td></tr>" >> email_body.html
+          echo "<tr><td>Gitleaks Scan</td><td style='text-align: center'>$(icon "${{ steps.gitleaks_result.outputs.status }}")</td><td>$([ "${{ steps.gitleaks_result.outputs.status }}" = "FAIL" ] && echo 'Leaks found!' || echo 'Secure')</td></tr>" >> email_body.html
+          
+          # Frontend
+          echo "<tr><td>ESLint</td><td style='text-align: center'>$(icon "${{ steps.lint.outputs.status }}")</td><td>Err: ${{ steps.lint.outputs.errors }} | Warn: ${{ steps.lint.outputs.warnings }}</td></tr>" >> email_body.html
+          echo "<tr><td>TypeScript</td><td style='text-align: center'>$(icon "${{ steps.typecheck.outputs.status }}")</td><td>$([ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] && echo 'Err: ${{ steps.typecheck.outputs.errors }}' || echo 'Pass')</td></tr>" >> email_body.html
+          echo "<tr><td>Pentest Suite</td><td style='text-align: center'>$(icon "${{ steps.pentest.outputs.status }}")</td><td>Pass: ${{ steps.pentest.outputs.passed }} | Fail: ${{ steps.pentest.outputs.failed }}</td></tr>" >> email_body.html
+          echo "<tr><td>Prod Build</td><td style='text-align: center'>$(icon "${{ steps.build.outputs.status }}")</td><td>$([ "${{ steps.build.outputs.status }}" = "FAIL" ] && echo 'Failed' || echo 'Size: ${{ steps.build.outputs.bundle_size }}')</td></tr>" >> email_body.html
+
+          # Python
+          echo "<tr><td>Py Ruff</td><td style='text-align: center'>$(icon "${{ steps.ruff.outputs.status }}")</td><td>$([ "${{ steps.ruff.outputs.status }}" = "FAIL" ] && echo 'Lint Errors' || echo 'Clean')</td></tr>" >> email_body.html
+          echo "<tr><td>Py MyPy</td><td style='text-align: center'>$(icon "${{ steps.mypy.outputs.status }}")</td><td>$([ "${{ steps.mypy.outputs.status }}" = "FAIL" ] && echo 'Type Errors' || echo 'Clean')</td></tr>" >> email_body.html
+          echo "<tr><td>Py Bandit</td><td style='text-align: center'>$(icon "${{ steps.bandit.outputs.status }}")</td><td>$([ "${{ steps.bandit.outputs.status }}" = "FAIL" ] && echo 'Vuln found' || echo 'Secure')</td></tr>" >> email_body.html
+          echo "<tr><td>Py Fuzz</td><td style='text-align: center'>$(icon "${{ steps.fuzz.outputs.status }}")</td><td>$([ "${{ steps.fuzz.outputs.status }}" = "FAIL" ] && echo 'Logic Failed' || echo 'Robust')</td></tr>" >> email_body.html
+
+          echo "</table>" >> email_body.html
+          
+          if [ "$HAS_FAIL" = "true" ]; then
+            echo "<h3 style='color: #f85149;'>📋 Critical Failures to Fix</h3><ul>" >> email_body.html
+            [ "${{ steps.npm_audit.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>NPM Audit:</strong> Critical vulnerabilities detected. Run <code>npm audit fix</code>.</li>" >> email_body.html
+            [ "${{ steps.gitleaks_result.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Gitleaks:</strong> Hardcoded secrets found. Rotate keys immediately.</li>" >> email_body.html
+            [ "${{ steps.pentest.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Pentest:</strong> Security suite failed. Check implementation logic.</li>" >> email_body.html
+            [ "${{ steps.build.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Build:</strong> Production compilation crashed.</li>" >> email_body.html
+            [ "${{ steps.lint.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>ESLint:</strong> Strict syntax violations detected.</li>" >> email_body.html
+            [ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>TypeScript:</strong> Type boundaries violated.</li>" >> email_body.html
+            [ "${{ steps.bandit.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Bandit:</strong> Python vulnerabilities found.</li>" >> email_body.html
+            echo "</ul>" >> email_body.html
+          fi
+
+          echo "<p style='margin-top: 30px; font-size: 12px; color: #8b949e; text-align: center;'>CatCoder Universal Pipeline • This is an automated email.</p>" >> email_body.html
+          echo "</div></div></body></html>" >> email_body.html
+
+      # ── Send Final Report Email ──
+      - name: "📧 Send Comprehensive Email"
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "${{ steps.report.outputs.overall }} — CatCoder CI [${{ github.ref_name }}]"
+          html_body: file://email_body.html
+          to: opikopi32@gmail.com, mrofid@student.ub.ac.id
+          from: "CatCoder Guardian <${{ secrets.MAIL_USERNAME }}>"
+
+      # ── Final Verdict ──
+      - name: "🏁 Final Verdict"
+        if: always()
+        run: |
+          if [ "${{ steps.npm_audit.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.gitleaks_result.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.lint.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.pentest.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.ruff.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.mypy.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.bandit.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.fuzz.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.build.outputs.status }}" = "FAIL" ]; then
+            echo "🚨 PIPELINE OVERALL FAILED — Fix critical issues above."
+            exit 1
+          fi
+          echo "✅ ALL PIPELINES CLEAR."
+
+  release:
+    name: "📦 Create GitHub Release"
+    needs: validate-all
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-assets
+          path: dist/
+
+      - name: Archive Assets
+        run: zip -r release-assets.zip dist/ sbom.json
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
