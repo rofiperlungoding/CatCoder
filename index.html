@@ -1,54 +1,61 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#000000" />
-  <link rel="apple-touch-icon" href="/logo.svg" />
+  <link rel="alternate icon" href="/logo.png" />
+  <link rel="apple-touch-icon" href="/logo.png" />
 
-  <!-- SEO Meta Tags -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#10b981" />
+
+  <!-- Primary Meta Tags -->
+  <title>CatCoder - Learn to Code with AI</title>
+  <meta name="title" content="CatCoder - Learn to Code with AI">
   <meta name="description"
-    content="CatCoder - Learn Python programming through interactive lessons, coding challenges, and gamified learning. Master coding with your paw!" />
+    content="AI-accelerated learning platform for software development. Master Python, JavaScript, and C++ with hands-on practice and real-time AI mentorship.">
   <meta name="keywords"
-    content="learn python, coding, programming, interactive learning, coding challenges, gamified learning" />
-  <meta name="author" content="CatCoder" />
+    content="coding, programming, learn to code, AI mentorship, python, javascript, c++, pyodide, catcoder">
+  <meta name="author" content="rofiperlungoding">
 
-  <!-- Open Graph / Social Media -->
-  <meta property="og:title" content="CatCoder - Code with your paw!" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://catcoder.online/">
+  <meta property="og:title" content="CatCoder - Learn to Code with AI">
   <meta property="og:description"
-    content="Learn Python programming through interactive lessons and coding challenges." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="/logo.svg" />
+    content="AI-accelerated learning platform for software development. Master Python, JavaScript, and C++ with hands-on practice and real-time AI mentorship.">
+  <!-- Menggunakan screenshot yang sudah ada di repo (public/ss catcoder/1.png) -->
+  <meta property="og:image" content="https://catcoder.online/ss%20catcoder/1.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://catcoder.online/">
+  <meta property="twitter:title" content="CatCoder - Learn to Code with AI">
+  <meta property="twitter:description"
+    content="AI-accelerated learning platform for software development. Master Python, JavaScript, and C++ with hands-on practice and real-time AI mentorship.">
+  <meta property="twitter:image" content="https://catcoder.online/ss%20catcoder/1.png">
+
+  <!-- PWA iOS Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- Content Security Policy -->
-  <!-- 
-    CSP Configuration (Requirements 4.1-4.6):
-    - default-src 'none': Deny all resources not explicitly allowed
-    - script-src: 'self' + 'unsafe-eval' (required for code execution) + CDNs for Pyodide/Monaco
-    - style-src: 'self' + 'unsafe-inline' + CDNs for Monaco Editor CSS
-    - font-src: 'self' + Google Fonts
-    - connect-src: 'self' + Supabase domains + Pyodide CDN
-    - img-src: 'self' + data URIs + Supabase storage + common avatar providers
-    - worker-src: 'self' + blob: (required for Web Workers)
-    - frame-src: 'none' (no iframes allowed)
-  -->
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://pyodide.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://pyodide.org https://api.openai.com; img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.githubusercontent.com https://*.gravatar.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com; worker-src 'self' blob:; manifest-src 'self' https://catcoderr.netlify.app; frame-src 'none'; base-uri 'self'; form-action 'self';" />
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-  <title>CatCoder - Code with your paw!</title>
+    content="default-src 'none'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://pyodide.org; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://pyodide.org; img-src 'self' data: https://*.supabase.co blob:; worker-src 'self' blob:; font-src 'self'; frame-src 'none'; base-uri 'self'; form-action 'self';">
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+
+  <!-- SEO Fallback for crawlers without JS -->
+  <noscript>
+    <div style="padding: 20px; text-align: center; font-family: 'SF Pro Display', system-ui, sans-serif;">
+      <h3>CatCoder requires JavaScript to run.</h3>
+      <p>Please enable JavaScript in your browser settings to access the AI-accelerated learning platform.</p>
+    </div>
+  </noscript>
 </body>
 
 </html>

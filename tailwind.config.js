@@ -10,7 +10,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                sans: ['"SF Pro Display"', 'system-ui', '-apple-system', 'sans-serif'],
             },
             colors: {
                 gray: colors.neutral, // Force consistent neutral gray (no blue tint)
