@@ -55,9 +55,11 @@ jobs:
         id: lint
         continue-on-error: true
         run: |
+          set +e
           npm run lint 2>&1 | tee lint_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
             echo "status=FAIL" >> $GITHUB_OUTPUT
           else
             echo "status=PASS" >> $GITHUB_OUTPUT
@@ -67,9 +69,11 @@ jobs:
         id: typecheck
         continue-on-error: true
         run: |
+          set +e
           npx tsc --noEmit 2>&1 | tee typecheck_output.txt
-          EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
+          EXIT_CODE=$?
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
             echo "status=FAIL" >> $GITHUB_OUTPUT
           else
             echo "status=PASS" >> $GITHUB_OUTPUT
@@ -106,7 +110,7 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          to: mrofid@student.ub.ac.id
+          to: opikopi32@gmail.com, mrofid@student.ub.ac.id
           from: "CatCoder CI <${{ secrets.MAIL_USERNAME }}>"
           subject: "${{ steps.build.outputs.status == 'FAIL' && '🚨 BUILD FAILED' || steps.lint.outputs.status == 'FAIL' && '⚠️ LINT ISSUES' || steps.typecheck.outputs.status == 'FAIL' && '⚠️ TYPE ERRORS' || '✅ BUILD OK' }} — CatCoder [${{ github.ref_name }}]"
           body: |

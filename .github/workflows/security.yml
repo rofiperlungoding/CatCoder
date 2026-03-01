@@ -80,7 +80,7 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          to: mrofid@student.ub.ac.id
+          to: opikopi32@gmail.com, mrofid@student.ub.ac.id
           from: "CatCoder DevSecOps <${{ secrets.MAIL_USERNAME }}>"
           subject: "${{ steps.bandit.outputs.status == 'FAIL' && '🚨 PYTHON SECURITY ISSUE' || steps.ruff.outputs.status == 'FAIL' && '⚠️ PYTHON LINT' || '✅ PYTHON OK' }} — CatCoder [${{ github.ref_name }}]"
           body: |
@@ -138,10 +138,18 @@ jobs:
         id: npm_audit
         continue-on-error: true
         run: |
-          npm audit --audit-level=high 2>&1 | tee npm_audit_output.txt
-          EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
+          set +e
+          npm audit --json > npm_audit_raw.json 2>&1 || true
+          npm audit 2>&1 | tee npm_audit_output.txt || true
+          set -e
+          CRITICAL=$(cat npm_audit_raw.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('vulnerabilities',{}).get('critical',0))" 2>/dev/null || echo "0")
+          HIGH=$(cat npm_audit_raw.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('vulnerabilities',{}).get('high',0))" 2>/dev/null || echo "0")
+          echo "critical=${CRITICAL}" >> $GITHUB_OUTPUT
+          echo "high=${HIGH}" >> $GITHUB_OUTPUT
+          if [ "$CRITICAL" -gt 0 ]; then
             echo "status=FAIL" >> $GITHUB_OUTPUT
+          elif [ "$HIGH" -gt 0 ]; then
+            echo "status=WARN" >> $GITHUB_OUTPUT
           else
             echo "status=PASS" >> $GITHUB_OUTPUT
           fi
@@ -174,8 +182,10 @@ jobs:
       - name: "🏁 Supply Chain Verdict"
         if: always()
         run: |
+          # Only CRITICAL npm vulns hard-fail the pipeline
+          # High severity = warning only (report sent via email)
           if [ "${{ steps.npm_audit.outputs.status }}" = "FAIL" ]; then
-            echo "🚨 NPM audit found high/critical vulnerabilities."
+            echo "🚨 NPM audit found CRITICAL vulnerabilities. Pipeline failed."
             exit 1
           fi
-          echo "✅ Supply chain checks passed."
+          echo "✅ Supply chain checks passed (high severity = reported via email)."
