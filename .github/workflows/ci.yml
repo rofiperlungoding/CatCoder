@@ -326,62 +326,318 @@ jobs:
 
           echo "overall=$OVERALL" >> $GITHUB_OUTPUT
 
-          cat > email_body.html <<'HEREDOC_START'
-          <html><body style="font-family: 'SF Pro Display', -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; padding: 24px;">
-          <div style="max-width: 700px; margin: 0 auto; background: #161b22; border-radius: 12px; border: 1px solid #30363d; overflow: hidden;">
-          <div style="padding: 24px 32px; border-bottom: 1px solid #30363d;">
-            <h1 style="margin: 0; color: #f0f6fc; font-size: 22px;">🚀 CatCoder Universal CI Report</h1>
-            <p style="margin: 8px 0 0; color: #8b949e; font-size: 14px;">
-          HEREDOC_START
+          cat > email_body.html <<'HTML_RENDER_START'
+          <!DOCTYPE html>
+          <html>
+          <head>
+          <style>
+            :root {
+              --bg: #0a0a0a;
+              --card: #171717;
+              --border: #262626;
+              --text: #fafafa;
+              --muted: #a3a3a3;
+              --primary: #84cc16;
+              --destructive: #ef4444;
+              --warning: #f59e0b;
+            }
+            body {
+              font-family: 'SF Pro Display', -apple-system, system-ui, sans-serif;
+              background-color: #000000;
+              color: #fafafa;
+              padding: 24px;
+              margin: 0;
+            }
+            .container {
+              max-width: 680px;
+              margin: 0 auto;
+              background-color: #0a0a0a;
+              border: 1px solid #262626;
+              border-radius: 16px;
+              overflow: hidden;
+            }
+            .header {
+              padding: 32px;
+              text-align: center;
+              border-bottom: 1px solid #262626;
+              background-color: #050505;
+            }
+            .header img {
+              height: 48px;
+              margin-bottom: 16px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 700;
+              letter-spacing: -0.02em;
+              color: #fafafa;
+            }
+            .header p {
+              margin: 8px 0 0;
+              color: #a3a3a3;
+              font-size: 14px;
+            }
+            .content {
+              padding: 32px;
+            }
+            .alert {
+              padding: 16px 20px;
+              border-radius: 12px;
+              margin-bottom: 24px;
+              border-left: 4px solid;
+            }
+            .alert.fail { background-color: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+            .alert.warn { background-color: rgba(245, 158, 11, 0.1); border-color: #f59e0b; }
+            .alert.pass { background-color: rgba(132, 204, 22, 0.1); border-color: #84cc16; }
+            .alert h2 { margin: 0 0 8px 0; font-size: 18px; }
+            .alert p { margin: 0; font-size: 14px; color: #d4d4d4; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+            th { text-align: left; padding: 12px; color: #a3a3a3; border-bottom: 1px solid #262626; font-size: 14px; font-weight: 600; }
+            td { padding: 14px 12px; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
+            details { background: #171717; border: 1px solid #262626; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+            summary { padding: 16px; cursor: pointer; font-weight: 600; background: #1e1e1e; font-size: 15px; outline: none; }
+            .details-content { padding: 16px; border-top: 1px solid #262626; font-size: 14px; color: #d4d4d4; line-height: 1.5; }
+            .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+            .badge.fail { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+            .badge.warn { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+            .badge.pass { background: rgba(132, 204, 22, 0.2); color: #84cc16; }
+            h3 { font-size: 14px; margin: 16px 0 8px 0; color: #fafafa; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; }
+            ul { margin: 0; padding-left: 20px; }
+            li { margin-bottom: 6px; }
+            code { background: #262626; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #e5e5e5; }
+            .section-title { font-size: 18px; font-weight: 600; margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #262626; color: #fafafa; }
+          </style>
+          </head>
+          <body>
+          <div class="container">
+            <div class="header">
+              <!-- Using raw github url to load CatCoder logo on Email Clients -->
+              <img src="https://raw.githubusercontent.com/rofiperlungoding/CatCoder/main/public/logo.png" alt="CatCoder Logo">
+              <h1>Universal CI/CD Report</h1>
+              <p>Branch: HTML_INJECT_BRANCH • Commit: HTML_INJECT_COMMIT<br>Time: HTML_INJECT_TIME UTC</p>
+            </div>
+            <div class="content">
+          HTML_RENDER_START
 
-          echo "    Pipeline run: $(date -u '+%Y-%m-%d %H:%M UTC') | Branch: ${GITHUB_REF_NAME}" >> email_body.html
-          echo "    </p></div><div style='padding: 24px 32px;'>" >> email_body.html
+          # Replace Variables
+          sed -i "s|HTML_INJECT_BRANCH|${GITHUB_REF_NAME}|g" email_body.html
+          sed -i "s|HTML_INJECT_COMMIT|${GITHUB_SHA:0:7}|g" email_body.html
+          sed -i "s|HTML_INJECT_TIME|$(date -u '+%Y-%m-%d %H:%M')|g" email_body.html
 
           if [ "$HAS_FAIL" = "true" ]; then
-            echo "<div style='background: #da36361a; border: 1px solid #da3636; border-radius: 8px; padding: 16px; margin-bottom: 20px;'><h2 style='color: #f85149; margin: 0;'>🚨 CRITICAL — Action Required</h2><p style='color: #f85149; margin: 8px 0 0;'>One or more security/build checks have failed. Immediate attention is required.</p></div>" >> email_body.html
+            cat >> email_body.html <<'EOF'
+              <div class="alert fail">
+                <h2 style="color: #ef4444;">🚨 CI Pipeline Failed</h2>
+                <p>One or more security, logic, or build checks have failed. Pipeline halted. Immediate fix is required before safely merging code to main.</p>
+              </div>
+          EOF
           elif [ "$HAS_WARN" = "true" ]; then
-            echo "<div style='background: #d29922; border: 1px solid #d29922; border-radius: 8px; padding: 16px; margin-bottom: 20px;'><h2 style='color: #e3b341; margin: 0;'>⚠️ WARNINGS — Review Recommended</h2><p style='color: #e3b341; margin: 8px 0 0;'>No critical failures, but some items deserve attention.</p></div>" >> email_body.html
+            cat >> email_body.html <<'EOF'
+              <div class="alert warn">
+                <h2 style="color: #f59e0b;">⚠️ Pipeline Passed with Warnings</h2>
+                <p>The code is valid and deployable, but there are non-critical issues that should be reviewed (e.g., bundle size limits, minor NPM vulnerabilities).</p>
+              </div>
+          EOF
           else
-            echo "<div style='background: #238636; border: 1px solid #238636; border-radius: 8px; padding: 16px; margin-bottom: 20px;'><h2 style='color: #56d364; margin: 0;'>✅ ALL CLEAR — Good to Merge!</h2><p style='color: #56d364; margin: 8px 0 0;'>All frontend, python, and pentest checks passed.</p></div>" >> email_body.html
+            cat >> email_body.html <<'EOF'
+              <div class="alert pass">
+                <h2 style="color: #84cc16;">✅ All Checks Passed</h2>
+                <p>The codebase is pristine. No security vulnerabilities, lint issues, logic bypasses, or build flaws detected. Good to deploy!</p>
+              </div>
+          EOF
           fi
 
-          echo "<style>table{width: 100%; border-collapse: collapse; margin-bottom: 20px;} th{text-align: left; padding: 10px; color: #8b949e; border-bottom: 1px solid #30363d;} td{padding: 10px; border-bottom: 1px solid #21262d;}</style>" >> email_body.html
-          echo "<table><tr><th>Domain</th><th>Status</th><th>Details</th></tr>" >> email_body.html
+          cat >> email_body.html <<'EOF'
+              <div class="section-title">Workflow Summary</div>
+              <table>
+                <tr><th>Domain</th><th>Test Spec</th><th>Status</th></tr>
+          EOF
 
-          icon() { [ "$1" = "FAIL" ] && echo "🚨" || ([ "$1" = "WARN" ] && echo "⚠️" || echo "✅"); }
+          icon() { [ "$1" = "FAIL" ] && echo "<span class='badge fail'>FAIL</span>" || ([ "$1" = "WARN" ] && echo "<span class='badge warn'>WARN</span>" || echo "<span class='badge pass'>PASS</span>"); }
 
-          # Supply chain
-          echo "<tr><td>NPM Audit</td><td style='text-align: center'>$(icon "${{ steps.npm_audit.outputs.status }}")</td><td>C: ${{ steps.npm_audit.outputs.critical }} | H: ${{ steps.npm_audit.outputs.high }} | M: ${{ steps.npm_audit.outputs.moderate }}</td></tr>" >> email_body.html
-          echo "<tr><td>Gitleaks Scan</td><td style='text-align: center'>$(icon "${{ steps.gitleaks_result.outputs.status }}")</td><td>$([ "${{ steps.gitleaks_result.outputs.status }}" = "FAIL" ] && echo 'Leaks found!' || echo 'Secure')</td></tr>" >> email_body.html
-          
-          # Frontend
-          echo "<tr><td>ESLint</td><td style='text-align: center'>$(icon "${{ steps.lint.outputs.status }}")</td><td>Err: ${{ steps.lint.outputs.errors }} | Warn: ${{ steps.lint.outputs.warnings }}</td></tr>" >> email_body.html
-          echo "<tr><td>TypeScript</td><td style='text-align: center'>$(icon "${{ steps.typecheck.outputs.status }}")</td><td>$([ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] && echo 'Err: ${{ steps.typecheck.outputs.errors }}' || echo 'Pass')</td></tr>" >> email_body.html
-          echo "<tr><td>Pentest Suite</td><td style='text-align: center'>$(icon "${{ steps.pentest.outputs.status }}")</td><td>Pass: ${{ steps.pentest.outputs.passed }} | Fail: ${{ steps.pentest.outputs.failed }}</td></tr>" >> email_body.html
-          echo "<tr><td>Prod Build</td><td style='text-align: center'>$(icon "${{ steps.build.outputs.status }}")</td><td>$([ "${{ steps.build.outputs.status }}" = "FAIL" ] && echo 'Failed' || echo 'Size: ${{ steps.build.outputs.bundle_size }}')</td></tr>" >> email_body.html
+          cat >> email_body.html <<EOF
+                <tr><td>Dependency</td><td>NPM Security Audit</td><td>$(icon "${{ steps.npm_audit.outputs.status }}")</td></tr>
+                <tr><td>Secret</td><td>Gitleaks Scan</td><td>$(icon "${{ steps.gitleaks_result.outputs.status }}")</td></tr>
+                <tr><td>Frontend</td><td>ESLint Strict</td><td>$(icon "${{ steps.lint.outputs.status }}")</td></tr>
+                <tr><td>Frontend</td><td>TypeScript Checker</td><td>$(icon "${{ steps.typecheck.outputs.status }}")</td></tr>
+                <tr><td>Frontend</td><td>Vitest Security Pentest</td><td>$(icon "${{ steps.pentest.outputs.status }}")</td></tr>
+                <tr><td>Frontend</td><td>Vite Prod Build</td><td>$(icon "${{ steps.build.outputs.status }}")</td></tr>
+                <tr><td>Python</td><td>Ruff Linter</td><td>$(icon "${{ steps.ruff.outputs.status }}")</td></tr>
+                <tr><td>Python</td><td>MyPy Typing</td><td>$(icon "${{ steps.mypy.outputs.status }}")</td></tr>
+                <tr><td>Python</td><td>Bandit Sec Scan</td><td>$(icon "${{ steps.bandit.outputs.status }}")</td></tr>
+                <tr><td>Python</td><td>Logic Fuzzing</td><td>$(icon "${{ steps.fuzz.outputs.status }}")</td></tr>
+              </table>
+          EOF
 
-          # Python
-          echo "<tr><td>Py Ruff</td><td style='text-align: center'>$(icon "${{ steps.ruff.outputs.status }}")</td><td>$([ "${{ steps.ruff.outputs.status }}" = "FAIL" ] && echo 'Lint Errors' || echo 'Clean')</td></tr>" >> email_body.html
-          echo "<tr><td>Py MyPy</td><td style='text-align: center'>$(icon "${{ steps.mypy.outputs.status }}")</td><td>$([ "${{ steps.mypy.outputs.status }}" = "FAIL" ] && echo 'Type Errors' || echo 'Clean')</td></tr>" >> email_body.html
-          echo "<tr><td>Py Bandit</td><td style='text-align: center'>$(icon "${{ steps.bandit.outputs.status }}")</td><td>$([ "${{ steps.bandit.outputs.status }}" = "FAIL" ] && echo 'Vuln found' || echo 'Secure')</td></tr>" >> email_body.html
-          echo "<tr><td>Py Fuzz</td><td style='text-align: center'>$(icon "${{ steps.fuzz.outputs.status }}")</td><td>$([ "${{ steps.fuzz.outputs.status }}" = "FAIL" ] && echo 'Logic Failed' || echo 'Robust')</td></tr>" >> email_body.html
-
-          echo "</table>" >> email_body.html
-          
-          if [ "$HAS_FAIL" = "true" ]; then
-            echo "<h3 style='color: #f85149;'>📋 Critical Failures to Fix</h3><ul>" >> email_body.html
-            [ "${{ steps.npm_audit.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>NPM Audit:</strong> Critical vulnerabilities detected. Run <code>npm audit fix</code>.</li>" >> email_body.html
-            [ "${{ steps.gitleaks_result.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Gitleaks:</strong> Hardcoded secrets found. Rotate keys immediately.</li>" >> email_body.html
-            [ "${{ steps.pentest.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Pentest:</strong> Security suite failed. Check implementation logic.</li>" >> email_body.html
-            [ "${{ steps.build.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Build:</strong> Production compilation crashed.</li>" >> email_body.html
-            [ "${{ steps.lint.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>ESLint:</strong> Strict syntax violations detected.</li>" >> email_body.html
-            [ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>TypeScript:</strong> Type boundaries violated.</li>" >> email_body.html
-            [ "${{ steps.bandit.outputs.status }}" = "FAIL" ] && echo "<li style='color: #c9d1d9;font-size: 14px;'><strong>Bandit:</strong> Python vulnerabilities found.</li>" >> email_body.html
-            echo "</ul>" >> email_body.html
+          if [ "$HAS_FAIL" = "true" ] || [ "$HAS_WARN" = "true" ]; then
+            echo "<div class='section-title'>Detailed Diagnostics & Mitigation</div>" >> email_body.html
           fi
 
-          echo "<p style='margin-top: 30px; font-size: 12px; color: #8b949e; text-align: center;'>CatCoder Universal Pipeline • This is an automated email.</p>" >> email_body.html
-          echo "</div></div></body></html>" >> email_body.html
+          # Detailed Impact and Mitigation Blocks utilizing details/summary native HTML5
+          if [ "${{ steps.npm_audit.outputs.status }}" != "PASS" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>📦 NPM Security Audit ($(icon "${{ steps.npm_audit.outputs.status }}"))</summary>
+                <div class="details-content">
+                  <h3>Metrics / Status:</h3>
+                  <ul><li>Critical: ${{ steps.npm_audit.outputs.critical }}, High: ${{ steps.npm_audit.outputs.high }}, Moderate: ${{ steps.npm_audit.outputs.moderate }}</li></ul>
+                  <h3>Vulnerability Impact:</h3>
+                  <p>Vulnerable dependencies can lead to exploitation vectors like XSS, Prototype Pollution, and RCE. Critical issues mean the app is actively susceptible to CVE exploits published on the Node ecosystem.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Open CatCoder project. Run <code>npm audit fix</code> in your local environment shell. If breaking changes occur or manual review is needed, run <code>npm audit</code> to identify the vulnerable package and deliberately upgrade its version inside <code>package.json</code>.</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          if [ "${{ steps.gitleaks_result.outputs.status }}" = "FAIL" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>🕵️ Gitleaks Secrets Scan ($(icon "FAIL"))</summary>
+                <div class="details-content">
+                  <h3>Issue Description:</h3>
+                  <p>Hardcoded secrets (e.g. Supabase anon key, OpenAI API Keys, Firebase config, or Passwords) were detected inside pushed repository files.</p>
+                  <h3>Catastrophic Impact:</h3>
+                  <p>A catastrophic failure. Actors and automated web scrapers can harvest these access tokens granting them full exploit privileges to your Supabase, Firebase, or OpenAI developer accounts causing huge service bills and malicious data exfiltration.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>1. <strong>Revoke</strong> the leaked keys immediately within their respective platform dashboards.<br>2. Migrate usage to environment variables (e.g., <code>import.meta.env</code>) and make sure they are included in <code>.gitignore</code>.<br>3. Overwrite the git history using <code>git filter-repo</code> if credentials must not be seen in historical commits.</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          if [ "${{ steps.lint.outputs.status }}" != "PASS" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>📏 ESLint Code Quality ($(icon "${{ steps.lint.outputs.status }}"))</summary>
+                <div class="details-content">
+                  <h3>Metrics / Status:</h3>
+                  <ul><li>Syntax Errors: ${{ steps.lint.outputs.errors }}, Warnings: ${{ steps.lint.outputs.warnings }}</li></ul>
+                  <h3>Defect Impact:</h3>
+                  <p>Poor syntax, unreachable code, unhandled async states, and violations of React Hooks rules heavily degrade software maintainability. This directly correlates to runtime memory leaks or UI bugs.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Review the GitHub Action logs for specific file targets. Quickly correct these by running <code>npm run lint -- --fix</code> locally, or manually inspecting your VSCode problem tab.</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          if [ "${{ steps.typecheck.outputs.status }}" = "FAIL" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>🔧 TypeScript Checker ($(icon "FAIL"))</summary>
+                <div class="details-content">
+                  <h3>Metrics / Status:</h3>
+                  <ul><li>Type Conflicts: ${{ steps.typecheck.outputs.errors }}</li></ul>
+                  <h3>Defect Impact:</h3>
+                  <p>Type mismatches imply the runtime assumes one variable topology but encounters another—an absolute recipe for <code>undefined is not a function</code> errors destroying production client interfaces.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Execute <code>npx tsc -b</code> locally to view compiler complaints. Inject proper TypeScript Interface bounds or strict type guards (e.g., optional chaining and Null checks) onto flagged logic.</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          if [ "${{ steps.pentest.outputs.status }}" = "FAIL" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>⚔️ Vitest Security Pentest ($(icon "FAIL"))</summary>
+                <div class="details-content">
+                  <h3>Metrics / Status:</h3>
+                  <ul><li>Breaches (Failed): ${{ steps.pentest.outputs.failed }} | Passed Integrations: ${{ steps.pentest.outputs.passed }}</li></ul>
+                  <h3>Exploitation Impact:</h3>
+                  <p>The core logic sandbox (checking malicious network imports or system-call mutations) was successfully bypassed or failed to properly isolate bounds. The web environment constitutes a high-risk vector against arbitrary JS payload attacks.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Trigger <code>npm run test</code> bounds locally to emulate the exploit that bypasses the firewall. Strengthen standard DOM validation sanitizations and check AST logic parsers.</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          if [ "${{ steps.build.outputs.status }}" != "PASS" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>🏗️ Vite Production Build ($(icon "${{ steps.build.outputs.status }}"))</summary>
+                <div class="details-content">
+                  <h3>Issue Description:</h3>
+                  <p>$([ "${{ steps.build.outputs.status }}" = "FAIL" ] && echo "Vite compiler failed to emit assets. Pipeline crashed on AST tree manipulation." || echo "Build succeeded, but the bundle chunk size is unusually bloated (${{ steps.build.outputs.bundle_size }}MB).")</p>
+                  <h3>Performance & Deployment Impact:</h3>
+                  <p>$([ "${{ steps.build.outputs.status }}" = "FAIL" ] && echo "A hard blocker. The system cannot be reliably deployed or packaged to hosting providers like Cloudflare/Vercel." || echo "Extreme load times on low-bandwidth user devices and heavy SEO penalization. Client CPUs will struggle rendering large JS payloads.")</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>$([ "${{ steps.build.outputs.status }}" = "FAIL" ] && echo "Check missing file paths, non-resolvable TS dependencies, or misconfigured vite plugins in vite.config.ts." || echo "Analyze chunk splitting logic, defer/lazy-load huge dependencies via React.lazy(), or manually optimize high-weight library imports.")</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          if [ "${{ steps.ruff.outputs.status }}" = "FAIL" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>🐍 Python Ruff ($(icon "FAIL"))</summary>
+                <div class="details-content">
+                  <h3>Defect Impact:</h3>
+                  <p>Syntax smells or inconsistent PEP-8 formatting degrades readability and standardizations across your server code.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Automatically fix issues locally using <code>ruff check . --fix</code>.</p>
+                </div>
+              </details>
+          EOF
+          fi
+          
+          if [ "${{ steps.mypy.outputs.status }}" = "FAIL" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>🐍 Python MyPy ($(icon "FAIL"))</summary>
+                <div class="details-content">
+                  <h3>Defect Impact:</h3>
+                  <p>Dynamic variable type mutation without proper type annotations. Causes unpredictable errors during runtime logic execution.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Run <code>mypy src/lib/secure_core.py</code> locally and correct type hints where expected object inputs differ.</p>
+                </div>
+              </details>
+          EOF
+          fi
+          
+          if [ "${{ steps.bandit.outputs.status }}" = "FAIL" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>🔒 Python Bandit ($(icon "FAIL"))</summary>
+                <div class="details-content">
+                  <h3>Exploitation Impact:</h3>
+                  <p>Severe vulnerability. The tool spotted common injection flanks like OS command injection (<code>subprocess.run(shell=True)</code>), insecure use of <code>eval()</code>, hardcoded hashes, or weak cryptographic derivations.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Run <code>bandit -r ./</code> in CLI. Refactor the problematic code out immediately using safer standard-library bindings.</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          if [ "${{ steps.fuzz.outputs.status }}" = "FAIL" ]; then
+            cat >> email_body.html <<EOF
+              <details>
+                <summary>🎲 Python Logic Fuzzing ($(icon "FAIL"))</summary>
+                <div class="details-content">
+                  <h3>Exploitation Impact:</h3>
+                  <p>Code breaks heavily upon ingestion of edge-case/random inputs. Lack of constraint handlers means bad actors can easily crash backend processes and force restarts.</p>
+                  <h3>Mitigation Instructions:</h3>
+                  <p>Apply stringent bounds checking, implement defensive <code>try-except</code> blocks, and reject malformed API parameters extremely early.</p>
+                </div>
+              </details>
+          EOF
+          fi
+
+          cat >> email_body.html <<'EOF'
+            </div>
+            <div style="background: #050505; border-top: 1px solid #262626; padding: 24px; text-align: center; color: #737373; font-size: 13px;">
+              <strong>CatCoder DevSecOps Intelligence</strong><br>
+              An automated continuous integration pipeline engineered for absolute resilience.<br><br>
+              <span style="color: #404040;">Powered by Deepmind System</span>
+            </div>
+          </div>
+          </body>
+          </html>
+          EOF
 
       # ── Send Final Report Email ──
       - name: "📧 Send Comprehensive Email"
