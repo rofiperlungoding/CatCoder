@@ -1,18 +1,45 @@
+name: "🏗️ Build, Quality & Deploy Pipeline"
+
 on:
   push:
-    branches: [ main, master ]
-    tags: [ 'v*' ]
+    branches: [main, master]
+    tags: ['v*']
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   validate:
-    name: Validate and Build
+    name: "✅ Validate, Lint & Build"
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      # ── Inject Env ──
+      - name: Inject Environment Variables
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          VITE_STORAGE_ENCRYPTION_KEY: ${{ secrets.VITE_STORAGE_ENCRYPTION_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        run: |
+          echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" >> .env
+          echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env
+          echo "VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY" >> .env
+          echo "VITE_STORAGE_ENCRYPTION_KEY=$VITE_STORAGE_ENCRYPTION_KEY" >> .env
+          echo "VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY" >> .env
+          echo "VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN" >> .env
+          echo "VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID" >> .env
+          echo "VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET" >> .env
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID" >> .env
+          echo "VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID" >> .env
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,29 +50,109 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Lint Verification
-        run: npm run lint
+      # ── Strict Checks ──
+      - name: "📏 Lint Verification (Strict)"
+        id: lint
+        continue-on-error: true
+        run: |
+          npm run lint 2>&1 | tee lint_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Type Check
-        run: npx tsc --noEmit
+      - name: "🔧 TypeScript Strict Check"
+        id: typecheck
+        continue-on-error: true
+        run: |
+          npx tsc --noEmit 2>&1 | tee typecheck_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Production Build
-        run: npm run build
+      - name: "🏗️ Production Build"
+        id: build
+        continue-on-error: true
+        run: |
+          npm run build 2>&1 | tee build_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            TOTAL_SIZE=$(du -sb dist/ | cut -f1)
+            SIZE_MB=$(echo "scale=2; $TOTAL_SIZE / 1048576" | bc)
+            echo "bundle_size=${SIZE_MB}MB" >> $GITHUB_OUTPUT
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload Build Artifacts
+        if: steps.build.outputs.status == 'PASS'
         uses: actions/upload-artifact@v4
         with:
           name: production-assets
           path: dist/
 
+      # ── Email Notification ──
+      - name: "📧 Send Build Report"
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: mrofid@student.ub.ac.id
+          from: "CatCoder CI <${{ secrets.MAIL_USERNAME }}>"
+          subject: "${{ steps.build.outputs.status == 'FAIL' && '🚨 BUILD FAILED' || steps.lint.outputs.status == 'FAIL' && '⚠️ LINT ISSUES' || steps.typecheck.outputs.status == 'FAIL' && '⚠️ TYPE ERRORS' || '✅ BUILD OK' }} — CatCoder [${{ github.ref_name }}]"
+          body: |
+            ═══════════════════════════════════════
+              CATCODER BUILD REPORT
+            ═══════════════════════════════════════
+
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            Time:   ${{ github.event.head_commit.timestamp }}
+
+            ─── Results ───────────────────────────
+            📏 ESLint:     ${{ steps.lint.outputs.status }}
+            🔧 TypeScript: ${{ steps.typecheck.outputs.status }}
+            🏗️ Build:      ${{ steps.build.outputs.status }} ${{ steps.build.outputs.bundle_size && format('({0})', steps.build.outputs.bundle_size) || '' }}
+
+            ─── Actions Needed ────────────────────
+            ${{ steps.build.outputs.status == 'FAIL' && '🚨 Build gagal! Website TIDAK BISA di-deploy. Cek build log dan fix import/config errors.' || '' }}
+            ${{ steps.lint.outputs.status == 'FAIL' && '⚠️ Ada lint errors. Jalankan npm run lint -- --fix untuk auto-fix.' || '' }}
+            ${{ steps.typecheck.outputs.status == 'FAIL' && '⚠️ Ada TypeScript errors. Fix type mismatches sebelum merge.' || '' }}
+            ${{ steps.build.outputs.status == 'PASS' && steps.lint.outputs.status == 'PASS' && steps.typecheck.outputs.status == 'PASS' && '✅ Semua check passed. Aman untuk deploy.' || '' }}
+
+            ═══════════════════════════════════════
+            CatCoder CI • Automated Report
+
+      # ── Hard Fail ──
+      - name: "🏁 Final Verdict"
+        if: always()
+        run: |
+          if [ "${{ steps.lint.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.build.outputs.status }}" = "FAIL" ]; then
+            echo "🚨 Pipeline failed. Fix issues before merging."
+            exit 1
+          fi
+          echo "✅ All checks passed."
+
   release:
-    name: Create GitHub Release
+    name: "🚀 Create GitHub Release"
     needs: validate
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -57,53 +164,14 @@ jobs:
           path: dist/
 
       - name: Archive Assets
-          # zip may not be installed in all environments, but it usually is in ubuntu-latest
-        run: |
-          zip -r release-assets.zip dist/
+        run: zip -r release-assets.zip dist/
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           files: release-assets.zip
-          body: |
-            ## CatCoder v1.0.0 Stable Release
-            
-            This release represents the first production-ready deployment of the CatCoder AI Learning Platform.
-            
-            ### Included Features:
-            - AI Mentorship Core
-            - Interactive Coding Challenges
-            - Global Performance Tracking
-            - Enterprise Documentation & Visual Representation
+          generate_release_notes: true
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish:
-    name: Publish to GitHub Packages
-    needs: validate
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@rofiperlungoding'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Publish Package
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

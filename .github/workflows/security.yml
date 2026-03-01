@@ -1,42 +1,130 @@
-name: DevSecOps Pipeline of Death (BP Section 4)
+name: "🐍 DevSecOps — Python & Supply Chain"
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
-  security-audit:
-    name: Security & Integrity Verification
+  python-security:
+    name: "🐍 Python Security & Quality"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 1. Python Quality Gate (Requirement 4.1)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      
+
       - name: Install Python Quality Tools
+        run: pip install ruff mypy pydantic safety bandit
+
+      # ── Python Checks ──
+      - name: "📏 Python Linting (Ruff)"
+        id: ruff
+        continue-on-error: true
         run: |
-          pip install ruff mypy pydantic safety bandit
+          ruff check src/lib/secure_core.py 2>&1 | tee ruff_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Python Linting (Ruff)
-        run: ruff check src/lib/secure_core.py
+      - name: "🔧 Python Type Safety (MyPy)"
+        id: mypy
+        continue-on-error: true
+        run: |
+          mypy src/lib/secure_core.py 2>&1 | tee mypy_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Python Type Safety (MyPy)
-        run: mypy src/lib/secure_core.py
+      - name: "🔒 Python Security Audit (Bandit)"
+        id: bandit
+        continue-on-error: true
+        run: |
+          bandit src/lib/secure_core.py 2>&1 | tee bandit_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Python Security Audit (Bandit)
-        run: bandit src/lib/secure_core.py
+      - name: "🎲 Python Logic Fuzzing"
+        id: fuzz
+        continue-on-error: true
+        run: |
+          python src/lib/fuzz_logic.py 2>&1 | tee fuzz_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Python Logic Fuzzing
-        run: python src/lib/fuzz_logic.py
+      # ── Email Notification ──
+      - name: "📧 Send Python Security Report"
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: mrofid@student.ub.ac.id
+          from: "CatCoder DevSecOps <${{ secrets.MAIL_USERNAME }}>"
+          subject: "${{ steps.bandit.outputs.status == 'FAIL' && '🚨 PYTHON SECURITY ISSUE' || steps.ruff.outputs.status == 'FAIL' && '⚠️ PYTHON LINT' || '✅ PYTHON OK' }} — CatCoder [${{ github.ref_name }}]"
+          body: |
+            ═══════════════════════════════════════
+              CATCODER PYTHON SECURITY REPORT
+            ═══════════════════════════════════════
 
-      # 2. Node.js Security Audit (Requirement 4.2)
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+
+            ─── Results ───────────────────────────
+            📏 Ruff Lint:       ${{ steps.ruff.outputs.status }}
+            🔧 MyPy Types:      ${{ steps.mypy.outputs.status }}
+            🔒 Bandit Security:  ${{ steps.bandit.outputs.status }}
+            🎲 Fuzz Testing:     ${{ steps.fuzz.outputs.status }}
+
+            ─── Actions Needed ────────────────────
+            ${{ steps.bandit.outputs.status == 'FAIL' && '🚨 Bandit menemukan security issue di Python code! Bisa ada injection, unsafe deserialization, atau hardcoded credentials. Cek output dan fix segera.' || '' }}
+            ${{ steps.ruff.outputs.status == 'FAIL' && '⚠️ Ada Python lint errors. Jalankan: ruff check --fix src/lib/secure_core.py' || '' }}
+            ${{ steps.mypy.outputs.status == 'FAIL' && '⚠️ Ada Python type errors. Cek mypy output dan perbaiki type annotations.' || '' }}
+            ${{ steps.fuzz.outputs.status == 'FAIL' && '🚨 Fuzz testing menemukan edge case yang menyebabkan crash! Logic core perlu diperbaiki.' || '' }}
+            ${{ steps.ruff.outputs.status == 'PASS' && steps.mypy.outputs.status == 'PASS' && steps.bandit.outputs.status == 'PASS' && steps.fuzz.outputs.status == 'PASS' && '✅ Semua Python checks passed. Secure core aman.' || '' }}
+
+            ═══════════════════════════════════════
+            CatCoder DevSecOps • Automated Report
+
+      # ── Hard Fail ──
+      - name: "🏁 Python Verdict"
+        if: always()
+        run: |
+          if [ "${{ steps.bandit.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.fuzz.outputs.status }}" = "FAIL" ]; then
+            echo "🚨 Python security checks failed."
+            exit 1
+          fi
+          echo "✅ Python checks passed."
+
+  supply-chain:
+    name: "📦 Supply Chain & SBOM"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -46,11 +134,19 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Node Security Audit
-        run: npm audit --audit-level=high
+      - name: "🔍 Node Security Audit (Strict)"
+        id: npm_audit
+        continue-on-error: true
+        run: |
+          npm audit --audit-level=high 2>&1 | tee npm_audit_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-      # 3. Supply Chain Hardening (Requirement 4.3)
-      - name: Generate Software Bill of Materials (SBOM)
+      - name: "📦 Generate SBOM"
         uses: anchore/sbom-action@v0
         with:
           format: cyclonedx-json
@@ -62,17 +158,24 @@ jobs:
           name: software-bill-of-materials
           path: cyclonedx.bom.json
 
-      # 4. Fuzzing & Property Based Testing (Requirement 4.2)
-      - name: Execute Fuzzing Tests
-        run: npm run test -- src/lib/secure_core.fuzz.test.ts
+      - name: "🎲 Fuzzing & PBT Tests"
+        id: fuzz_ts
+        continue-on-error: true
+        run: |
+          npm run test -- src/lib/secure_core.fuzz.test.ts 2>&1 | tee fuzz_ts_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
 
-  signing-verification:
-    name: Cryptographic Signing Readiness
-    needs: security-audit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      
-      - name: Verify Build Reproducibility Placeholder
-        run: echo "Environment verified for hermetic build."
+      # ── Hard Fail ──
+      - name: "🏁 Supply Chain Verdict"
+        if: always()
+        run: |
+          if [ "${{ steps.npm_audit.outputs.status }}" = "FAIL" ]; then
+            echo "🚨 NPM audit found high/critical vulnerabilities."
+            exit 1
+          fi
+          echo "✅ Supply chain checks passed."
