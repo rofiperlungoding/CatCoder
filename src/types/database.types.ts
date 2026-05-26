@@ -350,6 +350,17 @@ export type Database = {
                 Args: { p_event_type: string; p_metadata?: Json }
                 Returns: Json
             }
+            log_app_error: {
+                Args: {
+                    p_area: string
+                    p_message: string
+                    p_stack?: string | null
+                    p_component_stack?: string | null
+                    p_user_id?: string | null
+                    p_extra?: Json
+                }
+                Returns: string
+            }
             register_device_session: {
                 Args: { p_device_hash: string; p_user_agent?: string }
                 Returns: Json

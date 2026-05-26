@@ -4,6 +4,7 @@ import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui';
+import { reportError } from '../../lib/errorReporter';
 
 interface Props {
     children: ReactNode;
@@ -26,8 +27,12 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-        console.error('ErrorBoundary caught an error:', error, errorInfo);
-        // TODO: Send to error tracking service (e.g., Sentry)
+        // Fire-and-forget — `reportError` is non-throwing.
+        void reportError({
+            area: 'error_boundary',
+            error,
+            componentStack: errorInfo.componentStack ?? undefined,
+        });
     }
 
     handleReload = (): void => {

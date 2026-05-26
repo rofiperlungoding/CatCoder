@@ -32,32 +32,21 @@ const SAFE_SCHEMA = {
 };
 
 const components: React.ComponentProps<typeof ReactMarkdown>['components'] = {
-    h1: ({ node: _node, ...props }) => (
-        <h1 className="text-3xl font-extrabold mt-8 mb-4 text-foreground" {...props} />
-    ),
-    h2: ({ node: _node, ...props }) => (
-        <h2 className="text-2xl font-bold mt-7 mb-3 text-foreground" {...props} />
-    ),
-    h3: ({ node: _node, ...props }) => (
-        <h3 className="text-xl font-bold mt-6 mb-2 text-foreground" {...props} />
-    ),
-    p: ({ node: _node, ...props }) => (
-        <p className="mb-4 leading-relaxed text-muted-foreground" {...props} />
-    ),
-    ul: ({ node: _node, ...props }) => (
+    h1: (props) => <h1 className="text-3xl font-extrabold mt-8 mb-4 text-foreground" {...props} />,
+    h2: (props) => <h2 className="text-2xl font-bold mt-7 mb-3 text-foreground" {...props} />,
+    h3: (props) => <h3 className="text-xl font-bold mt-6 mb-2 text-foreground" {...props} />,
+    p: (props) => <p className="mb-4 leading-relaxed text-muted-foreground" {...props} />,
+    ul: (props) => (
         <ul className="list-disc list-outside pl-6 mb-4 space-y-1.5 text-muted-foreground" {...props} />
     ),
-    ol: ({ node: _node, ...props }) => (
+    ol: (props) => (
         <ol className="list-decimal list-outside pl-6 mb-4 space-y-1.5 text-muted-foreground" {...props} />
     ),
-    li: ({ node: _node, ...props }) => <li className="leading-relaxed" {...props} />,
-    blockquote: ({ node: _node, ...props }) => (
-        <blockquote
-            className="border-l-4 border-accent/40 pl-4 italic text-muted-foreground my-4"
-            {...props}
-        />
+    li: (props) => <li className="leading-relaxed" {...props} />,
+    blockquote: (props) => (
+        <blockquote className="border-l-4 border-accent/40 pl-4 italic text-muted-foreground my-4" {...props} />
     ),
-    a: ({ node: _node, href, children, ...props }) => {
+    a: ({ href, children, ...props }) => {
         const isExternal = !!href && /^https?:\/\//i.test(href);
         return (
             <a
@@ -72,11 +61,9 @@ const components: React.ComponentProps<typeof ReactMarkdown>['components'] = {
             </a>
         );
     },
-    strong: ({ node: _node, ...props }) => (
-        <strong className="text-foreground font-bold" {...props} />
-    ),
-    em: ({ node: _node, ...props }) => <em className="italic" {...props} />,
-    code: ({ node: _node, className, children, ...props }) => {
+    strong: (props) => <strong className="text-foreground font-bold" {...props} />,
+    em: (props) => <em className="italic" {...props} />,
+    code: ({ className, children, ...props }) => {
         // ReactMarkdown sets className=`language-xxx` only on code-block <code>;
         // inline <code> has no className. We render them differently.
         const isInline = !className;
@@ -91,12 +78,15 @@ const components: React.ComponentProps<typeof ReactMarkdown>['components'] = {
             );
         }
         return (
-            <code className={`font-mono text-sm text-gray-300 leading-relaxed block whitespace-pre ${className}`} {...props}>
+            <code
+                className={`font-mono text-sm text-gray-300 leading-relaxed block whitespace-pre ${className}`}
+                {...props}
+            >
                 {children}
             </code>
         );
     },
-    pre: ({ node: _node, children, ...props }) => (
+    pre: ({ children, ...props }) => (
         <div className="not-prose my-8 rounded-xl overflow-hidden bg-zinc-950 border border-white/5 shadow-2xl">
             <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/5">
                 <div className="flex gap-2 opacity-20">
@@ -111,20 +101,16 @@ const components: React.ComponentProps<typeof ReactMarkdown>['components'] = {
             </pre>
         </div>
     ),
-    hr: ({ node: _node, ...props }) => (
-        <hr className="my-8 border-border/60" {...props} />
-    ),
-    table: ({ node: _node, ...props }) => (
+    hr: (props) => <hr className="my-8 border-border/60" {...props} />,
+    table: (props) => (
         <div className="my-6 overflow-x-auto">
             <table className="w-full border-collapse text-sm" {...props} />
         </div>
     ),
-    th: ({ node: _node, ...props }) => (
+    th: (props) => (
         <th className="text-left font-semibold border-b-2 border-border py-2 px-3" {...props} />
     ),
-    td: ({ node: _node, ...props }) => (
-        <td className="border-b border-border/60 py-2 px-3" {...props} />
-    ),
+    td: (props) => <td className="border-b border-border/60 py-2 px-3" {...props} />,
 };
 
 /**

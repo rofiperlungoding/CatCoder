@@ -8,6 +8,7 @@ import { useCodeRunner } from '../../hooks';
 import type { Problem, User } from '../../types';
 import { problems as problemsData } from '../../data/problems';
 import { analytics } from '../../services/analytics';
+import AIUsageIndicator from '../../components/ai/AIUsageIndicator';
 
 interface ChallengeSolverProps {
     problem: Problem;
@@ -271,13 +272,16 @@ const ChallengeSolver: React.FC<ChallengeSolverProps> = ({
                                 language={selectedLanguage}
                             />
                         </div>
-                        <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex justify-end gap-3">
+                        <div className="p-4 bg-[#1e1e1e] border-t border-white/5 flex items-center justify-between gap-3 flex-wrap">
+                            {problem && (
+                                <AIUsageIndicator challengeId={problem.id} className="shrink-0" />
+                            )}
                             <Button
                                 variant="secondary"
                                 size="sm"
                                 onClick={handleRunAndCheck}
                                 disabled={isRunning}
-                                className="rounded-full font-semibold"
+                                className="rounded-full font-semibold ml-auto"
                             >
                                 {isRunning ? <LoadingSpinner size={16} className="mr-2" /> : <Icon icon={PlayIcon} size={16} className="mr-2" />}
                                 Run Code

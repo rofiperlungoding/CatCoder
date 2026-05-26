@@ -56,7 +56,6 @@ describe('MarkdownContent', () => {
 
     it('strips javascript: URLs from links', () => {
         const { container } = render(
-            // eslint-disable-next-line no-script-url -- explicit XSS coverage
             <MarkdownContent content={'[click me](javascript:alert(1))'} />
         );
         const anchor = container.querySelector('a');
