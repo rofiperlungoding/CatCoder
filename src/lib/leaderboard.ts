@@ -44,6 +44,38 @@ export const fetchLeaderboard = async (limit: number = 10): Promise<LeaderboardE
 };
 
 /**
+ * Subscribe to live profile updates and re-fire the supplied callback with
+ * a freshly-sorted leaderboard whenever any row changes. Returns a
+ * teardown function the caller MUST invoke on unmount.
+ *
+ * The strategy is deliberately simple: any UPDATE/INSERT to `profiles`
+ * triggers a single re-fetch. Server-side ordering is more authoritative
+ * than client-side merging for a small leaderboard (top 5–10 entries).
+ */
+export const subscribeLeaderboard = (
+    limit: number,
+    onChange: (entries: LeaderboardEntry[]) => void,
+    onError?: (error: unknown) => void
+): (() => void) => {
+    if (!isSupabaseConfigured()) return () => {};
+
+    const channel = supabase
+        .channel('leaderboard:profiles')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'profiles' },
+            () => {
+                fetchLeaderboard(limit).then(onChange).catch(onError ?? (() => {}));
+            }
+        )
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
+};
+
+/**
  * Fetch user's rank in the leaderboard
  */
 export const fetchUserRank = async (userId: string): Promise<number | null> => {

@@ -137,6 +137,14 @@ export const PublicProfilePage: React.FC = () => {
     if (error || !user) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center p-4">
+                {/*
+                  React 19 hoists this <meta> into <head> automatically. Tells
+                  search engines not to index 404-style profile pages so the
+                  /catcoder/:username route can't be abused for SEO spam by
+                  linking to nonexistent usernames.
+                */}
+                <meta name="robots" content="noindex,nofollow" />
+                <title>Profile not found · CatCoder</title>
                 <div className="text-center max-w-md">
                     <div className="w-20 h-20 bg-gray-100 dark:bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
                         <img src="/logo.png" alt="CatCoder Logo" className="w-10 h-10 object-contain text-gray-400" />
@@ -145,7 +153,7 @@ export const PublicProfilePage: React.FC = () => {
                         {error || 'Profil tidak ditemukan'}
                     </h1>
                     <p className="text-muted-foreground mb-6">
-                        Coder dengan username "{username}" tidak ditemukan. Mungkin mereka belum bergabung dengan CatCoder.
+                        Coder dengan username &quot;{username}&quot; tidak ditemukan. Mungkin mereka belum bergabung dengan CatCoder.
                     </p>
                     <Link to="/">
                         <Button className="gap-2">

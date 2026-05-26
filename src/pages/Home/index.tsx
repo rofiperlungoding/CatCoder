@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Icon, Button, ProgressBar, Badge, Avatar } from '../../components/ui';
 import { AILearningGuide } from '../../components/ai/AILearningGuide';
 import { useUserStore } from '../../stores';
-import { fetchLeaderboard } from '../../lib/leaderboard';
+import { fetchLeaderboard, subscribeLeaderboard } from '../../lib/leaderboard';
 import { syncUserXP } from '../../lib/sync';
 import type { LeaderboardEntry } from '../../types';
 
@@ -15,25 +15,41 @@ export const HomePage: React.FC = () => {
     const [isActivityExpanded, setIsActivityExpanded] = React.useState(false);
 
     React.useEffect(() => {
+        let cancelled = false;
+        let unsubscribe: (() => void) | null = null;
+
         const loadLeaderboard = async () => {
             try {
                 const data = await fetchLeaderboard(5);
-                setLeaderboardData(data);
+                if (!cancelled) setLeaderboardData(data);
             } catch (error) {
                 console.error('Failed to load leaderboard', error);
             } finally {
-                setLoadingLeaderboard(false);
+                if (!cancelled) setLoadingLeaderboard(false);
             }
         };
 
         if (user) {
             loadLeaderboard();
+            // Live updates: any profile XP/rank change re-sorts the top 5.
+            unsubscribe = subscribeLeaderboard(
+                5,
+                (data) => {
+                    if (!cancelled) setLeaderboardData(data);
+                },
+                (err) => console.warn('[Leaderboard] realtime error:', err)
+            );
         }
 
         // Sync XP with history to ensure accuracy
         if (user) {
-            syncUserXP(user.id).catch(err => console.error('XP Sync failed:', err));
+            syncUserXP(user.id).catch((err) => console.error('XP Sync failed:', err));
         }
+
+        return () => {
+            cancelled = true;
+            if (unsubscribe) unsubscribe();
+        };
     }, [user]);
 
     if (!user) {

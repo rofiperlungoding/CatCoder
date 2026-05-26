@@ -99,6 +99,25 @@ export const LearnPage: React.FC = () => {
         );
     }
 
+    // Lesson route requested but no matching lesson found after the load
+    // settled — render a clear 404-style fallback instead of a blank list.
+    if (lessonId && !loadingLessons && !activeLesson) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-center px-6">
+                <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">
+                    Lesson not found
+                </h1>
+                <p className="text-muted-foreground max-w-md">
+                    We couldn&apos;t find a lesson with id <code className="font-mono text-sm bg-secondary/50 px-2 py-1 rounded">{lessonId}</code>.
+                    It may have been renamed or removed.
+                </p>
+                <Button onClick={() => navigate('/learn', { replace: true })} className="rounded-full">
+                    Browse all lessons
+                </Button>
+            </div>
+        );
+    }
+
     if (activeLesson) {
         return (
             <LessonCarousel
