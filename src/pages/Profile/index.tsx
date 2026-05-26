@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Icon, Avatar, ProgressBar, Button } from '../../components/ui';
 import { EditProfileModal } from '../../components/profile/EditProfileModal';
 import { ContributionGraph } from '../../components/profile/ContributionGraph';
+import { LanguageProgress } from '../../components/profile/LanguageProgress';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
 import { calculateLevelProgress } from '../../lib/utils';
 import AISettings from '../../components/settings/AISettings';
@@ -145,6 +146,15 @@ export const ProfilePage: React.FC = () => {
 
                     <ContributionGraph className="flex-1 flex flex-col justify-center" />
                 </div>
+            </div>
+
+            {/* Per-Language Progress */}
+            <div className="bg-white dark:bg-card rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-border">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-bold text-lg text-primary dark:text-white">Progress by Language</h3>
+                    <span className="text-sm text-muted-foreground font-medium">Lessons + Problems</span>
+                </div>
+                <LanguageProgress />
             </div>
 
             {/* Account Settings Section */}

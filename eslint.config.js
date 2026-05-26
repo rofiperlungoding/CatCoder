@@ -20,4 +20,11 @@ export default defineConfig([globalIgnores(['dist', 'supabase/functions/**']), {
     ecmaVersion: 2020,
     globals: globals.browser,
   },
+  rules: {
+    // eslint-plugin-react-hooks v8 added this overly cautious rule that flags
+    // legitimate `setState(derivedFromProp)` patterns. Re-enable per-file with
+    // a guard comment when you genuinely need a noisy effect; the default is
+    // off so the rest of the codebase doesn't slowly drown in suppressions.
+    'react-hooks/set-state-in-effect': 'off',
+  },
 }, ...storybook.configs["flat/recommended"]])
