@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon, Button, Input, Toaster, LoadingSpinner } from '../../components/ui';
 import { useUserStore, useUIStore } from '../../stores';
+import { logger } from '../../lib/logger';
 
 // Google Icon SVG Component
 const GoogleIcon = () => (
@@ -32,9 +33,9 @@ export const LoginPage: React.FC = () => {
 
     // Watch for authentication state changes and redirect
     useEffect(() => {
-        console.log('[Login] isAuthenticated changed:', isAuthenticated);
+        logger.debug('[Login] isAuthenticated changed:', isAuthenticated);
         if (isAuthenticated) {
-            console.log('[Login] User authenticated! Redirecting to /home...');
+            logger.debug('[Login] User authenticated! Redirecting to /home...');
             navigate('/home', { replace: true });
         }
     }, [isAuthenticated, navigate]);

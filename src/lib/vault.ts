@@ -1,6 +1,7 @@
 import { ml_kem768 } from '@noble/post-quantum/ml-kem.js';
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
 import secureStorage from './secureStorage';
+import { logger } from './logger';
 
 /**
  * Vault Service
@@ -40,9 +41,9 @@ export class Vault {
     const stored = secureStorage.getItem(KEY_STORAGE_ID);
     if (stored) {
       this.keys = JSON.parse(stored);
-      console.log("[Vault] Device Identity Restored.");
+      logger.debug("[Vault] Device Identity Restored.");
     } else {
-      console.log("[Vault] Generating New Post-Quantum Device Identity...");
+      logger.debug("[Vault] Generating New Post-Quantum Device Identity...");
       const aliceKeys = ml_kem768.keygen();
       const deviceSeed = crypto.getRandomValues(new Uint8Array(32));
 

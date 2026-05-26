@@ -1,11 +1,12 @@
 import { supabase } from './supabase';
-import { lessons } from '../data/lessons';
+import { loadAllLessons } from '../data/lessons';
 import { problems } from '../data/problems';
 import { calculateLevel } from './utils';
 import { useUserStore } from '../stores';
+import { logger } from './logger';
 
 export const syncUserXP = async (userId: string) => {
-    console.log('[Sync] Starting XP synchronization for user:', userId);
+    logger.debug('[Sync] Starting XP synchronization for user:', userId);
 
     try {
         // 1. Fetch all completed progress
@@ -21,14 +22,16 @@ export const syncUserXP = async (userId: string) => {
         }
 
         if (!progressData || progressData.length === 0) {
-            console.log('[Sync] No progress found. Total XP: 0');
+            logger.debug('[Sync] No progress found. Total XP: 0');
             return 0;
         }
 
         // 2. Calculate Total XP
         let totalXP = 0;
 
-        // Create lookups for faster access
+        // Create lookups for faster access (lessons are loaded lazily so the
+        // initial bundle is not blocked on the full catalog).
+        const lessons = await loadAllLessons();
         const lessonMap = new Map(lessons.map(l => [l.id, l]));
         const problemMap = new Map(problems.map(p => [p.id, p]));
 
@@ -49,7 +52,7 @@ export const syncUserXP = async (userId: string) => {
             }
         });
 
-        console.log(`[Sync] Calculated Total XP: ${totalXP}`);
+        logger.debug(`[Sync] Calculated Total XP: ${totalXP}`);
 
         // 3. Update Profile in Supabase
         const level = calculateLevel(totalXP);

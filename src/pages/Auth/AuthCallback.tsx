@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../../stores';
+import { logger } from '../../lib/logger';
 /**
  * AuthCallback component handles OAuth redirects.
  * This page is where Supabase redirects after successful OAuth authentication.
@@ -12,16 +13,16 @@ export const AuthCallback = () => {
     const { isAuthenticated, isLoading } = useUserStore();
 
     useEffect(() => {
-        console.log('[AuthCallback] State:', { isAuthenticated, isLoading });
+        logger.debug('[AuthCallback] State:', { isAuthenticated, isLoading });
 
         // Wait for loading to complete
         if (!isLoading) {
             if (isAuthenticated) {
-                console.log('[AuthCallback] User authenticated, redirecting to /home');
+                logger.debug('[AuthCallback] User authenticated, redirecting to /home');
                 navigate('/home', { replace: true });
             } else {
                 // If not authenticated after loading, something went wrong
-                console.log('[AuthCallback] Not authenticated after loading, redirecting to /login');
+                logger.debug('[AuthCallback] Not authenticated after loading, redirecting to /login');
                 navigate('/login', { replace: true });
             }
         }

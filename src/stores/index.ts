@@ -12,6 +12,7 @@ import {
     clearCachedFingerprint
 } from '../lib/deviceFingerprint';
 import { AuthError, type Session } from '@supabase/supabase-js';
+import { logger } from '../lib/logger';
 
 // Database types matching Supabase schema
 interface DBProfile {
@@ -69,11 +70,11 @@ const createSecureStorage = () => createJSONStorage(() => secureStateStorage);
 
 // Helper function to fetch profile from Supabase with timeout
 const fetchProfile = async (userId: string): Promise<User | null> => {
-    console.log('[fetchProfile] Called with userId:', userId);
+    logger.debug('[fetchProfile] Called with userId:', userId);
 
     // Don't attempt to fetch if Supabase isn't configured
     if (!isSupabaseConfigured()) {
-        console.log('[fetchProfile] Supabase not configured, returning null');
+        logger.debug('[fetchProfile] Supabase not configured, returning null');
         return null;
     }
 
@@ -87,14 +88,14 @@ const fetchProfile = async (userId: string): Promise<User | null> => {
         });
 
         const fetchPromise = (async () => {
-            console.log('[fetchProfile] Querying profiles table...');
+            logger.debug('[fetchProfile] Querying profiles table...');
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .maybeSingle();
 
-            console.log('[fetchProfile] Query result - data:', !!data, 'error:', error?.message || 'none');
+            logger.debug('[fetchProfile] Query result - data:', !!data, 'error:', error?.message || 'none');
 
             if (error) {
                 if (error.code !== 'PGRST116') {
@@ -104,11 +105,11 @@ const fetchProfile = async (userId: string): Promise<User | null> => {
             }
 
             if (!data) {
-                console.log('[fetchProfile] No profile found');
+                logger.debug('[fetchProfile] No profile found');
                 return null;
             }
 
-            console.log('[fetchProfile] Profile found, username:', data.username);
+            logger.debug('[fetchProfile] Profile found, username:', data.username);
             return {
                 id: data.id,
                 email: '',
@@ -124,7 +125,7 @@ const fetchProfile = async (userId: string): Promise<User | null> => {
         })();
 
         const result = await Promise.race([fetchPromise, timeoutPromise]);
-        console.log('[fetchProfile] Returning result:', result ? 'profile found' : 'null');
+        logger.debug('[fetchProfile] Returning result:', result ? 'profile found' : 'null');
         return result;
     } catch (err: unknown) {
         console.error('[fetchProfile] Caught error:', err);
@@ -214,7 +215,7 @@ export const useUserStore = create<UserState>()(
             },
 
             signIn: async (email, password) => {
-                console.log('[Auth] signIn called with email:', email);
+                logger.debug('[Auth] signIn called with email:', email);
 
                 if (!isSupabaseConfigured()) {
                     useUIStore.getState().addToast('error', 'Supabase not configured. Authentication services are offline.');
@@ -285,7 +286,7 @@ export const useUserStore = create<UserState>()(
             },
 
             signInWithGoogle: async () => {
-                console.log('[Auth] signInWithGoogle called (Supabase OAuth)');
+                logger.debug('[Auth] signInWithGoogle called (Supabase OAuth)');
 
                 if (!isSupabaseConfigured()) {
                     useUIStore.getState().addToast('error', 'Supabase not configured');
@@ -312,7 +313,7 @@ export const useUserStore = create<UserState>()(
 
                     // OAuth will redirect, so we don't need to handle the response here
                     // The initializeSession will pick up the session after redirect
-                    console.log('[Auth] Google OAuth initiated, redirecting...');
+                    logger.debug('[Auth] Google OAuth initiated, redirecting...');
                     return { user: null, error: null };
                 } catch (err: unknown) {
                     console.error('[Auth] Google sign-in error:', err);
@@ -368,16 +369,16 @@ export const useUserStore = create<UserState>()(
             },
 
             signUp: async (email, password, username) => {
-                console.log('[Auth] signUp called with email:', email, 'username:', username);
+                logger.debug('[Auth] signUp called with email:', email, 'username:', username);
 
                 if (!isSupabaseConfigured()) {
-                    console.log('[Auth] Supabase not configured');
+                    logger.debug('[Auth] Supabase not configured');
                     useUIStore.getState().addToast('warning', 'Supabase not configured. Cannot sign up.');
                     return { user: null, error: { message: 'Supabase not configured', name: 'ConfigError' } as unknown as AuthError };
                 }
 
                 try {
-                    console.log('[Auth] Attempting Supabase signUp...');
+                    logger.debug('[Auth] Attempting Supabase signUp...');
                     const { data, error } = await supabase.auth.signUp({
                         email,
                         password,
@@ -394,19 +395,19 @@ export const useUserStore = create<UserState>()(
                         return { user: null, error };
                     }
 
-                    console.log('[Auth] SignUp response:', data);
+                    logger.debug('[Auth] SignUp response:', data);
 
 
                     // Check if email confirmation is required
                     if (data.user && !data.session) {
-                        console.log('[Auth] Email confirmation required');
+                        logger.debug('[Auth] Email confirmation required');
                         useUIStore.getState().addToast('success', 'Account created! Please check your email to confirm.');
                         return { user: null, error: null };
                     }
 
                     // If session exists, user is auto-confirmed
                     if (data.user && data.session) {
-                        console.log('[Auth] User auto-confirmed, logging in...');
+                        logger.debug('[Auth] User auto-confirmed, logging in...');
                         const basicUser: User = {
                             id: data.user.id,
                             email: data.user.email || '',
@@ -435,7 +436,7 @@ export const useUserStore = create<UserState>()(
                                 streak_current: 0,
                                 streak_best: 0
                             });
-                            console.log('[Auth] Profile created in database');
+                            logger.debug('[Auth] Profile created in database');
                         } catch (profileError) {
                             console.warn('[Auth] Failed to create profile:', profileError);
                         }
@@ -467,14 +468,14 @@ export const useUserStore = create<UserState>()(
                         if (!session?.user) return false;
 
                         const user = session.user;
-                        console.log('[Auth] Handling session for user:', user.email);
+                        logger.debug('[Auth] Handling session for user:', user.email);
 
                         // Try to fetch existing profile
                         let profile = await fetchProfile(user.id);
 
                         // If no profile exists (e.g., first OAuth login), create one
                         if (!profile) {
-                            console.log('[Auth] No profile found, creating one for OAuth user...');
+                            logger.debug('[Auth] No profile found, creating one for OAuth user...');
                             const username = user.user_metadata?.full_name ||
                                 user.user_metadata?.name ||
                                 user.email?.split('@')[0] ||
@@ -493,7 +494,7 @@ export const useUserStore = create<UserState>()(
                                     streak_current: 0,
                                     streak_best: 0
                                 });
-                                console.log('[Auth] Profile created for OAuth user');
+                                logger.debug('[Auth] Profile created for OAuth user');
 
                                 // Set user with basic data
                                 profile = {
@@ -541,7 +542,7 @@ export const useUserStore = create<UserState>()(
 
                     // Listen for auth state changes (handles OAuth redirects)
                     supabase.auth.onAuthStateChange(async (event, session) => {
-                        console.log('[Auth] Auth state changed:', event);
+                        logger.debug('[Auth] Auth state changed:', event);
 
                         if (event === 'SIGNED_IN' && session?.user) {
                             const success = await handleUserSession(session);
@@ -778,7 +779,8 @@ export const useProgressStore = create<ProgressState>()(
                     }
                 });
 
-                import('../data/lessons').then(({ lessons }) => {
+                import('../data/lessons').then(async ({ loadAllLessons }) => {
+                    const lessons = await loadAllLessons();
                     import('../data/problems').then(({ problems }) => {
                         const activities = progress
                             .filter(p => p.status === 'completed' && p.completedAt)
@@ -857,7 +859,8 @@ export const useProgressStore = create<ProgressState>()(
                     // Fetch title (this is a bit hacky, ideally we pass it or look it up properly)
                     // For now, let's look it up from data sets if possible, or pass generic title
                     let title = contentType === 'lesson' ? 'Completed Lesson' : 'Solved Problem';
-                    import('../data/lessons').then(({ lessons }) => {
+                    import('../data/lessons').then(async ({ loadAllLessons }) => {
+                        const lessons = await loadAllLessons();
                         const lesson = lessons.find(l => l.id === contentId);
                         if (lesson) title = `Completed: ${lesson.title}`;
 

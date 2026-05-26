@@ -1,50 +1,63 @@
 import type { Lesson } from '../../types';
-import { pythonLessons } from './python';
-import { javascriptLessons } from './javascript';
-import { cppLessons } from './cpp';
 
-// Static export (Maintains backward compatibility, but bundles everything)
-export const lessons: Lesson[] = [
-    ...pythonLessons,
-    ...javascriptLessons,
-    ...cppLessons
-];
+/**
+ * Lazy lesson registry.
+ *
+ * Each language module is imported on demand so the lesson catalog is split
+ * into per-language chunks (Vite warned about this when both static and
+ * dynamic imports of the same modules existed in this file).
+ *
+ * For consumers that previously relied on a synchronous `lessons` array, use
+ * `loadAllLessons()` instead.
+ */
 
-// Async loaders for Code Splitting
+type LessonLoader = () => Promise<Lesson[]>;
+
+const loaders: Record<'python' | 'javascript' | 'cpp', LessonLoader> = {
+    python: () => import('./python').then(m => m.pythonLessons),
+    javascript: () => import('./javascript').then(m => m.javascriptLessons),
+    cpp: () => import('./cpp').then(m => m.cppLessons),
+};
+
+const cache = new Map<string, Lesson[]>();
+
 export const loadLessonsByLanguage = async (language: string): Promise<Lesson[]> => {
-    switch (language) {
-        case 'python': {
-            const py = await import('./python');
-            return py.pythonLessons;
-        }
-        case 'javascript': {
-            const js = await import('./javascript');
-            return js.javascriptLessons;
-        }
-        case 'cpp': {
-            const cpp = await import('./cpp');
-            return cpp.cppLessons;
-        }
-        default:
-            return [];
-    }
+    const key = language as keyof typeof loaders;
+    const loader = loaders[key];
+    if (!loader) return [];
+
+    const cached = cache.get(key);
+    if (cached) return cached;
+
+    const lessons = await loader();
+    cache.set(key, lessons);
+    return lessons;
+};
+
+export const loadAllLessons = async (): Promise<Lesson[]> => {
+    const [py, js, cpp] = await Promise.all([
+        loadLessonsByLanguage('python'),
+        loadLessonsByLanguage('javascript'),
+        loadLessonsByLanguage('cpp'),
+    ]);
+    return [...py, ...js, ...cpp];
 };
 
 export const loadLessonById = async (id: string): Promise<Lesson | undefined> => {
-    // This is inefficient if we don't know the language, but good for direct linking if we knew the language.
-    // For now, we unfortunately have to search all if ID doesn't contain language info.
-    // Assuming we can't easily split by ID alone without an index.
-    // Let's rely on the static index for global search or build a lightweight index.
-    return lessons.find(l => l.id === id);
+    const all = await loadAllLessons();
+    return all.find(l => l.id === id);
 };
 
-// Helper functions (Synchronous)
-export const getLessonsByLanguage = (language: string) => lessons.filter(l => l.language === language);
-export const getLessonById = (id: string) => lessons.find(l => l.id === id);
-export const getLessonsByTier = (tier: number) => lessons.filter(l => l.tier === tier);
-export const getLessonCount = () => ({
-    python: pythonLessons.length,
-    javascript: javascriptLessons.length,
-    cpp: cppLessons.length,
-    total: lessons.length
-});
+export const loadLessonCount = async () => {
+    const [py, js, cpp] = await Promise.all([
+        loadLessonsByLanguage('python'),
+        loadLessonsByLanguage('javascript'),
+        loadLessonsByLanguage('cpp'),
+    ]);
+    return {
+        python: py.length,
+        javascript: js.length,
+        cpp: cpp.length,
+        total: py.length + js.length + cpp.length,
+    };
+};

@@ -21,25 +21,17 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
           VITE_STORAGE_ENCRYPTION_KEY: ${{ secrets.VITE_STORAGE_ENCRYPTION_KEY }}
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_AI_ENABLED: ${{ secrets.VITE_AI_ENABLED }}
+          VITE_AI_PROXY_URL: ${{ secrets.VITE_AI_PROXY_URL }}
+          VITE_OPENAI_MODEL: ${{ secrets.VITE_OPENAI_MODEL }}
         run: |
           echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" >> .env
           echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env
-          echo "VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY" >> .env
           echo "VITE_STORAGE_ENCRYPTION_KEY=$VITE_STORAGE_ENCRYPTION_KEY" >> .env
-          echo "VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY" >> .env
-          echo "VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN" >> .env
-          echo "VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID" >> .env
-          echo "VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET" >> .env
-          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID" >> .env
-          echo "VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID" >> .env
+          echo "VITE_AI_ENABLED=${VITE_AI_ENABLED:-false}" >> .env
+          if [ -n "$VITE_AI_PROXY_URL" ]; then echo "VITE_AI_PROXY_URL=$VITE_AI_PROXY_URL" >> .env; fi
+          if [ -n "$VITE_OPENAI_MODEL" ]; then echo "VITE_OPENAI_MODEL=$VITE_OPENAI_MODEL" >> .env; fi
 
       # ── Setup Runtimes ──
       - name: Setup Node.js
