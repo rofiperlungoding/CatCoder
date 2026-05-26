@@ -51,7 +51,7 @@ export const LearnPage: React.FC = () => {
                     setLessons(loadedLessons);
                 }
             } catch (error) {
-                console.error("Failed to lead lessons", error);
+                console.error("Failed to load lessons", error);
             } finally {
                 if (mounted) setLoadingLessons(false);
             }

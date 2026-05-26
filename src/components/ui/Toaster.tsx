@@ -31,7 +31,9 @@ const ToastItem: React.FC<{
     };
 
     return (
-        <div className={`
+        <div
+            role={type === 'error' || type === 'warning' ? 'alert' : 'status'}
+            className={`
             pointer-events-auto flex items-center gap-3 w-full max-w-sm px-6 py-4 rounded-full border shadow-xl shadow-black/5 dark:shadow-black/20
             transform transition-all duration-300 animate-in slide-in-from-bottom-5 fade-in
             ${styles[type]}
@@ -41,8 +43,9 @@ const ToastItem: React.FC<{
             <button
                 onClick={() => onClose(id)}
                 className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Dismiss notification"
             >
-                <Icon icon={Cancel01Icon} size={14} className="opacity-50" />
+                <Icon icon={Cancel01Icon} size={14} className="opacity-50" aria-hidden="true" />
             </button>
         </div>
     );
@@ -52,7 +55,13 @@ export const Toaster: React.FC = () => {
     const { toasts, removeToast } = useUIStore();
 
     return createPortal(
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none p-4">
+        <div
+            className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none p-4"
+            role="region"
+            aria-label="Notifications"
+            aria-live="polite"
+            aria-atomic="false"
+        >
             {toasts.map((toast) => (
                 <ToastItem
                     key={toast.id}

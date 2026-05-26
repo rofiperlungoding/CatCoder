@@ -118,7 +118,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['src/lib/**/*.ts', 'src/hooks/**/*.ts']
+      include: ['src/lib/**/*.ts', 'src/hooks/**/*.ts', 'src/services/**/*.ts']
     },
     projects: [
       {
@@ -126,7 +126,16 @@ export default defineConfig({
           name: 'unit',
           globals: true,
           environment: 'jsdom',
-          include: ['src/lib/**/*.{test,spec}.ts', 'src/hooks/**/*.{test,spec}.ts'],
+          // Property-based fast-check tests share jsdom global state
+          // (document.head, window.crypto stubs); running each test file
+          // in its own forked process is unnecessary and re-running the
+          // suite in-process keeps mocks deterministic.
+          fileParallelism: false,
+          include: [
+            'src/lib/**/*.{test,spec}.ts',
+            'src/hooks/**/*.{test,spec}.ts',
+            'src/services/**/*.{test,spec}.ts'
+          ],
           setupFiles: ['./src/test/setup.ts'],
         }
       },
