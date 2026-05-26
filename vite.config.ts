@@ -14,6 +14,25 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
+  build: {
+    chunkSizeWarningLimit: 1024,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('monaco-editor')) return 'monaco';
+          if (id.includes('@supabase')) return 'supabase';
+          if (id.includes('@noble')) return 'crypto-noble';
+          if (id.includes('crypto-js')) return 'crypto-cryptojs';
+          if (id.includes('@hugeicons')) return 'hugeicons';
+          if (id.includes('react-router')) return 'router';
+          if (id.includes('zustand')) return 'zustand';
+          if (id.includes('focus-trap') || id.includes('tabbable')) return 'a11y';
+          return 'vendor';
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     wasm(),
@@ -35,12 +54,12 @@ export default defineConfig({
           src: '/logo.png',
           sizes: '512x512',
           type: 'image/png',
-          purpose: 'any maskable'
+          purpose: 'any'
         }, {
           src: '/logo.png',
-          sizes: '192x192',
+          sizes: '512x512',
           type: 'image/png',
-          purpose: 'any maskable'
+          purpose: 'maskable'
         }]
       },
       workbox: {

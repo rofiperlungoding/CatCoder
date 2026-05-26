@@ -1,9 +1,8 @@
-import { openaiClient } from './openaiClient';
+import { openaiClient, type ChatCompletionOptions } from './openaiClient';
 import { PromptTemplates } from './promptTemplates';
 import { AICache } from './aiCache';
 import { AIRateLimitManager } from './aiRateLimit';
 import type { AICodeReviewRequest, AICodeReviewResponse } from './types';
-import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 
 export class CodeReviewer {
     async reviewCode(request: AICodeReviewRequest): Promise<AICodeReviewResponse> {
@@ -31,7 +30,7 @@ export class CodeReviewer {
             const prompt = PromptTemplates.generateCodeReviewPrompt(request);
 
             // 4. Call API with JSON mode
-            const options: Partial<ChatCompletionCreateParamsNonStreaming> = {
+            const options: ChatCompletionOptions = {
                 max_tokens: 1000,
                 temperature: 0.5,
                 response_format: { type: 'json_object' },
@@ -74,20 +73,9 @@ export class CodeReviewer {
             // 7. Store in cache
             AICache.set(cacheKey, response);
 
-            // Track usage (global only, hints have separate tracking)
-            // Actually AIRateLimitManager.useHint works for hints.
-            // For general requests, we need a method to just increment global count?
-            // openaiClient increments requestCount session-wise.
-            // aiRateLimitManager manages *persistent* limits.
-            // The prompt said "Track global hourly limit: 50 requests per hour".
-            // AIRateLimitManager has globalRequests.
-            // I should expose a method `useRequest()` in AIRateLimitManager?
-            // I only have `useHint`. I should assume `useHint` is for hints.
-            // I missed adding `useGlobalRequest()` in `aiRateLimit`.
-            // I'll stick to `openaiClient` session limit for now, or just not increment persistent global limit for reviews if I can't.
-            // Wait, `openaiClient` throws if session limit exceeded.
-            // I'll just rely on `openaiClient` for now as I can't modify `aiRateLimit` easily without rewriting.
-            // Or I can just not call a specific rate limit method for reviews, relying on `openaiClient` check.
+            // Session-level usage is already tracked by openaiClient.
+            // The persistent global limit (AIRateLimitManager) is currently
+            // only wired for hints; reviews fall back to the session cap.
 
             return response;
 

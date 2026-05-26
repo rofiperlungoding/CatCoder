@@ -21,22 +21,42 @@ export interface SecureStorage {
 }
 
 /**
- * Get the encryption key from environment or use fallback for development
- * Requirements 3.3: Use environment-configured key, fallback only in development
+ * Get the encryption key from environment or use fallback for development.
+ *
+ * Production hardening (Requirements 3.3):
+ *   - In a production build, the env var MUST be set. We refuse to start
+ *     otherwise — falling back to a hard-coded key would make every
+ *     "encrypted" entry in localStorage trivially readable since the key
+ *     would be present in the public client bundle.
+ *   - In dev / test we emit a single console warning and use a clearly
+ *     labelled placeholder so unit tests run without setup.
  */
 const getEncryptionKey = (): string => {
-    // Check for environment-configured key first
-    const envKey = typeof import.meta !== 'undefined'
-        ? (import.meta as unknown as { env: Record<string, string> }).env?.VITE_STORAGE_ENCRYPTION_KEY
-        : undefined;
+    const env = (typeof import.meta !== 'undefined'
+        ? (import.meta as unknown as { env: Record<string, unknown> }).env
+        : undefined) ?? {};
 
-    if (envKey) {
+    const envKey = env.VITE_STORAGE_ENCRYPTION_KEY as string | undefined;
+    const isProd = env.PROD === true || env.MODE === 'production';
+
+    if (typeof envKey === 'string' && envKey.length > 0) {
         return envKey;
     }
 
-    // Fallback key for development/test environments only.
-    // In production, VITE_STORAGE_ENCRYPTION_KEY MUST be set as an env var.
-    // This ensures CryptoJS never receives undefined as a key.
+    if (isProd) {
+        throw new Error(
+            '[SecureStorage] VITE_STORAGE_ENCRYPTION_KEY is not set. ' +
+            'Refusing to start with a public fallback key in production.'
+        );
+    }
+
+    if (typeof console !== 'undefined' && !(globalThis as { __secureStorageWarned?: boolean }).__secureStorageWarned) {
+        console.warn(
+            '[SecureStorage] Using non-secure dev fallback key. ' +
+            'Set VITE_STORAGE_ENCRYPTION_KEY before deploying.'
+        );
+        (globalThis as { __secureStorageWarned?: boolean }).__secureStorageWarned = true;
+    }
     return 'catcoder-dev-fallback-key-do-not-use-in-prod';
 };
 

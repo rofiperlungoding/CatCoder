@@ -7,6 +7,17 @@
 
 import { vi } from 'vitest';
 
+// The Pyodide runtime is loaded from a public CDN at runtime — there's no
+// reasonable way to exercise the WASM bootstrap inside jsdom, so any module
+// reaching for it during tests gets a synchronous failure that exercises the
+// error path without spamming logs.
+vi.mock('../lib/pyodideLoader', () => ({
+    ensurePyodide: vi.fn(async () => {
+        throw new Error('Pyodide is not available in the test environment.');
+    }),
+    __resetPyodideLoaderForTests: vi.fn(),
+}));
+
 // Mock localStorage with proper Storage interface
 const localStorageMock = (() => {
     let store: Record<string, string> = {};

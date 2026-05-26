@@ -1,4 +1,5 @@
-const colors = require('tailwindcss/colors');
+import colors from 'tailwindcss/colors';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -56,6 +57,6 @@ export default {
         },
     },
     plugins: [
-        require("tailwindcss-animate"),
+        tailwindcssAnimate,
     ],
 }

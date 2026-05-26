@@ -32,3 +32,23 @@ storybook-static
 # Agent context
 .agent
 .kiro
+
+# Tooling installers / native artifacts
+*.exe
+*.stamp
+__pycache__/
+*.pyc
+*.pyo
+
+# Test/lint output drops
+test_output.txt
+test-output.log
+build-output.log
+tsc-output.log
+eslint-output.log
+eslint-out.txt
+lint.json
+coverage/
+
+# Editor / OS misc
+*.code-workspace
