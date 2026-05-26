@@ -28,6 +28,19 @@ export default defineConfig({
           if (id.includes('react-router')) return 'router';
           if (id.includes('zustand')) return 'zustand';
           if (id.includes('focus-trap') || id.includes('tabbable')) return 'a11y';
+          if (
+            id.includes('react-markdown') ||
+            id.includes('rehype-') ||
+            id.includes('remark-') ||
+            id.includes('unified') ||
+            id.includes('mdast-') ||
+            id.includes('hast-') ||
+            id.includes('micromark') ||
+            id.includes('vfile') ||
+            id.includes('unist-')
+          ) {
+            return 'markdown';
+          }
           return 'vendor';
         }
       }
@@ -122,6 +135,7 @@ export default defineConfig({
     },
     projects: [
       {
+        extends: true,
         test: {
           name: 'unit',
           globals: true,
@@ -134,7 +148,9 @@ export default defineConfig({
           include: [
             'src/lib/**/*.{test,spec}.ts',
             'src/hooks/**/*.{test,spec}.ts',
-            'src/services/**/*.{test,spec}.ts'
+            'src/services/**/*.{test,spec}.ts',
+            'src/components/**/*.{test,spec}.{ts,tsx}',
+            'src/stores/**/*.{test,spec}.ts'
           ],
           setupFiles: ['./src/test/setup.ts'],
         }
