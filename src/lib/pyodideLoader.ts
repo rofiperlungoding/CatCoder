@@ -76,6 +76,16 @@ function injectScriptOnce(): Promise<void> {
         document.head.appendChild(script);
     });
 
+    // Drop the cached promise on rejection so a follow-up call can retry by
+    // injecting a fresh <script>. Also drop the dead element from the DOM so
+    // the new attempt isn't reused into another guaranteed-failure listener.
+    scriptPromise.catch(() => {
+        scriptPromise = null;
+        document
+            .querySelectorAll<HTMLScriptElement>(`script[data-pyodide-loader="true"]`)
+            .forEach((el) => el.remove());
+    });
+
     return scriptPromise;
 }
 

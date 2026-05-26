@@ -675,7 +675,10 @@ export const useUserStore = create<UserState>()(
                 const { recentActivities } = get();
                 const newActivity: Activity = {
                     ...activity,
-                    id: Math.random().toString(36).substring(7),
+                    id:
+                        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+                            ? crypto.randomUUID()
+                            : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
                     timestamp: new Date().toISOString()
                 };
                 // Keep only last 20 activities
@@ -1163,7 +1166,10 @@ export const useUIStore = create<UIState>()((set) => ({
     setShowAuthModal: (show) => set({ showAuthModal: show }),
 
     addToast: (type, message) => {
-        const id = Math.random().toString(36).substring(7);
+        const id =
+            (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
         set((state) => ({ toasts: [...state.toasts, { id, type, message }] }));
         setTimeout(() => {
             set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));

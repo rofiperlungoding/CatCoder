@@ -12,5 +12,4 @@ export * from './Modal';
 export * from './Toaster';
 export * from './LoadingSpinner';
 export * from './LevelUpModal';
-export * from './ThemeToggle';
 export * from './Icon';
