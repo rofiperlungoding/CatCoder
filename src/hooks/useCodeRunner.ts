@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { ensurePyodide, type PyodideInterface } from '../lib/pyodideLoader';
 
 export type LogType = 'command' | 'stdout' | 'stderr' | 'system' | 'success';
 
@@ -22,17 +23,6 @@ interface UseCodeRunnerProps {
     onError?: (error: string) => void;
 }
 
-interface PyodideInterface {
-    runPython: (code: string) => unknown;
-    runPythonAsync: (code: string) => Promise<unknown>;
-}
-
-declare global {
-    interface Window {
-        loadPyodide: () => Promise<PyodideInterface>;
-    }
-}
-
 // Timeout constant for sandboxed execution - 3 seconds
 const EXECUTION_TIMEOUT_MS = 3000;
 const MAX_CODE_LENGTH = 10000; // Limit code length to prevent abuse (Requirement 4.3)
@@ -43,33 +33,15 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     const [isValidated, setIsValidated] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    // Pyodide ref for Python execution
+    // Pyodide ref for Python execution. The runtime is fetched lazily on first use.
     const pyodideRef = useRef<PyodideInterface | null>(null);
-    const [isPyodideLoading, setIsPyodideLoading] = useState(false);
 
     // Web Worker ref for sandboxed JS execution
     const workerRef = useRef<Worker | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastRunTime = useRef<number>(0); // Rate limiting ref
 
-    useEffect(() => {
-        const loadPyodideInstance = async () => {
-            if (window.loadPyodide && !pyodideRef.current && !isPyodideLoading) {
-                setIsPyodideLoading(true);
-                try {
-                    pyodideRef.current = await window.loadPyodide();
-                    console.log("Pyodide loaded");
-                } catch (e) {
-                    console.error("Failed to load Pyodide:", e);
-                } finally {
-                    setIsPyodideLoading(false);
-                }
-            }
-        };
-        loadPyodideInstance();
-    }, [isPyodideLoading]); // Cleanup worker on unmount
-
-    // Cleanup worker on unmount
+    // Cleanup worker / timeout on unmount
     useEffect(() => {
         return () => {
             if (workerRef.current) {
@@ -200,15 +172,10 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
 
     const executePython = async (codeStr: string): Promise<string> => {
         if (!pyodideRef.current) {
-            // Try load again if missing
-            if (window.loadPyodide) {
-                try {
-                    pyodideRef.current = await window.loadPyodide();
-                } catch {
-                    return "Error: Python engine not loaded. Please refresh.";
-                }
-            } else {
-                return "Error: Python engine not found.";
+            try {
+                pyodideRef.current = await ensurePyodide();
+            } catch (e) {
+                return `Error: Python engine could not be loaded. ${(e as Error).message ?? ''}`.trim();
             }
         }
 

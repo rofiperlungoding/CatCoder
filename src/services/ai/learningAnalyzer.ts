@@ -1,6 +1,6 @@
-import { AICache } from './aiCache';
+﻿import { AICache } from './aiCache';
 import { PromptTemplates } from './promptTemplates';
-import { openaiClient } from './openaiClient';
+import { openaiClient, type ChatCompletionOptions } from './openaiClient';
 import { AIRateLimitManager } from './aiRateLimit';
 import { aiPersistence } from './aiPersistence';
 import type {
@@ -11,7 +11,6 @@ import type {
     PersonalizedRecommendation,
     LearningPathGuide
 } from '../../types/analytics';
-import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 
 export class LearningAnalyzer {
     async analyzeProgress(
@@ -124,7 +123,7 @@ export class LearningAnalyzer {
                 availableChallenges.filter(c => !progress.completedChallenges.includes(c.id)).slice(0, 5) // Send top 5 candidates
             );
 
-            const options: Partial<ChatCompletionCreateParamsNonStreaming> = {
+            const options: ChatCompletionOptions = {
                 max_tokens: 500,
                 temperature: 0.3,
                 response_format: { type: 'json_object' },
@@ -187,7 +186,7 @@ export class LearningAnalyzer {
                 Example: [{"skill": "Logic", "proficiency": 60, "confidence": 80}]
             `;
 
-            const options: Partial<ChatCompletionCreateParamsNonStreaming> = {
+            const options: ChatCompletionOptions = {
                 max_tokens: 300,
                 temperature: 0.3,
                 response_format: { type: 'json_object' },
@@ -268,7 +267,7 @@ export class LearningAnalyzer {
 
             const prompt = PromptTemplates.generateLearningPathPrompt(userContext, nextLessons);
 
-            const options: Partial<ChatCompletionCreateParamsNonStreaming> = {
+            const options: ChatCompletionOptions = {
                 max_tokens: 300,
                 temperature: 0.4,
                 response_format: { type: 'json_object' },
