@@ -47,6 +47,17 @@ export default defineConfig({
       }
     }
   },
+  // In `turso` mode, the SPA calls same-origin /api/*. During `vite dev` we
+  // proxy those to a locally-running Worker (`npm run cf:dev` on :8787).
+  // Harmless in local/supabase modes where /api/* is never called.
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     react(),
     wasm(),

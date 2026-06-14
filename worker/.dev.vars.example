@@ -1,0 +1,8 @@
+# Copy to `worker/.dev.vars` (gitignored) for local `wrangler dev`.
+# Get these from the Turso CLI:
+#   turso db show <db> --url          -> LIBSQL_DB_URL
+#   turso db tokens create <db>       -> LIBSQL_DB_AUTH_TOKEN
+
+LIBSQL_DB_URL="libsql://your-db-your-username.turso.io"
+LIBSQL_DB_AUTH_TOKEN="your-turso-auth-token"
+AUTH_SECRET="any-long-random-string"

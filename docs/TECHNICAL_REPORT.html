@@ -429,8 +429,12 @@
                 <td>In-browser Python Execution (WebAssembly)</td>
             </tr>
             <tr>
-                <td>Netlify</td>
-                <td>Deployment & CDN Hosting</td>
+                <td>Cloudflare Workers</td>
+                <td>Edge hosting (SPA static assets + API) & CDN</td>
+            </tr>
+            <tr>
+                <td>Turso (libSQL)</td>
+                <td>Optional edge SQLite database backend</td>
             </tr>
         </table>
 
@@ -778,7 +782,7 @@ npm run dev          # Start Vite dev server (port 5173)
 npm run build        # TypeScript check + Vite build
 npm run preview      # Preview production build locally</code></pre>
 
-        <h2>8.2 Netlify Configuration</h2>
+        <h2>8.2 Cloudflare Workers Configuration</h2>
         <table>
             <tr>
                 <th>Setting</th>
@@ -789,19 +793,26 @@ npm run preview      # Preview production build locally</code></pre>
                 <td><code>npm run build</code></td>
             </tr>
             <tr>
-                <td>Publish Directory</td>
-                <td><code>dist</code></td>
+                <td>Static Assets Directory</td>
+                <td><code>dist</code> (not_found_handling: single-page-application)</td>
             </tr>
             <tr>
-                <td>Node Version</td>
-                <td>18.x</td>
+                <td>Worker Entry</td>
+                <td><code>worker/index.ts</code> (run_worker_first: /api/*)</td>
+            </tr>
+            <tr>
+                <td>Deploy</td>
+                <td><code>npm run cf:deploy</code> (wrangler deploy)</td>
             </tr>
         </table>
 
         <h2>8.3 Environment Variables</h2>
         <ul>
-            <li><code>VITE_SUPABASE_URL</code> — Supabase project URL</li>
-            <li><code>VITE_SUPABASE_ANON_KEY</code> — Supabase anonymous key</li>
+            <li><code>VITE_BACKEND</code> — local | supabase | turso</li>
+            <li><code>VITE_SUPABASE_URL</code> / <code>VITE_SUPABASE_ANON_KEY</code> — only for the supabase backend</li>
+            <li><code>LIBSQL_DB_URL</code> — Turso database URL (Worker var)</li>
+            <li><code>LIBSQL_DB_AUTH_TOKEN</code> — Turso token (Worker secret)</li>
+            <li><code>AUTH_SECRET</code> — server-side session signing secret (Worker secret)</li>
         </ul>
 
         <h2>8.4 Production URLs</h2>
@@ -812,7 +823,7 @@ npm run preview      # Preview production build locally</code></pre>
             </tr>
             <tr>
                 <td>Live Site</td>
-                <td>https://catcoder.netlify.app</td>
+                <td>https://catcoder.&lt;your-subdomain&gt;.workers.dev (or custom domain)</td>
             </tr>
             <tr>
                 <td>GitHub Repository</td>

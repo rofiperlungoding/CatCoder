@@ -31,12 +31,16 @@
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "cf:typecheck": "tsc -p worker/tsconfig.json --noEmit",
+    "cf:dev": "npm run build && wrangler dev",
+    "cf:deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.5",
+    "@libsql/client": "^0.15.0",
     "@monaco-editor/react": "^4.7.0",
     "@noble/hashes": "^2.0.1",
     "@noble/post-quantum": "^0.5.4",
@@ -60,6 +64,7 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.0.1",
+    "@cloudflare/workers-types": "^4.20250601.0",
     "@eslint/js": "^9.39.1",
     "@storybook/addon-a11y": "^10.2.8",
     "@storybook/addon-docs": "^10.2.8",
@@ -90,7 +95,8 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.16",
+    "wrangler": "^4.20.0"
   },
   "overrides": {
     "dompurify": "^3.3.4",

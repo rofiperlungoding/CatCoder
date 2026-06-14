@@ -124,17 +124,60 @@ npm run storybook
 ```
 
 ## BACKEND MODES
-CatCoder ships with two interchangeable backends selected via `VITE_BACKEND`:
+CatCoder ships with three interchangeable backends selected via `VITE_BACKEND`:
 
 | Mode | Trigger | Storage |
 | --- | --- | --- |
 | Local | `VITE_BACKEND=local`, or no Supabase credentials present | Browser localStorage |
+| Turso | `VITE_BACKEND=turso` | Cloudflare Worker + Turso (libSQL) via `/api/*` |
 | Supabase | `VITE_BACKEND=supabase`, or valid credentials present | PostgreSQL + Auth + RLS |
 
 The local backend implements the subset of the Supabase client the app uses
 (auth, table queries, RPC, realtime). It is intended for development and
 testing only — it stores credentials in the browser and performs no
 server-side enforcement.
+
+## DEPLOY TO CLOUDFLARE (Turso backend)
+
+CatCoder deploys as a single Cloudflare Worker that serves the SPA *and* the
+`/api/*` endpoints. The Turso token stays in Worker secrets and never reaches
+the browser.
+
+### 1. Create the database (Turso CLI)
+```bash
+turso db create catcoder
+turso db shell catcoder < worker/schema.sql
+turso db show catcoder --url        # -> LIBSQL_DB_URL
+turso db tokens create catcoder     # -> LIBSQL_DB_AUTH_TOKEN
+```
+
+### 2. Configure the Worker
+- Put `LIBSQL_DB_URL` into `wrangler.toml` under `[vars]`.
+- Set secrets (never commit these):
+```bash
+npx wrangler secret put LIBSQL_DB_AUTH_TOKEN
+npx wrangler secret put AUTH_SECRET
+```
+
+### 3. Local development
+```bash
+# build the SPA, then run the Worker (serves dist + /api) on :8787
+npm run cf:dev
+```
+For live frontend reload, run `npm run cf:dev` in one terminal and
+`VITE_BACKEND=turso npm run dev` in another — Vite proxies `/api` to the
+Worker on :8787.
+
+### 4. Deploy
+```bash
+npm run cf:deploy        # build + wrangler deploy
+```
+Add your custom domain in the Cloudflare dashboard (Workers & Pages → your
+Worker → Settings → Domains & Routes).
+
+> Heads up: Turso is a database only. It has no built-in auth, realtime, or
+> RLS. CatCoder's Worker provides email/password auth and the leaderboard
+> updates by polling. OAuth and magic links require the Supabase backend.
 
 ## DOCUMENTATION
 Technical documentation and component specifications are maintained through Storybook interfaces for high visibility into the design system.

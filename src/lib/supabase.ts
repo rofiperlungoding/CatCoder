@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database.types';
 import { createLocalBackend } from './localBackend';
+import { createTursoBackend } from './tursoBackend';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
@@ -9,9 +10,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-k
  * Backend selection.
  *
  * Priority:
- *   1. VITE_BACKEND=local            -> always use the local backend
- *   2. VITE_BACKEND=supabase         -> always use real Supabase (even if env looks placeholder)
- *   3. (default) auto: use real Supabase when credentials are present and
+ *   1. VITE_BACKEND=local            -> in-browser localStorage backend
+ *   2. VITE_BACKEND=turso            -> Cloudflare Worker + Turso (via /api/*)
+ *   3. VITE_BACKEND=supabase         -> real Supabase
+ *   4. (default) auto: use real Supabase when credentials are present and
  *      valid, otherwise fall back to the local backend so the app runs
  *      out-of-the-box for testing.
  */
@@ -22,8 +24,10 @@ const hasRealCredentials =
     !!import.meta.env.VITE_SUPABASE_ANON_KEY &&
     import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co';
 
+const useTurso = backendMode === 'turso';
 const useLocal =
-    backendMode === 'local' || (backendMode !== 'supabase' && !hasRealCredentials);
+    !useTurso &&
+    (backendMode === 'local' || (backendMode !== 'supabase' && !hasRealCredentials));
 
 function buildRealClient(): SupabaseClient<Database> {
     return createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -38,21 +42,26 @@ function buildRealClient(): SupabaseClient<Database> {
     });
 }
 
-/**
- * The active backend client. In local mode this is a localStorage-backed
- * stand-in cast to the Supabase client type so all existing call sites keep
- * working unchanged.
- */
-export const supabase: SupabaseClient<Database> = useLocal
-    ? (createLocalBackend() as unknown as SupabaseClient<Database>)
-    : buildRealClient();
+function buildClient(): SupabaseClient<Database> {
+    if (useTurso) return createTursoBackend() as unknown as SupabaseClient<Database>;
+    if (useLocal) return createLocalBackend() as unknown as SupabaseClient<Database>;
+    return buildRealClient();
+}
 
-/** True when the app is running against the in-browser local backend. */
+/**
+ * The active backend client. In local/turso mode this is a stand-in cast to
+ * the Supabase client type so all existing call sites keep working unchanged.
+ */
+export const supabase: SupabaseClient<Database> = buildClient();
+
+/** True when running against the in-browser local backend. */
 export const isLocalBackend = (): boolean => useLocal;
 
+/** True when running against the Cloudflare Worker + Turso backend. */
+export const isTursoBackend = (): boolean => useTurso;
+
 /**
- * Whether a usable backend is available. In local mode this is always true
- * (the localStorage backend is always "configured"); in remote mode it
- * reflects the presence of valid Supabase credentials.
+ * Whether a usable backend is available. Local and Turso modes are always
+ * "configured"; remote mode reflects the presence of valid Supabase creds.
  */
-export const isSupabaseConfigured = (): boolean => useLocal || hasRealCredentials;
+export const isSupabaseConfigured = (): boolean => useLocal || useTurso || hasRealCredentials;

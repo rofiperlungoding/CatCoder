@@ -1,0 +1,27 @@
+# Cloudflare Workers configuration
+#
+# One Worker serves the SPA (static assets from ./dist) AND the /api/* routes
+# (auth + Turso proxy). `run_worker_first` makes the Worker handle /api/*
+# while everything else is served as a static asset with SPA fallback.
+#
+# Deploy:   npm run cf:deploy
+# Dev:      npm run cf:dev   (after npm run build)
+
+name = "catcoder"
+main = "worker/index.ts"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+# Public, non-secret vars. Secrets (LIBSQL_DB_AUTH_TOKEN, AUTH_SECRET) are set
+# via `npx wrangler secret put <NAME>` and, for local dev, in worker/.dev.vars.
+[vars]
+LIBSQL_DB_URL = ""
+
+[observability]
+enabled = true
