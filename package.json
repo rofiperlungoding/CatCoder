@@ -33,6 +33,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "cf:typecheck": "tsc -p worker/tsconfig.json --noEmit",
+    "cf:schema": "node scripts/apply-schema.mjs",
     "cf:dev": "npm run build && wrangler dev",
     "cf:deploy": "npm run build && wrangler deploy"
   },
