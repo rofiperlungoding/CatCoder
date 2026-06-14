@@ -55,14 +55,11 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             to={item.path}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={`
-                                flex items-center gap-3 px-5 py-3.5 rounded-full transition-all duration-300 group focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50
-                                ${isActive
-                                    ? 'bg-white text-black shadow-lg shadow-white/5 translate-x-1'
-                                    : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                                }
+                                cc-nav-item flex items-center gap-3 px-5 py-3.5 rounded-2xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/60
+                                ${isActive ? 'cc-nav-item-active' : ''}
                             `}
                         >
-                            <Icon icon={item.icon} size={20} className={isActive ? 'text-black' : 'group-hover:text-white transition-colors'} />
+                            <Icon icon={item.icon} size={20} className={isActive ? '' : 'group-hover:text-white transition-colors'} />
                             <span className="font-medium text-sm">{item.label}</span>
                         </NavLink>
                     );

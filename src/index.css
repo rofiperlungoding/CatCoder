@@ -319,3 +319,146 @@ body {
   white-space: nowrap;
   gap: 0.375rem;
 }
+
+/* ============================================================================
+   CatCoder Design System — "soft-UI / morphism" base style (Prompt Pack #1)
+   Scoped behind .cc-root so adopting pages opt in; tokens live on :root.
+   ========================================================================== */
+:root {
+  /* surfaces */
+  --cc-bg: #0a0b0d;
+  --cc-surface-1: #121316;
+  --cc-surface-2: #181a1e;
+  --cc-surface-3: #202329;
+  --cc-edge-light: rgba(255, 255, 255, 0.06);
+  --cc-border: rgba(255, 255, 255, 0.08);
+
+  /* brand + text */
+  --cc-brand-1: #bef264;
+  --cc-brand-2: #a3e635;
+  --cc-tx-1: #f7f8f8;
+  --cc-tx-2: #a0a4ad;
+  --cc-tx-3: #686d77;
+
+  /* semantic */
+  --cc-ac: #4ade80;
+  --cc-wa: #fb7185;
+  --cc-tle: #fbbf24;
+  --cc-info: #60a5fa;
+
+  /* elevation (light edge on top + layered drop shadow) */
+  --cc-e1: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 2px rgba(0, 0, 0, 0.45);
+  --cc-e2: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 14px rgba(0, 0, 0, 0.40);
+  --cc-e3: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 14px 36px rgba(0, 0, 0, 0.50);
+  --cc-surface-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 38%);
+
+  /* primary button (clay-lite) */
+  --cc-btn-primary-bg: linear-gradient(180deg, #c8f56e, #a3e635);
+  --cc-btn-primary-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 18px rgba(163, 230, 53, 0.22);
+
+  /* radius */
+  --cc-r-sm: 12px;
+  --cc-r: 16px;
+  --cc-r-lg: 20px;
+  --cc-r-xl: 24px;
+  --cc-r-pill: 999px;
+
+  /* fonts */
+  --cc-font-display: "Geist Variable", "Inter Variable", system-ui, sans-serif;
+  --cc-font-sans: "Inter Variable", system-ui, -apple-system, sans-serif;
+  --cc-font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+/* Root wrapper: opt-in to the DS look + fonts */
+.cc-root {
+  font-family: var(--cc-font-sans);
+  color: var(--cc-tx-1);
+  -webkit-font-smoothing: antialiased;
+}
+.cc-root h1, .cc-root h2, .cc-root h3, .cc-display {
+  font-family: var(--cc-font-display);
+  letter-spacing: -0.02em;
+}
+.cc-mono { font-family: var(--cc-font-mono); font-feature-settings: "tnum" 1; }
+
+/* Surface / card with elevation levels */
+.cc-card {
+  position: relative;
+  background-color: var(--cc-surface-2);
+  background-image: var(--cc-surface-sheen);
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-r-xl);
+  box-shadow: var(--cc-e2);
+}
+.cc-e1 { box-shadow: var(--cc-e1); }
+.cc-e2 { box-shadow: var(--cc-e2); }
+.cc-e3 { box-shadow: var(--cc-e3); }
+.cc-surface-1 { background-color: var(--cc-surface-1); }
+.cc-surface-2 { background-color: var(--cc-surface-2); }
+.cc-surface-3 { background-color: var(--cc-surface-3); }
+
+/* Tactile primary button (clay-lite) */
+.cc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  font-weight: 600; border-radius: var(--cc-r-pill);
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out, background-color 180ms ease-out;
+  outline: none; cursor: pointer; white-space: nowrap;
+}
+.cc-btn:focus-visible { box-shadow: 0 0 0 2px var(--cc-bg), 0 0 0 4px var(--cc-brand-2); }
+.cc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.cc-btn-primary { background-image: var(--cc-btn-primary-bg); color: #14310a; box-shadow: var(--cc-btn-primary-shadow); }
+.cc-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 10px 24px rgba(163,230,53,.3); }
+.cc-btn-primary:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 8px rgba(163,230,53,.18); }
+
+.cc-btn-secondary { background-color: var(--cc-surface-3); color: var(--cc-tx-1); border: 1px solid var(--cc-border); box-shadow: var(--cc-e1); }
+.cc-btn-secondary:hover:not(:disabled) { transform: translateY(-1px); background-color: #262a31; }
+.cc-btn-secondary:active:not(:disabled) { transform: translateY(1px); }
+
+.cc-btn-ghost { background: transparent; color: var(--cc-tx-2); }
+.cc-btn-ghost:hover:not(:disabled) { background-color: rgba(255,255,255,.05); color: var(--cc-tx-1); }
+
+/* Progress bar */
+.cc-progress-track { background-color: var(--cc-surface-3); border-radius: var(--cc-r-pill); overflow: hidden; }
+.cc-progress-fill {
+  height: 100%; border-radius: var(--cc-r-pill);
+  background-image: linear-gradient(90deg, var(--cc-brand-1), var(--cc-brand-2));
+  transition: width 400ms ease-out;
+}
+
+/* Pills / badges */
+.cc-pill {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.125rem 0.625rem; border-radius: var(--cc-r-pill);
+  font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+  background-color: var(--cc-surface-3); color: var(--cc-tx-2); border: 1px solid var(--cc-border);
+}
+.cc-pill-brand { background-color: rgba(163,230,53,.12); color: var(--cc-brand-1); border-color: rgba(163,230,53,.25); }
+
+/* Skeleton shimmer */
+.cc-skeleton {
+  position: relative; overflow: hidden;
+  background-color: var(--cc-surface-3); border-radius: var(--cc-r-sm);
+}
+.cc-skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+  transform: translateX(-100%);
+  animation: cc-shimmer 1.4s infinite;
+}
+@keyframes cc-shimmer { 100% { transform: translateX(100%); } }
+
+/* Nav item (sidebar) active = raised surface + brand text + light edge */
+.cc-nav-item { transition: all 200ms ease-out; color: var(--cc-tx-2); }
+.cc-nav-item:hover { background-color: rgba(255,255,255,.05); color: var(--cc-tx-1); }
+.cc-nav-item-active {
+  background-color: var(--cc-surface-3); color: var(--cc-brand-1);
+  box-shadow: var(--cc-e1); border: 1px solid var(--cc-border);
+}
+
+/* Ambient brand glow helper */
+.cc-glow::before {
+  content: ""; position: absolute; width: 16rem; height: 16rem; right: -4rem; top: -4rem;
+  background: radial-gradient(circle, rgba(163,230,53,.18), transparent 70%);
+  filter: blur(40px); pointer-events: none; z-index: 0;
+}
