@@ -8,6 +8,7 @@
 # Dev:      npm run cf:dev   (after npm run build)
 
 name = "catcoder"
+account_id = "45a6a83b7da670c16eaac989170e06b7"
 main = "worker/index.ts"
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat"]
@@ -21,7 +22,19 @@ run_worker_first = ["/api/*"]
 # Public, non-secret vars. Secrets (LIBSQL_DB_AUTH_TOKEN, AUTH_SECRET) are set
 # via `npx wrangler secret put <NAME>` and, for local dev, in worker/.dev.vars.
 [vars]
-LIBSQL_DB_URL = ""
+LIBSQL_DB_URL = "libsql://catcoder-rofidarmawan.aws-ap-northeast-1.turso.io"
 
 [observability]
 enabled = true
+
+# ── Custom domain (catcoder.online) ──────────────────────────────────────────
+# Uncomment AFTER catcoder.online is an active zone in this Cloudflare account
+# (Dashboard → Add a site → change nameservers at your registrar). Then
+# `npm run cf:deploy` attaches the domain + provisions the TLS cert automatically.
+# [[routes]]
+# pattern = "catcoder.online"
+# custom_domain = true
+#
+# [[routes]]
+# pattern = "www.catcoder.online"
+# custom_domain = true
