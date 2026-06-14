@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { CommandPalette } from './CommandPalette';
 import { Modal, Input, Button, Toaster, LevelUpModal } from '../ui';
 import { useUserStore, useUIStore } from '../../stores';
 
 export const MainLayout: React.FC = () => {
     const { signIn, signUp, initializeSession } = useUserStore();
-    const { showAuthModal, setShowAuthModal } = useUIStore();
+    const { showAuthModal, setShowAuthModal, sidebarCollapsed } = useUIStore();
     const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -57,9 +58,15 @@ export const MainLayout: React.FC = () => {
             {!isFocusMode && <Sidebar />}
 
             {/* Main Content Area */}
-            {/* Remove left padding when sidebar is hidden */}
-            <main className={`${isFocusMode ? 'lg:pl-0 p-0' : 'lg:pl-[22rem] p-4 lg:p-8'} min-h-screen`}>
-                <div className={`${isFocusMode ? 'w-full' : 'max-w-[1600px] mx-auto'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+            {/* Left padding tracks the sidebar: hidden (focus) / collapsed rail / full */}
+            <main
+                className={`${isFocusMode ? 'lg:pl-0 p-0' : `${sidebarCollapsed ? 'lg:pl-[7rem]' : 'lg:pl-[22rem]'} p-4 lg:p-8`} min-h-screen`}
+                style={{ transition: 'padding-left 260ms cubic-bezier(.22,1,.36,1)' }}
+            >
+                <div
+                    key={location.pathname}
+                    className={`${isFocusMode ? 'w-full' : 'max-w-[1600px] mx-auto'} cc-reveal`}
+                >
                     <Outlet />
                 </div>
             </main>
@@ -117,6 +124,7 @@ export const MainLayout: React.FC = () => {
             </Modal>
 
             {/* Global UI Components */}
+            <CommandPalette />
             <Toaster />
             <LevelUpModal />
         </div>

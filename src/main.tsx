@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import '@fontsource-variable/geist/index.css'
+import '@fontsource-variable/space-grotesk/index.css'
 import '@fontsource-variable/inter/index.css'
 import '@fontsource-variable/jetbrains-mono/index.css'
 import App from './App.tsx'

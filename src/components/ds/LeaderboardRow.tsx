@@ -23,10 +23,14 @@ export const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
     isCurrentUser = false,
 }) => (
     <div
-        className="flex items-center gap-3 p-2 rounded-2xl transition-colors"
+        className="flex items-center gap-3 p-2 rounded-xl transition-colors"
         style={
             isCurrentUser
-                ? { backgroundColor: 'rgba(163,230,53,.1)', border: '1px solid rgba(163,230,53,.25)' }
+                ? {
+                      backgroundColor: 'var(--cc-surface-3)',
+                      border: '1px solid rgba(163,230,53,.25)',
+                      boxShadow: 'var(--cc-e2), var(--cc-glow-brand)',
+                  }
                 : { border: '1px solid transparent' }
         }
     >
@@ -36,12 +40,14 @@ export const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
         >
             {rank}
         </span>
-        <Avatar
-            src={avatarUrl}
-            fallback={name.charAt(0).toUpperCase()}
-            size="sm"
-            className="h-8 w-8 shrink-0"
-        />
+        <div className="shrink-0 rounded-full" style={{ boxShadow: 'var(--cc-e1)' }}>
+            <Avatar
+                src={avatarUrl}
+                fallback={name.charAt(0).toUpperCase()}
+                size="sm"
+                className="h-8 w-8 ring-1 ring-white/10"
+            />
+        </div>
         <div className="flex-1 min-w-0">
             <p
                 className="text-sm font-bold truncate"

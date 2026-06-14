@@ -1144,6 +1144,8 @@ interface Toast {
 // UI Store
 interface UIState {
     sidebarOpen: boolean;
+    sidebarCollapsed: boolean;
+    commandPaletteOpen: boolean;
     showAuthModal: boolean;
     toasts: Toast[];
     levelUpModal: {
@@ -1154,6 +1156,9 @@ interface UIState {
     // Actions
     toggleSidebar: () => void;
     setSidebarOpen: (open: boolean) => void;
+    toggleSidebarCollapsed: () => void;
+    setSidebarCollapsed: (collapsed: boolean) => void;
+    setCommandPaletteOpen: (open: boolean) => void;
     setShowAuthModal: (show: boolean) => void;
     addToast: (type: ToastType, message: string) => void;
     removeToast: (id: string) => void;
@@ -1163,12 +1168,26 @@ interface UIState {
 
 export const useUIStore = create<UIState>()((set) => ({
     sidebarOpen: true,
+    sidebarCollapsed: (() => {
+        try { return localStorage.getItem('cc-sidebar-collapsed') === '1'; } catch { return false; }
+    })(),
+    commandPaletteOpen: false,
     showAuthModal: false,
     toasts: [],
     levelUpModal: null,
 
     toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     setSidebarOpen: (open) => set({ sidebarOpen: open }),
+    toggleSidebarCollapsed: () => set((state) => {
+        const next = !state.sidebarCollapsed;
+        try { localStorage.setItem('cc-sidebar-collapsed', next ? '1' : '0'); } catch { /* ignore */ }
+        return { sidebarCollapsed: next };
+    }),
+    setSidebarCollapsed: (collapsed) => {
+        try { localStorage.setItem('cc-sidebar-collapsed', collapsed ? '1' : '0'); } catch { /* ignore */ }
+        set({ sidebarCollapsed: collapsed });
+    },
+    setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
     setShowAuthModal: (show) => set({ showAuthModal: show }),
 
     addToast: (type, message) => {
