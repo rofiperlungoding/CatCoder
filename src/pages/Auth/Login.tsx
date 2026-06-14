@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Icon, Button, Input, Toaster, LoadingSpinner } from '../../components/ui';
 import { useUserStore, useUIStore } from '../../stores';
 import { logger } from '../../lib/logger';
+import { isLocalBackend } from '../../lib/supabase';
 
 // Google Icon SVG Component
 const GoogleIcon = () => (
@@ -46,8 +47,14 @@ export const LoginPage: React.FC = () => {
 
         try {
             if (isSignUp) {
-                const { error } = await signUp(email, password, username);
-                if (!error) {
+                const { error, user } = await signUp(email, password, username);
+                if (!error && user) {
+                    // Local backend (and Supabase projects with email
+                    // confirmation disabled) return a live session — the user
+                    // is already signed in, so head straight to the app. The
+                    // store has already shown a welcome toast.
+                    navigate('/home', { replace: true });
+                } else if (!error) {
                     addToast('success', 'Account created! Please check your email to confirm.');
                 }
             } else {
@@ -154,6 +161,13 @@ export const LoginPage: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {isLocalBackend() && (
+                            <div className="mb-6 rounded-xl border border-lime-500/20 bg-lime-500/5 px-4 py-3 text-sm text-lime-300">
+                                <span className="font-bold">Local testing mode.</span>{' '}
+                                No backend needed — sign up with any email &amp; password; data lives in your browser.
+                            </div>
+                        )}
 
                         {!isMagicLink ? (
                             <form onSubmit={handleSubmit} className="space-y-6">

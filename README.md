@@ -91,10 +91,25 @@ cd CatCoder
 npm install
 ```
 
-### 3. Configuration
-Initialize the environment configuration by creating a `.env` file based on the provided `.env.example`. Ensure the following keys are specified:
+### 3a. Quick start — local testing mode (no backend required)
+Run the whole app with zero external services. Auth, profiles, progress, and
+the leaderboard are backed by your browser's localStorage.
+```bash
+cp .env.local.example .env.local
+npm run dev
+```
+Then open the app, hit "Create account", and sign up with any email and
+password. A demo leaderboard is seeded automatically. This is the fastest way
+to explore and test the platform.
+
+### 3b. Full setup — real Supabase
+Initialize the environment configuration by creating a `.env` file based on the
+provided `.env.example`. Ensure the following keys are specified:
 - Supabase URL and Anon Key.
-- OpenAI API Key.
+- (Optional) AI proxy configuration for mentorship features.
+
+Set `VITE_BACKEND=supabase` (or simply provide valid Supabase credentials and
+omit `VITE_BACKEND`) to use the real backend.
 
 ### 4. Development Execution
 Launch the local development environment:
@@ -107,6 +122,19 @@ To view the UI component library:
 ```bash
 npm run storybook
 ```
+
+## BACKEND MODES
+CatCoder ships with two interchangeable backends selected via `VITE_BACKEND`:
+
+| Mode | Trigger | Storage |
+| --- | --- | --- |
+| Local | `VITE_BACKEND=local`, or no Supabase credentials present | Browser localStorage |
+| Supabase | `VITE_BACKEND=supabase`, or valid credentials present | PostgreSQL + Auth + RLS |
+
+The local backend implements the subset of the Supabase client the app uses
+(auth, table queries, RPC, realtime). It is intended for development and
+testing only — it stores credentials in the browser and performs no
+server-side enforcement.
 
 ## DOCUMENTATION
 Technical documentation and component specifications are maintained through Storybook interfaces for high visibility into the design system.

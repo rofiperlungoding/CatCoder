@@ -545,9 +545,15 @@ export const useUserStore = create<UserState>()(
                         logger.debug('[Auth] Auth state changed:', event);
 
                         if (event === 'SIGNED_IN' && session?.user) {
+                            // Suppress the toast when the user was already
+                            // authenticated synchronously (e.g. email/password
+                            // sign-in sets state before this event fires); only
+                            // greet on a genuine fresh session such as an OAuth
+                            // redirect.
+                            const alreadyAuthed = get().isAuthenticated;
                             const success = await handleUserSession(session);
-                            if (success) {
-                                useUIStore.getState().addToast('success', 'Welcome! Signed in with Google');
+                            if (success && !alreadyAuthed) {
+                                useUIStore.getState().addToast('success', 'Welcome back!');
                             }
                         } else if (event === 'SIGNED_OUT') {
                             set({ user: null, isAuthenticated: false, recentActivities: [] });
