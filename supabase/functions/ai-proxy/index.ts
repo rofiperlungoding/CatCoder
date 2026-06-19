@@ -4,8 +4,13 @@
  * Server-side proxy that holds the real OpenAI API key. The browser must
  * never see it. The function:
  *   1. Authenticates the caller via the supplied Supabase JWT.
- *   2. Forwards a sanitized chat-completion request to OpenAI.
- *   3. Returns only the assistant message content + usage stats.
+ *   2. Enforces per-user rate limiting (sliding window, in-memory).
+ *   3. Forwards a sanitized chat-completion request to OpenAI.
+ *   4. Returns only the assistant message content + usage stats.
+ *
+ * Rate limits (configurable via env vars):
+ *   AI_RATE_LIMIT_MAX  -- max requests per window (default 20)
+ *   AI_RATE_LIMIT_WINDOW_SEC -- window size in seconds (default 60)
  *
  * Deploy:
  *   supabase functions deploy ai-proxy --no-verify-jwt=false
@@ -32,6 +37,32 @@ const cors = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+// ── Per-user in-memory sliding-window rate limiter ──────────────────────────
+// Persists across requests within a single Deno isolate. Not suitable for
+// multi-instance deployments — use a Durable Object or Redis for that.
+// For Supabase edge functions (single isolate per cold start) this is adequate.
+
+interface Bucket { count: number; windowStart: number }
+const buckets = new Map<string, Bucket>();
+
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number; resetAt: number } {
+    const max = parseInt(Deno.env.get('AI_RATE_LIMIT_MAX') ?? '20', 10);
+    const windowSec = parseInt(Deno.env.get('AI_RATE_LIMIT_WINDOW_SEC') ?? '60', 10);
+    const now = Math.floor(Date.now() / 1000);
+    const windowStart = now - (now % windowSec);
+
+    let bucket = buckets.get(userId);
+    if (!bucket || bucket.windowStart !== windowStart) {
+        bucket = { count: 0, windowStart };
+        buckets.set(userId, bucket);
+    }
+
+    bucket.count++;
+    const remaining = Math.max(0, max - bucket.count);
+    const resetAt = (bucket.windowStart + windowSec) * 1000;
+    return { allowed: bucket.count <= max, remaining, resetAt };
+}
 
 interface ChatRequest {
     model?: string;
@@ -74,6 +105,17 @@ Deno.serve(async (req: Request) => {
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     if (userErr || !userData?.user) {
         return json({ error: 'Unauthorized.', code: 'AUTH_REQUIRED' }, 401);
+    }
+    const userId = userData.user.id;
+
+    // Per-user rate limit (server-side, not bypassable by clearing localStorage).
+    const rl = checkRateLimit(userId);
+    if (!rl.allowed) {
+        return json(
+            { error: 'Rate limit exceeded.', code: 'RATE_LIMITED', retryAfterMs: rl.resetAt - Date.now() },
+            429,
+            { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)), 'X-RateLimit-Remaining': '0' },
+        );
     }
 
     let body: ChatRequest;
@@ -122,8 +164,15 @@ Deno.serve(async (req: Request) => {
 
     const data = (await upstream.json()) as any;
     const content = data?.choices?.[0]?.message?.content ?? '';
-    return json({
-        content,
-        usage: data?.usage ?? null,
-    });
+    return json(
+        {
+            content,
+            usage: data?.usage ?? null,
+        },
+        200,
+        {
+            'X-RateLimit-Remaining': String(rl.remaining),
+            'X-RateLimit-Reset': String(rl.resetAt),
+        },
+    );
 });

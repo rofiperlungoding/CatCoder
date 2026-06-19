@@ -62,6 +62,13 @@ export async function handleDb(env: Env, request: Request, desc: Descriptor): Pr
     const cols = assertTable(desc.table);
 
     if (desc.mode === 'select') {
+        // user_progress rows are private — only the authenticated owner can
+        // query them. profiles remain publicly readable (leaderboard).
+        if (desc.table === 'user_progress') {
+            const user = await getUserFromRequest(client, request);
+            if (!user) return json({ error: 'Not authenticated' }, 401);
+            return runSelectOwned(client, desc, cols, user);
+        }
         return runSelect(client, desc, cols);
     }
 
@@ -98,6 +105,27 @@ async function runSelect(client: Client, desc: Descriptor, cols: string[]): Prom
         return json({ data: rows[0] ?? null, error: null, count: null });
     }
     return json({ data: rows, error: null, count: desc.count ? rows.length : null });
+}
+
+/**
+ * Authenticated-only SELECT for user_progress. Injects a `user_id = ?` filter
+ * so callers can only see their own rows — the same ownership scoping that
+ * writes use. If the client already sends a user_id filter it is silently
+ * overridden (preventing cross-user peeking).
+ */
+async function runSelectOwned(
+    client: Client,
+    desc: Descriptor,
+    cols: string[],
+    user: UserRow,
+): Promise<Response> {
+    // Strip any client-supplied user_id filter to prevent override attempts.
+    const cleanedFilters = (desc.filters ?? []).filter((f) => f.col !== 'user_id');
+    const ownedDesc: Descriptor = {
+        ...desc,
+        filters: [...cleanedFilters, { col: 'user_id', op: 'eq', val: user.id }],
+    };
+    return runSelect(client, ownedDesc, cols);
 }
 
 async function runWrite(

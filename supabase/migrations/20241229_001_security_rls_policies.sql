@@ -37,12 +37,10 @@ CREATE POLICY "Users can view own progress"
     FOR SELECT
     USING (auth.uid() = user_id);
 
--- Keep the leaderboard policy for public viewing of completed progress
+-- The public "Anyone can view progress for leaderboard" policy has been
+-- REMOVED. Progress rows are now private. The leaderboard is served from
+-- public.profiles (xp/level/rank), which remains publicly readable.
 DROP POLICY IF EXISTS "Anyone can view progress for leaderboard" ON public.user_progress;
-CREATE POLICY "Anyone can view progress for leaderboard"
-    ON public.user_progress
-    FOR SELECT
-    USING (true);
 
 -- =============================================================================
 -- 4. UPDATE PROFILES RLS POLICIES
@@ -73,5 +71,7 @@ ALTER TABLE public.user_progress ENABLE ROW LEVEL SECURITY;
 -- 1. Authenticated users CANNOT directly INSERT/UPDATE/DELETE user_progress
 -- 2. Authenticated users CANNOT directly UPDATE xp, level, rank on profiles
 -- 3. The submit_completion RPC function (SECURITY DEFINER) CAN still modify these
--- 4. Users CAN still read their own progress and update non-sensitive profile fields
+-- 4. Users CAN read their own progress; all other progress rows are private
+-- 5. The leaderboard is served from public.profiles (xp/level/rank), NOT from
+--    user_progress — there is no public SELECT policy on user_progress anymore.
 -- =============================================================================

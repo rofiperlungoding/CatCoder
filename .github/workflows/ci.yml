@@ -147,6 +147,26 @@ jobs:
           fi
 
       # ══════════════════════════════════════════
+      #  CHECK 4b: TypeScript (Cloudflare Worker)
+      # ══════════════════════════════════════════
+      - name: "🔧 TypeScript — Cloudflare Worker"
+        id: cf_typecheck
+        continue-on-error: true
+        run: |
+          set +e
+          npm run cf:typecheck 2>&1 | tee cf_typecheck_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          CF_ERRORS=$(grep -c "error TS" cf_typecheck_output.txt 2>/dev/null || true)
+          [ -z "$CF_ERRORS" ] && CF_ERRORS=0
+          echo "errors=${CF_ERRORS}" >> $GITHUB_OUTPUT
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
       #  CHECK 5: Pentest Suite
       # ══════════════════════════════════════════
       - name: "⚔️ Pentest Suite"
@@ -328,6 +348,7 @@ jobs:
              [ "${{ steps.gitleaks_result.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.lint.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.cf_typecheck.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.pentest.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.ruff.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.mypy.outputs.status }}" = "FAIL" ] || \

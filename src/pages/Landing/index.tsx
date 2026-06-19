@@ -1,58 +1,76 @@
-import { ProgrammingFlagIcon, BookOpen01Icon, SparklesIcon, Target01Icon, EnergyIcon, Trophy } from '@hugeicons/core-free-icons';
-import { Icon } from '../../components/ui';
+import {
+    ProgrammingFlagIcon, BookOpen01Icon, SparklesIcon, Target01Icon, EnergyIcon,
+    Trophy, ArrowRight01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Button, Surface, Progress } from '../../components/ds';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const FAQ_ITEMS: { title: string; desc: string }[] = [
+    { title: 'Is CatCoder free to use?', desc: 'Yes! CatCoder offers a free tier with access to hundreds of challenges. Premium plans unlock advanced features and courses.' },
+    { title: 'What programming languages are supported?', desc: 'We support Python, JavaScript, TypeScript, Java, C++, and more. New languages are added regularly based on community feedback.' },
+    { title: 'How does the XP and leveling system work?', desc: 'Complete challenges to earn XP. As you accumulate XP, you level up and unlock new badges, achievements, and harder challenges.' },
+    { title: 'Can I track my learning progress?', desc: 'Absolutely! Your dashboard shows detailed analytics including problems solved, skills mastered, and learning streaks.' },
+];
+
+const FEATURE_ICONS = [
+    { icon: ProgrammingFlagIcon, accent: 'text-sky-300', title: 'Interactive Challenges', desc: 'Learn by doing with 500+ coding challenges across multiple languages. From beginner to advanced, we’ve got you covered.' },
+    { icon: EnergyIcon, accent: 'text-amber-300', title: 'AI-Powered Feedback', desc: 'Get instant, intelligent feedback on your code. Our AI helps you understand mistakes and suggests improvements.' },
+    { icon: Trophy, accent: 'text-lime-300', title: 'Gamified Learning', desc: 'Earn XP, level up, unlock achievements, and compete on leaderboards. Learning to code has never been this fun!' },
+    { icon: BookOpen01Icon, accent: 'text-purple-300', title: 'Structured Courses', desc: 'Follow curated learning paths designed by experts. Master Python, JavaScript, and more with step-by-step guidance.' },
+];
+
 export const LandingPage: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="pb-20 bg-[#050505] text-[#FAFAFA]">
-            {/* Hero Section */}
-            <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center space-y-10">
-                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <span className="text-xs font-semibold text-lime-400">New</span>
-                    <span className="w-1 h-1 rounded-full bg-gray-600"></span>
-                    <span className="text-xs font-medium text-gray-400">AI Code Review 2.0</span>
-                </div>
+        <div className="cc-root relative">
+            {/* Ambient brand glow */}
+            <div aria-hidden className="pointer-events-none absolute -z-0" style={{
+                top: -120, left: '50%', transform: 'translateX(-50%)', width: 720, height: 560,
+                background: 'radial-gradient(circle, rgba(163,230,53,.14), transparent 70%)',
+                filter: 'blur(60px)',
+            }} />
 
-                <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-white max-w-4xl leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-backwards">
+            {/* Hero Section */}
+            <div className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center space-y-10">
+                <span className="cc-pill cc-pill-brand">
+                    <HugeiconsIcon icon={SparklesIcon} size={13} /> New · AI Code Review 2.0
+                </span>
+
+                <h1 className="text-5xl sm:text-7xl font-bold tracking-tight max-w-4xl leading-[1.1]" style={{ color: 'var(--cc-tx-1)' }}>
                     Master Coding with <br className="hidden sm:block" />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 to-emerald-400">AI-Powered Learning</span>
+                    <span style={{ color: 'var(--cc-brand-1)' }}>AI-Powered Learning</span>
                 </h1>
 
-                <p className="text-lg sm:text-xl text-gray-400 max-w-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-backwards">
+                <p className="text-lg sm:text-xl max-w-2xl leading-relaxed" style={{ color: 'var(--cc-tx-2)' }}>
                     Level up your programming skills with interactive challenges, instant AI feedback, and a gamified learning experience that makes coding fun.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-backwards">
-                    <button
-                        onClick={() => navigate('/onboarding')}
-                        className="bg-white text-black px-8 py-4 rounded-full font-bold text-sm hover:bg-gray-200 transition-all hover:scale-105 active:scale-95 duration-200 ease-out"
-                    >
-                        Start Learning Free
-                    </button>
-                    <button
-                        onClick={() => navigate('/courses')}
-                        className="bg-white/5 text-white border border-white/10 px-8 py-4 rounded-full font-bold text-sm hover:bg-white/10 transition-all hover:scale-105 active:scale-95 duration-200 ease-out"
-                    >
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <Button size="lg" onClick={() => navigate('/onboarding')}>
+                        Start Learning Free <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                    </Button>
+                    <Button variant="secondary" size="lg" onClick={() => navigate('/learn')}>
                         View Courses
-                    </button>
+                    </Button>
                 </div>
 
-                {/* Hero Image / Code Editor Graphic */}
-                <div className="w-full max-w-6xl mt-12 relative group rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/50 animate-in fade-in zoom-in-95 duration-1000 delay-200 border border-white/5">
-                    <div className="aspect-[16/9] w-full bg-[#0a0a0a] relative overflow-hidden">
+                {/* Code Editor showcase — reskinned to glass */}
+                <div className="w-full max-w-6xl mt-12 relative cc-glass overflow-hidden" style={{ borderRadius: 'var(--cc-r-xl)' }}>
+                    <div className="aspect-[16/9] w-full relative overflow-hidden" style={{ background: 'var(--cc-bg)' }}>
                         {/* Code Editor Mock */}
-                        <div className="absolute inset-0 p-8">
+                        <div className="absolute inset-0 p-6 sm:p-8">
                             {/* Title Bar */}
                             <div className="flex items-center gap-2 mb-6">
-                                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                                <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-                                <span className="ml-4 text-white/30 text-sm font-mono">solution.py</span>
+                                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                                <span className="ml-4 text-sm cc-mono" style={{ color: 'var(--cc-tx-3)' }}>solution.py</span>
                             </div>
                             {/* Code Lines */}
-                            <div className="font-mono text-sm sm:text-base text-left space-y-2">
+                            <div className="cc-mono text-sm sm:text-base text-left space-y-2">
                                 <div><span className="text-purple-400">def</span> <span className="text-yellow-300">solve_challenge</span><span className="text-white">(problems):</span></div>
                                 <div className="pl-8"><span className="text-gray-600"># Your coding journey starts here</span></div>
                                 <div className="pl-8"><span className="text-purple-400">for</span> <span className="text-white">problem</span> <span className="text-purple-400">in</span> <span className="text-white">problems:</span></div>
@@ -63,81 +81,75 @@ export const LandingPage: React.FC = () => {
                         </div>
 
                         {/* Overlay Stats - Top Right */}
-                        <div className="absolute top-10 right-10 bg-black/60 backdrop-blur-md border border-white/10 p-6 rounded-3xl text-white animate-in slide-in-from-right-8 duration-700 delay-500">
-                            <div className="text-3xl font-bold mb-1 text-lime-400">+500 XP</div>
-                            <div className="text-sm text-gray-400">Challenge Complete!</div>
+                        <div className="absolute top-8 right-8 cc-glass cc-glass-interactive p-5 sm:p-6" style={{ borderRadius: 'var(--cc-r-lg)' }}>
+                            <div className="text-3xl font-bold mb-1 cc-mono" style={{ color: 'var(--cc-brand-1)' }}>+500 XP</div>
+                            <div className="text-sm" style={{ color: 'var(--cc-tx-2)' }}>Challenge Complete!</div>
                         </div>
 
                         {/* Overlay Stats - Bottom Left */}
-                        <div className="absolute bottom-10 left-10 bg-black/60 backdrop-blur-md border border-white/10 p-6 rounded-3xl text-white min-w-[280px] animate-in slide-in-from-bottom-8 duration-700 delay-500">
+                        <div className="absolute bottom-8 left-8 cc-glass cc-glass-interactive p-5 sm:p-6 min-w-[280px]" style={{ borderRadius: 'var(--cc-r-lg)' }}>
                             <div className="mb-4">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <Icon icon={Trophy} className="text-yellow-400" size={24} />
-                                    <span className="text-2xl font-bold">Level 12</span>
+                                    <span className="cc-icon-well w-9 h-9 text-amber-300 shrink-0">
+                                        <HugeiconsIcon icon={Trophy} size={18} strokeWidth={1.8} />
+                                    </span>
+                                    <span className="text-2xl font-bold cc-mono" style={{ color: 'var(--cc-tx-1)' }}>Level 12</span>
                                 </div>
-                                <div className="w-full bg-white/10 rounded-full h-2">
-                                    <div className="bg-lime-400 h-2 rounded-full w-3/4"></div>
-                                </div>
+                                <Progress value={75} className="h-2" aria-label="Level progress" />
                             </div>
-                            <div className="flex items-center gap-4 pt-4 border-t border-white/10">
+                            <div className="flex items-center gap-4 pt-4" style={{ borderTop: '1px solid var(--cc-border)' }}>
                                 <div className="text-center">
-                                    <div className="font-bold text-xl">847</div>
-                                    <div className="text-xs text-gray-500">Problems</div>
+                                    <div className="cc-mono font-bold text-xl" style={{ color: 'var(--cc-tx-1)' }}>847</div>
+                                    <div className="cc-eyebrow mt-0.5">Problems</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="font-bold text-xl">23</div>
-                                    <div className="text-xs text-gray-500">Day Streak</div>
+                                    <div className="cc-mono font-bold text-xl" style={{ color: 'var(--cc-tx-1)' }}>23</div>
+                                    <div className="cc-eyebrow mt-0.5">Day Streak</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Bottom Right Button */}
-                        <div className="absolute bottom-10 right-10">
-                            <button
-                                onClick={() => navigate('/onboarding')}
-                                className="flex items-center gap-2 bg-lime-400 text-black px-6 py-3 rounded-full font-bold shadow-lg hover:bg-lime-300 transition-all hover:scale-105 active:scale-95 duration-200 ease-out"
-                            >
-                                Start Coding
-                                <Icon icon={SparklesIcon} size={16} />
-                            </button>
+                        <div className="absolute bottom-8 right-8">
+                            <Button size="md" onClick={() => navigate('/onboarding')}>
+                                Start Coding <HugeiconsIcon icon={SparklesIcon} size={16} />
+                            </Button>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Why CatCoder Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 pb-40">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 pb-32">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
                     <div>
-                        <div className="inline-block px-4 py-1.5 rounded-full border border-lime-500/20 text-xs font-semibold text-lime-400 mb-6 bg-lime-500/10">
-                            Why CatCoder?
-                        </div>
-                        <h2 className="text-4xl sm:text-5xl font-bold text-white max-w-2xl leading-[1.1]">
+                        <span className="cc-pill cc-pill-brand mb-6">Why CatCoder?</span>
+                        <h2 className="text-4xl sm:text-5xl font-bold max-w-2xl leading-[1.1]" style={{ color: 'var(--cc-tx-1)' }}>
                             Everything You Need to Become a Better Developer
                         </h2>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(320px,auto)]">
-                    {/* Card 1 - Interactive Challenges */}
-                    <div className="bg-[#0a0a0a] border border-white/10 shadow-sm rounded-[2.5rem] p-8 flex flex-col justify-between hover:border-white/20 transition-all duration-300">
-                        <div>
-                            <h3 className="text-xl font-bold text-white mb-4">Interactive Challenges</h3>
-                            <p className="text-sm text-gray-400 leading-relaxed">
-                                Learn by doing with 500+ coding challenges across multiple languages. From beginner to advanced, we've got you covered.
-                            </p>
-                        </div>
-                        <div className="mt-8">
-                            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20">
-                                <Icon icon={ProgrammingFlagIcon} strokeWidth={1.5} className="w-8 h-8" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(320px,auto)] cc-stagger">
+                    {FEATURE_ICONS.map((f) => (
+                        <div key={f.title} className="cc-glass cc-glass-interactive p-7 md:p-8 flex flex-col justify-between" style={{ borderRadius: 'var(--cc-r-xl)' }}>
+                            <div>
+                                <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--cc-tx-1)' }}>{f.title}</h3>
+                                <p className="text-sm leading-relaxed" style={{ color: 'var(--cc-tx-2)' }}>
+                                    {f.desc}
+                                </p>
+                            </div>
+                            <div className="mt-8">
+                                <span className={`cc-icon-well w-12 h-12 ${f.accent}`}>
+                                    <HugeiconsIcon icon={f.icon} size={24} strokeWidth={1.5} />
+                                </span>
                             </div>
                         </div>
-                    </div>
+                    ))}
 
-                    {/* Card 2 - Code Visual */}
-                    <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden relative group flex items-center justify-center">
-                        <div className="absolute inset-x-0 top-0 h-px bg-white/5"></div>
-                        <div className="p-8 font-mono text-sm w-full">
+                    {/* Code-visual card */}
+                    <div className="cc-glass cc-glass-interactive overflow-hidden flex items-center justify-center p-7 md:p-8" style={{ borderRadius: 'var(--cc-r-xl)' }}>
+                        <div className="cc-mono text-sm w-full">
                             <div className="text-purple-400">function <span className="text-yellow-300">learn</span>() {'{'}</div>
                             <div className="pl-4 text-green-400">// Practice daily</div>
                             <div className="pl-4 text-white">skills++;</div>
@@ -145,99 +157,48 @@ export const LandingPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Card 3 - AI Feedback */}
-                    <div className="bg-[#0a0a0a] border border-white/10 shadow-sm rounded-[2.5rem] p-8 flex flex-col justify-between hover:border-white/20 transition-all duration-300">
-                        <div>
-                            <h3 className="text-xl font-bold text-white mb-4">AI-Powered Feedback</h3>
-                            <p className="text-sm text-gray-400 leading-relaxed">
-                                Get instant, intelligent feedback on your code. Our AI helps you understand mistakes and suggests improvements.
-                            </p>
-                        </div>
-                        <div className="mt-8">
-                            <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-400 border border-amber-500/20">
-                                <Icon icon={EnergyIcon} strokeWidth={1.5} className="w-8 h-8" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 4 - Gamified */}
-                    <div className="bg-[#0a0a0a] border border-white/10 shadow-sm rounded-[2.5rem] p-8 flex flex-col justify-between hover:border-white/20 transition-all duration-300">
-                        <div>
-                            <h3 className="text-xl font-bold text-white mb-4">Gamified Learning</h3>
-                            <p className="text-sm text-gray-400 leading-relaxed">
-                                Earn XP, level up, unlock achievements, and compete on leaderboards. Learning to code has never been this fun!
-                            </p>
-                        </div>
-                        <div className="mt-8">
-                            <div className="w-16 h-16 bg-lime-500/10 rounded-2xl flex items-center justify-center text-lime-400 border border-lime-500/20">
-                                <Icon icon={Trophy} strokeWidth={1.5} className="w-8 h-8" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 5 - Structured Courses */}
-                    <div className="bg-[#0a0a0a] border border-white/10 shadow-sm rounded-[2.5rem] p-8 flex flex-col justify-between hover:border-white/20 transition-all duration-300">
-                        <div>
-                            <h3 className="text-xl font-bold text-white mb-4">Structured Courses</h3>
-                            <p className="text-sm text-gray-400 leading-relaxed">
-                                Follow curated learning paths designed by experts. Master Python, JavaScript, and more with step-by-step guidance.
-                            </p>
-                        </div>
-                        <div className="mt-8">
-                            <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-400 border border-purple-500/20">
-                                <Icon icon={BookOpen01Icon} strokeWidth={1.5} className="w-8 h-8" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 6 - Green Accent */}
-                    <div className="bg-lime-400 rounded-[2.5rem] p-8 flex flex-col justify-between relative overflow-hidden group hover:shadow-lg transition-shadow duration-300">
+                    {/* Brand-accent "Track Your Progress" card */}
+                    <div className="relative overflow-hidden p-7 md:p-8 flex flex-col justify-between cc-glass" style={{ borderRadius: 'var(--cc-r-xl)', background: 'rgba(163,230,53,.10)', boxShadow: 'var(--cc-e2), var(--cc-glow-brand)' }}>
                         <div className="relative z-10">
-                            <h3 className="text-xl font-bold text-black mb-4">Track Your Progress</h3>
-                            <p className="text-sm text-black/70 leading-relaxed font-bold">
+                            <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--cc-tx-1)' }}>Track Your Progress</h3>
+                            <p className="text-sm leading-relaxed font-semibold" style={{ color: 'var(--cc-tx-2)' }}>
                                 Visualize your coding journey with detailed analytics. See your strengths, identify areas to improve, and celebrate milestones.
                             </p>
                         </div>
-                        <div className="mt-8">
-                            <div className="w-16 h-16 bg-black/10 rounded-2xl flex items-center justify-center text-black backdrop-blur-sm">
-                                <Icon icon={Target01Icon} strokeWidth={1.5} className="w-8 h-8" />
-                            </div>
+                        <div className="mt-8 relative z-10">
+                            <span className="cc-icon-well w-12 h-12 text-lime-300">
+                                <HugeiconsIcon icon={Target01Icon} size={24} strokeWidth={1.5} />
+                            </span>
                         </div>
-                        <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl opacity-50 translate-x-10 translate-y-10"></div>
+                        <div aria-hidden className="absolute bottom-0 right-0 w-32 h-32 rounded-full opacity-40 translate-x-10 translate-y-10" style={{ background: 'rgba(163,230,53,.30)', filter: 'blur(40px)' }} />
                     </div>
                 </div>
             </div>
 
             {/* FAQ Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-                <div className="flex items-center justify-between mb-16">
-                    <h2 className="text-4xl sm:text-5xl font-bold text-white">Frequently Asked<br />Questions</h2>
-                    <button
-                        onClick={() => navigate('/onboarding')}
-                        className="hidden md:flex bg-white/10 text-white border border-white/20 px-6 py-3 rounded-full font-bold text-sm hover:bg-white/20 transition-all hover:scale-105 active:scale-95 duration-200 ease-out"
-                    >
-                        Get Started
-                    </button>
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                <div className="flex items-center justify-between mb-16 gap-6">
+                    <h2 className="text-4xl sm:text-5xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>Frequently Asked<br />Questions</h2>
+                    <Button variant="secondary" size="md" className="hidden md:inline-flex" onClick={() => navigate('/onboarding')}>
+                        Get Started <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+                    </Button>
                 </div>
 
-                <div className="space-y-4">
-                    {[
-                        { title: "Is CatCoder free to use?", desc: "Yes! CatCoder offers a free tier with access to hundreds of challenges. Premium plans unlock advanced features and courses." },
-                        { title: "What programming languages are supported?", desc: "We support Python, JavaScript, TypeScript, Java, C++, and more. New languages are added regularly based on community feedback." },
-                        { title: "How does the XP and leveling system work?", desc: "Complete challenges to earn XP. As you accumulate XP, you level up and unlock new badges, achievements, and harder challenges." },
-                        { title: "Can I track my learning progress?", desc: "Absolutely! Your dashboard shows detailed analytics including problems solved, skills mastered, and learning streaks." }
-                    ].map((item, i) => (
-                        <div key={i} className="group flex flex-col md:flex-row md:items-center justify-between p-8 bg-[#0a0a0a] hover:bg-[#111] border border-white/5 hover:border-white/10 rounded-[2rem] transition-all duration-300 cursor-pointer">
-                            <div className="flex items-center gap-6">
-                                <div className="w-12 h-12 rounded-2xl bg-lime-500/10 flex items-center justify-center text-lime-400 font-bold shrink-0 border border-lime-500/20">
-                                    {i + 1}
+                <div className="space-y-4 cc-stagger">
+                    {FAQ_ITEMS.map((item, i) => (
+                        <Surface key={i} elevation={1} className="p-6 md:p-7 cc-glass-interactive cursor-pointer">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-5">
+                                    <span className="cc-icon-well w-10 h-10 text-lime-300 shrink-0 cc-mono font-bold flex items-center justify-center">
+                                        {i + 1}
+                                    </span>
+                                    <h3 className="text-lg font-bold" style={{ color: 'var(--cc-tx-1)' }}>{item.title}</h3>
                                 </div>
-                                <h3 className="text-lg font-bold text-white">{item.title}</h3>
+                                <div className="md:max-w-md text-sm md:text-right" style={{ color: 'var(--cc-tx-2)' }}>
+                                    {item.desc}
+                                </div>
                             </div>
-                            <div className="mt-4 md:mt-0 max-w-md text-sm text-gray-400">
-                                {item.desc}
-                            </div>
-                        </div>
+                        </Surface>
                     ))}
                 </div>
             </div>

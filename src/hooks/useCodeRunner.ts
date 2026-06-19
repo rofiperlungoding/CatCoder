@@ -7,8 +7,9 @@
  * Maintains backward compatibility with existing API while using secure sandbox.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { ensurePyodide, type PyodideInterface } from '../lib/pyodideLoader';
+import { runJsInSandbox } from '../lib/sandboxRunner';
 
 export type LogType = 'command' | 'stdout' | 'stderr' | 'system' | 'success';
 
@@ -35,23 +36,7 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
 
     // Pyodide ref for Python execution. The runtime is fetched lazily on first use.
     const pyodideRef = useRef<PyodideInterface | null>(null);
-
-    // Web Worker ref for sandboxed JS execution
-    const workerRef = useRef<Worker | null>(null);
-    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastRunTime = useRef<number>(0); // Rate limiting ref
-
-    // Cleanup worker / timeout on unmount
-    useEffect(() => {
-        return () => {
-            if (workerRef.current) {
-                workerRef.current.terminate();
-            }
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-    }, []);
 
     // Helper to add log with delay
     const addLog = useCallback((log: LogEntry, delay = 300) => {
@@ -70,104 +55,27 @@ export const useCodeRunner = (props?: UseCodeRunnerProps) => {
     }, []);
 
     /**
-     * Execute JavaScript code in sandboxed Web Worker
+     * Execute JavaScript code in an opaque-origin sandboxed iframe.
      * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
+     *
+     * Uses sandboxRunner.ts which creates a fresh <iframe sandbox="allow-scripts">
+     * (no allow-same-origin) per execution, providing a true realm boundary.
+     * This replaces the old Web Worker approach which was escapable via
+     * constructor chain attacks on `new Function`.
      */
-    const executeJsSandboxed = (codeStr: string): Promise<string> => {
-        return new Promise((resolve) => {
-            const output: string[] = [];
-            const errors: string[] = [];
-            const executionId = Date.now().toString();
-
-            // Terminate any existing worker
-            if (workerRef.current) {
-                workerRef.current.terminate();
+    const executeJsSandboxed = async (codeStr: string): Promise<string> => {
+        try {
+            const result = await runJsInSandbox(codeStr, { timeoutMs: EXECUTION_TIMEOUT_MS });
+            if (result.timedOut) {
+                return 'Error: Execution timed out after 3 seconds';
             }
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
+            if (result.errors.length > 0) {
+                return `Error: ${result.errors.join('\n')}`;
             }
-
-            try {
-                // Create fresh worker instance for each execution (Requirement 1.6)
-                const worker = new Worker('/sandbox-worker.js');
-                workerRef.current = worker;
-
-                // Set up timeout (Requirement 1.3 - 3 second timeout)
-                timeoutRef.current = setTimeout(() => {
-                    worker.terminate();
-                    workerRef.current = null;
-                    resolve('Error: Execution timed out after 3 seconds');
-                }, EXECUTION_TIMEOUT_MS);
-
-                // Handle messages from worker
-                worker.onmessage = (event) => {
-                    const { type, data, executionId: msgExecutionId } = event.data;
-
-                    // Ignore messages from previous executions
-                    if (msgExecutionId && msgExecutionId !== executionId) {
-                        return;
-                    }
-
-                    switch (type) {
-                        case 'log':
-                            output.push(data);
-                            break;
-                        case 'warn':
-                            output.push(`Warning: ${data}`);
-                            break;
-                        case 'error':
-                            errors.push(data);
-                            break;
-                        case 'complete':
-                            // Clear timeout and terminate worker
-                            if (timeoutRef.current) {
-                                clearTimeout(timeoutRef.current);
-                                timeoutRef.current = null;
-                            }
-                            worker.terminate();
-                            workerRef.current = null;
-
-                            // Format output similar to old implementation
-                            if (errors.length > 0) {
-                                resolve(`Error: ${errors.join('\n')}`);
-                            } else {
-                                resolve(output.join('\n'));
-                            }
-                            break;
-                    }
-                };
-
-                // Handle worker errors
-                worker.onerror = (error) => {
-                    if (timeoutRef.current) {
-                        clearTimeout(timeoutRef.current);
-                        timeoutRef.current = null;
-                    }
-                    worker.terminate();
-                    workerRef.current = null;
-                    resolve(`Error: ${error.message || 'Unknown worker error'}`);
-                };
-
-                // Send code to worker for execution
-                worker.postMessage({ code: codeStr, language: 'javascript', executionId });
-
-            } catch (error) {
-                // Handle worker creation errors - fall back to non-sandboxed execution
-                console.warn('Web Worker not available, falling back to direct execution', error);
-                resolve(executeJsFallback());
-            }
-        });
-    };
-
-    /**
-     * Fallback JavaScript execution (non-sandboxed)
-     * Used only when Web Workers are not available
-     * 
-     * Requirement 1.1: ALL code must execute in sandbox. 
-     * We purposefully fail-closed here instead of falling back to unsafe eval.
-     */
-    const executeJsFallback = (): string => {
-        return "Error: Secure Sandbox (Web Worker) is required for execution but could not be loaded. Please check your browser settings or refresh the page.";
+            return result.output.join('\n');
+        } catch (err) {
+            return `Error: ${err instanceof Error ? err.message : 'Sandbox failed to start'}`;
+        }
     };
 
     const executePython = async (codeStr: string): Promise<string> => {

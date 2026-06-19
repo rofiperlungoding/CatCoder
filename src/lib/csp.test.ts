@@ -80,10 +80,13 @@ describe('Content Security Policy Configuration', () => {
   });
 
   /**
-   * Additional security: frame-src should be restricted
+   * frame-src allows blob: for the sandbox iframe realm and 'self' for any
+   * same-origin frames. The sandbox frame uses a blob: URL created by
+   * sandboxRunner.ts and lives at an opaque origin (no allow-same-origin).
    */
-  it('should have frame-src set to none to prevent iframe embedding', () => {
-    expect(cspContent).toMatch(/frame-src[^;]*'none'/);
+  it('should have frame-src allowing blob: and self for sandbox iframe realm', () => {
+    expect(cspContent).toMatch(/frame-src[^;]*'self'/);
+    expect(cspContent).toMatch(/frame-src[^;]*blob:/);
   });
 
   /**

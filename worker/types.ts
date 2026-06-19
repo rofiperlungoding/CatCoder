@@ -3,8 +3,8 @@ export interface Env {
     LIBSQL_DB_URL?: string;
     /** Turso auth token (Worker secret). */
     LIBSQL_DB_AUTH_TOKEN?: string;
-    /** Secret used to sign/scope sessions (Worker secret). Optional. */
-    AUTH_SECRET?: string;
+    /** Secret used to sign/scope sessions and derive PBKDF2 keys. */
+    AUTH_SECRET: string;
     /** Static assets binding (configured in wrangler.toml). */
     ASSETS: { fetch: (request: Request) => Promise<Response> };
 }

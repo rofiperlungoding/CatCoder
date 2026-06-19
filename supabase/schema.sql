@@ -59,29 +59,24 @@ CREATE TABLE IF NOT EXISTS public.user_progress (
 -- Enable RLS
 ALTER TABLE public.user_progress ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies first
+-- Drop existing policies first (idempotent)
 DROP POLICY IF EXISTS "Users can view own progress" ON public.user_progress;
 DROP POLICY IF EXISTS "Users can insert own progress" ON public.user_progress;
 DROP POLICY IF EXISTS "Users can update own progress" ON public.user_progress;
 DROP POLICY IF EXISTS "Anyone can view progress for leaderboard" ON public.user_progress;
 
--- Recreate policies
+-- Users can only SELECT their own progress. Progress is PRIVATE; the
+-- leaderboard is served from public.profiles (xp/level/rank) instead, so
+-- there is no public SELECT policy on this table.
 CREATE POLICY "Users can view own progress"
   ON public.user_progress FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own progress"
-  ON public.user_progress FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own progress"
-  ON public.user_progress FOR UPDATE
-  USING (auth.uid() = user_id);
-
--- Allow everyone to view progress (for speed run leaderboard)
-CREATE POLICY "Anyone can view progress for leaderboard"
-  ON public.user_progress FOR SELECT
-  USING (true);
+-- NOTE: No INSERT/UPDATE/DELETE policies for authenticated/anon roles.
+-- All writes go through the SECURITY DEFINER RPC `validate_and_complete`,
+-- which bypasses RLS. Direct table grants are also revoked (see GRANT
+-- section at the end of this file) so even if a policy existed, clients
+-- could not exercise it.
 
 -- =============================================================================
 -- 3. USER ACHIEVEMENTS TABLE
@@ -171,10 +166,14 @@ CREATE TABLE IF NOT EXISTS public.problem_answers (
   UNIQUE(content_type, content_id, language)
 );
 
--- Only public can read, only service role can modify (admin)
+-- RLS enabled. There is intentionally NO public/anon/authenticated SELECT
+-- policy on problem_answers — the expected outputs are secrets. Only the
+-- SECURITY DEFINER function `validate_and_complete` can read them (it runs
+-- as the table owner and bypasses RLS). Client-side code must never be able
+-- to fetch expected answers directly.
 ALTER TABLE public.problem_answers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public can read problem answers" ON public.problem_answers;
-CREATE POLICY "Public can read problem answers" ON public.problem_answers FOR SELECT USING (true);
+-- (No policy recreated — table is opaque to all roles except the owner / service_role.)
 
 -- Index for lookups
 CREATE INDEX IF NOT EXISTS idx_problem_answers_lookup ON public.problem_answers(content_type, content_id, language);
@@ -220,12 +219,16 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Problem not found');
   END IF;
 
-  -- Normalize outputs (trim whitespace, lowercase for comparison)
-  v_normalized_output := LOWER(TRIM(p_user_output));
-  v_normalized_expected := LOWER(TRIM(v_expected));
-  
-  -- Validate answer (check if expected is contained in output)
-  v_is_correct := v_normalized_output LIKE '%' || v_normalized_expected || '%';
+  -- Normalize outputs: collapse internal whitespace runs to a single space,
+  -- trim leading/trailing whitespace, and lowercase. This handles cosmetic
+  -- differences (extra spaces, casing) without allowing substring matches.
+  -- SECURITY: this is exact equality after normalization — NOT a substring
+  -- `LIKE '%...%'` check, which would accept "4" inside "149" etc.
+  v_normalized_output   := LOWER(REGEXP_REPLACE(TRIM(p_user_output), '\s+', ' ', 'g'));
+  v_normalized_expected := LOWER(REGEXP_REPLACE(TRIM(v_expected),   '\s+', ' ', 'g'));
+
+  -- Validate answer (exact equality — no substring/contains logic)
+  v_is_correct := v_normalized_output = v_normalized_expected;
 
   IF NOT v_is_correct THEN
     RETURN jsonb_build_object('success', false, 'error', 'Incorrect answer');
@@ -328,9 +331,30 @@ INSERT INTO public.problem_answers (content_type, content_id, language, expected
 -- Word Ladder
 ('problem', 'word-ladder', 'python', '5', 300),
 ('problem', 'word-ladder', 'javascript', '5', 300)
-ON CONFLICT (content_type, content_id, language) DO UPDATE SET 
+  ON CONFLICT (content_type, content_id, language) DO UPDATE SET 
   expected_output = EXCLUDED.expected_output,
   xp_reward = EXCLUDED.xp_reward;
+
+-- =============================================================================
+-- 11. REVOKE DIRECT WRITE ACCESS FROM CLIENT ROLES
+-- =============================================================================
+-- Belt-and-suspenders: even though there are no INSERT/UPDATE/DELETE policies
+-- on user_progress, we also revoke the underlying table privileges so
+-- authenticated/anon roles cannot write to it by any path. All mutations go
+-- through the SECURITY DEFINER RPC `validate_and_complete`.
+REVOKE INSERT, UPDATE, DELETE ON public.user_progress FROM authenticated;
+REVOKE INSERT, UPDATE, DELETE ON public.user_progress FROM anon;
+
+-- Users may update their own profile (username, avatar_url, etc.) but NOT the
+-- XP/level/rank columns — those are owned by the server-side XP authority.
+REVOKE UPDATE (xp, level, rank) ON public.profiles FROM authenticated;
+REVOKE UPDATE (xp, level, rank) ON public.profiles FROM anon;
+
+-- problem_answers must never be readable by client roles (expected outputs
+-- are secrets). Only the table owner / service_role / SECURITY DEFINER fn
+-- can SELECT from it.
+REVOKE SELECT, INSERT, UPDATE, DELETE ON public.problem_answers FROM authenticated;
+REVOKE SELECT, INSERT, UPDATE, DELETE ON public.problem_answers FROM anon;
 
 -- =============================================================================
 -- Done! Your CatCoder database is ready with secure XP validation.

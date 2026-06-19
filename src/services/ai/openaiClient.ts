@@ -3,8 +3,12 @@
  *
  * The OpenAI key is NEVER shipped to the browser. All requests are routed
  * through a server-side proxy (Supabase Edge Function `ai-proxy` by default)
- * which holds the secret, applies per-user rate limiting, and returns only
- * the assistant message content.
+ * which holds the secret, applies authoritative per-user rate limiting, and
+ * returns only the assistant message content.
+ *
+ * The client-side `requestCount` / `MAX_REQUESTS_PER_SESSION` guard is a
+ * soft session cap to prevent runaway pages; it is NOT the authoritative
+ * rate limit (which lives on the server and is not bypassable).
  *
  * Configuration:
  *   - VITE_AI_ENABLED          : "true" to enable AI features (default: false)

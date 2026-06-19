@@ -84,7 +84,7 @@ function notifyTableChange(table: string): void {
 interface StoredUser {
     id: string;
     email: string;
-    secret: string; // base64(password) — local only, never secure
+    secret: string; // "salt:hash" hex (PBKDF2-SHA-256) — local only
     created_at: string;
     user_metadata: Record<string, unknown>;
 }
@@ -101,12 +101,63 @@ interface LocalSession {
     user: SessionUser;
 }
 
-function obfuscate(pw: string): string {
-    try {
-        return btoa(unescape(encodeURIComponent(pw)));
-    } catch {
-        return pw;
+const PBKDF2_ITERATIONS = 100_000;
+
+async function hashPassword(pw: string): Promise<string> {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(pw),
+        'PBKDF2',
+        false,
+        ['deriveBits'],
+    );
+    const bits = await crypto.subtle.deriveBits(
+        { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: PBKDF2_ITERATIONS },
+        keyMaterial,
+        256,
+    );
+    const toHex = (buf: ArrayBuffer) =>
+        Array.from(new Uint8Array(buf))
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+    return `${toHex(salt.buffer)}:${toHex(bits)}`;
+}
+
+async function verifyPassword(pw: string, stored: string): Promise<boolean> {
+    // Legacy migration: if stored value has no ":" it is old base64 obfuscation.
+    if (!stored.includes(':')) {
+        try {
+            return stored === btoa(unescape(encodeURIComponent(pw)));
+        } catch {
+            return false;
+        }
     }
+    const colonIdx = stored.indexOf(':');
+    const saltHex = stored.slice(0, colonIdx);
+    const hashHex = stored.slice(colonIdx + 1);
+    const fromHex = (hex: string) =>
+        new Uint8Array(hex.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
+    const salt = fromHex(saltHex);
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(pw),
+        'PBKDF2',
+        false,
+        ['deriveBits'],
+    );
+    const bits = await crypto.subtle.deriveBits(
+        { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: PBKDF2_ITERATIONS },
+        keyMaterial,
+        256,
+    );
+    const derived = new Uint8Array(bits);
+    const expected = fromHex(hashHex);
+    // Constant-time comparison to prevent timing attacks.
+    if (derived.length !== expected.length) return false;
+    let diff = 0;
+    for (let i = 0; i < derived.length; i++) diff |= derived[i] ^ expected[i];
+    return diff === 0;
 }
 
 function toSessionUser(u: StoredUser): SessionUser {
@@ -181,7 +232,7 @@ const auth = {
         const newUser: StoredUser = {
             id: uid(),
             email: params.email,
-            secret: obfuscate(params.password),
+            secret: await hashPassword(params.password),
             created_at: new Date().toISOString(),
             user_metadata: { username, ...(params.options?.data ?? {}) },
         };
@@ -198,8 +249,13 @@ const auth = {
     async signInWithPassword(params: { email: string; password: string }) {
         const users = read<StoredUser[]>(KEYS.users, []);
         const user = users.find((u) => u.email.toLowerCase() === params.email.toLowerCase());
-        if (!user || user.secret !== obfuscate(params.password)) {
+        if (!user || !(await verifyPassword(params.password, user.secret))) {
             return { data: { user: null, session: null }, error: authErr('Invalid login credentials') };
+        }
+        // Opportunistically upgrade legacy base64 secrets to PBKDF2 on successful login.
+        if (!user.secret.includes(':')) {
+            user.secret = await hashPassword(params.password);
+            write(KEYS.users, users);
         }
         const session: LocalSession = { access_token: `local.${user.id}`, user: toSessionUser(user) };
         setStoredSession(session);
@@ -231,7 +287,7 @@ const auth = {
         const user = users.find((u) => u.id === session.user.id);
         if (!user) return { data: { user: null }, error: authErr('User not found') };
         if (attrs.email) user.email = attrs.email;
-        if (attrs.password) user.secret = obfuscate(attrs.password);
+        if (attrs.password) user.secret = await hashPassword(attrs.password);
         write(KEYS.users, users);
         const updated: LocalSession = { ...session, user: toSessionUser(user) };
         setStoredSession(updated);

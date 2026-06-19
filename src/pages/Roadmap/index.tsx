@@ -1,95 +1,166 @@
-import { Globe, Server, MapsIcon, LockPasswordIcon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { Globe, Server, CodeIcon, ArrowRight01Icon, SquareLock02Icon, ArrowUpRight01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon, Button, ProgressBar, Badge } from '../../components/ui';
+import { Surface, Button as CcButton, Progress } from '../../components/ds';
 import { useUserStore } from '../../stores';
 import type { RoadmapPath } from '../../types';
 
-// Career Roadmap Data
+const UNLOCK_LEVEL = 5;
+
+// Career Roadmap Data (unlocked content — out of scope for the lock redesign)
 const roadmaps: RoadmapPath[] = [
-    {
-        id: 'frontend',
-        title: 'Frontend Developer',
-        description: 'Master HTML, CSS, JS, and React to build beautiful user interfaces.',
-        icon: 'Web',
-        color: 'from-blue-500 to-cyan-400',
-        nodes: [],
-        requiredLevel: 5
-    },
-    {
-        id: 'backend',
-        title: 'Backend Developer',
-        description: 'Server-side logic, Databases, APIs. Power the web from behind the scenes.',
-        icon: 'Server',
-        color: 'from-green-500 to-emerald-400',
-        nodes: [],
-        requiredLevel: 5
-    }
+    { id: 'frontend', title: 'Frontend Developer', description: 'Master HTML, CSS, JS, and React to build beautiful user interfaces.', icon: 'Web', color: 'from-blue-500 to-cyan-400', nodes: [], requiredLevel: 5 },
+    { id: 'backend', title: 'Backend Developer', description: 'Server-side logic, databases, APIs. Power the web from behind the scenes.', icon: 'Server', color: 'from-green-500 to-emerald-400', nodes: [], requiredLevel: 5 },
 ];
 
+// Ghosted teaser cards behind the lock — decorative only.
+const TEASERS = [
+    { icon: Globe, title: 'Frontend Developer' },
+    { icon: Server, title: 'Backend Developer' },
+    { icon: CodeIcon, title: 'DSA Mastery' },
+];
+
+/** Cumulative XP required to first reach `target` level (mirrors utils.calculateLevel). */
+function xpToReachLevel(target: number): number {
+    let total = 0;
+    let req = 100;
+    for (let lvl = 1; lvl < target; lvl++) {
+        total += req;
+        req = Math.floor(req * 1.5);
+    }
+    return total;
+}
+
+const GhostTrack: React.FC<{ icon: typeof Globe; title: string }> = ({ icon, title }) => (
+    <div className="cc-card cc-e1 p-5 flex flex-col gap-4 select-none" style={{ background: 'var(--cc-surface-2)' }}>
+        <div className="flex items-start justify-between">
+            <span className="cc-icon-well w-11 h-11 text-lime-300"><HugeiconsIcon icon={icon} size={20} strokeWidth={1.5} /></span>
+            <HugeiconsIcon icon={SquareLock02Icon} size={16} style={{ color: 'var(--cc-tx-3)' }} />
+        </div>
+        <div>
+            <div className="text-base font-bold" style={{ color: 'var(--cc-tx-1)' }}>{title}</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--cc-tx-2)' }}>Career path · 12 modules</div>
+        </div>
+        {/* node/path motif */}
+        <div className="flex items-center gap-1.5 mt-1">
+            {[0, 1, 2, 3, 4].map((n) => (
+                <React.Fragment key={n}>
+                    <span style={{ width: 9, height: 9, borderRadius: 999, background: n === 0 ? 'var(--cc-brand-2)' : 'var(--cc-surface-3)' }} />
+                    {n < 4 && <span className="flex-1" style={{ height: 2, background: 'var(--cc-surface-3)' }} />}
+                </React.Fragment>
+            ))}
+        </div>
+    </div>
+);
+
 export const RoadmapPage: React.FC = () => {
+    const navigate = useNavigate();
     const { user } = useUserStore();
     const userLevel = user?.level || 1;
-    const isUnlocked = userLevel >= 5;
+    const isUnlocked = userLevel >= UNLOCK_LEVEL;
+
+    const levelsToGo = Math.max(0, UNLOCK_LEVEL - userLevel);
+    const xpRemaining = Math.max(0, xpToReachLevel(UNLOCK_LEVEL) - (user?.xp ?? 0));
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
-                        Career Roadmaps
-                        <Icon icon={MapsIcon} size={24} className="text-lime-500" />
-                    </h1>
-                    <p className="text-muted-foreground">Structured paths to guide your learning journey.</p>
-                </div>
-            </div>
+        <div className="cc-root max-w-[1120px] mx-auto space-y-10">
+            {/* Header */}
+            <header>
+                <span className="cc-eyebrow">Roadmap</span>
+                <h1 className="text-3xl font-bold mt-1.5" style={{ color: 'var(--cc-tx-1)' }}>Career Roadmaps</h1>
+                <p className="text-sm mt-1.5" style={{ color: 'var(--cc-tx-2)' }}>Structured paths to guide your learning journey.</p>
+            </header>
 
             {!isUnlocked ? (
-                <div className="bg-black dark:bg-card text-white text-center p-16 rounded-[2.5rem] shadow-xl shadow-black/5 dark:shadow-black/30 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-lime-500/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none"></div>
-                    <div className="absolute inset-0 bg-grid-white/[0.05] [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]"></div>
+                /* ── Locked stage: blurred teaser + centered glass unlock panel ── */
+                <div className="relative overflow-hidden" style={{ borderRadius: 'var(--cc-r-xl)', minHeight: 540 }}>
+                    {/* Blurred ghosted tracks (decorative) */}
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-0 p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 content-start"
+                        style={{ filter: 'blur(7px)', opacity: 0.4, pointerEvents: 'none' }}
+                    >
+                        {TEASERS.map((t) => <GhostTrack key={t.title} icon={t.icon} title={t.title} />)}
+                    </div>
+                    {/* Scrim for AA contrast over the blur */}
+                    <div aria-hidden="true" className="absolute inset-0" style={{ background: 'radial-gradient(circle at 50% 42%, rgba(10,11,13,.55), rgba(10,11,13,.92) 75%)' }} />
 
-                    <div className="relative z-10 max-w-lg mx-auto">
-                        <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-8 backdrop-blur-md border border-black/10 dark:border-white/5">
-                            <Icon icon={LockPasswordIcon} size={32} className="text-lime-400" />
-                        </div>
-                        <h2 className="text-3xl font-bold mb-4 text-white">Unlock Roadmaps at Level 5</h2>
-                        <p className="text-white/60 mb-10 text-lg">
-                            Career roadmaps are advanced paths. Master the basics and reach Level 5 to unlock specialized tracks.
-                        </p>
-                        <div className="bg-white/5 p-6 rounded-[2rem] border border-black/10 dark:border-white/5 backdrop-blur-sm">
-                            <div className="flex justify-between text-sm font-semibold mb-3">
-                                <span className="text-lime-400">Current: Level {userLevel}</span>
-                                <span className="text-white/40">Target: Level 5</span>
+                    {/* Glass unlock panel (the single focal) */}
+                    <div className="relative z-10 flex items-center justify-center p-6" style={{ minHeight: 540 }}>
+                        <Surface
+                            elevation={2}
+                            glow
+                            className="cc-pop-panel w-full max-w-[520px] p-8 text-center"
+                            style={{ background: 'rgba(24,26,30,0.82)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+                        >
+                            {/* Lock badge */}
+                            <div
+                                className="cc-icon-well w-16 h-16 mx-auto text-lime-300"
+                                style={{ background: 'var(--cc-surface-3)', boxShadow: 'var(--cc-e1)', border: '1px solid rgba(163,230,53,.22)' }}
+                                aria-hidden="true"
+                            >
+                                <HugeiconsIcon icon={SquareLock02Icon} size={28} />
                             </div>
-                            <ProgressBar value={userLevel} max={5} className="h-3 bg-white/10" variant="success" />
-                            <div className="mt-4 text-xs text-center text-white/40 font-medium">
-                                {(5 - userLevel)} more levels to go
+
+                            <h2 className="text-2xl font-bold mt-5" style={{ color: 'var(--cc-tx-1)' }}>Unlock Roadmaps at Level {UNLOCK_LEVEL}</h2>
+                            <p className="text-sm mt-2 mb-6 mx-auto max-w-sm" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.5 }}>
+                                Career roadmaps are advanced paths. Reach Level {UNLOCK_LEVEL} to unlock specialized tracks.
+                            </p>
+
+                            {/* Unlock progress */}
+                            <div className="text-left">
+                                <div className="flex items-center justify-between text-xs mb-1.5">
+                                    <span className="cc-eyebrow" style={{ color: 'var(--cc-brand-1)' }}>Current · Level {userLevel}</span>
+                                    <span className="cc-eyebrow">Target · Level {UNLOCK_LEVEL}</span>
+                                </div>
+                                <Progress value={userLevel} max={UNLOCK_LEVEL} className="h-2.5" aria-label={`Level ${userLevel} of ${UNLOCK_LEVEL}`} />
+                                <p className="cc-mono text-xs mt-2 text-center" style={{ color: 'var(--cc-tx-3)' }}>
+                                    {levelsToGo} level{levelsToGo === 1 ? '' : 's'} to go · ~{xpRemaining.toLocaleString()} XP
+                                </p>
                             </div>
-                        </div>
+
+                            {/* CTAs */}
+                            <div className="flex flex-col sm:flex-row gap-2.5 justify-center mt-6">
+                                <CcButton size="lg" onClick={() => navigate('/learn')}>
+                                    Keep learning <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                                </CcButton>
+                                <CcButton variant="secondary" size="lg" onClick={() => navigate('/practice')}>
+                                    Solve problems
+                                </CcButton>
+                            </div>
+
+                            {/* How-to-level helper */}
+                            <p className="text-xs mt-5" style={{ color: 'var(--cc-tx-3)', lineHeight: 1.6 }}>
+                                Earn XP from lessons <span style={{ color: 'var(--cc-tx-2)' }}>+50</span>, problems <span style={{ color: 'var(--cc-tx-2)' }}>+100</span>, and daily challenges <span style={{ color: 'var(--cc-tx-2)' }}>+150</span>.
+                            </p>
+                        </Surface>
                     </div>
                 </div>
             ) : (
+                /* ── Unlocked content (out of scope for this pass) ── */
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {roadmaps.map((map) => (
                         <div key={map.id} className="group bg-white dark:bg-card p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 border border-gray-100 dark:border-border transition-all flex flex-col justify-between cursor-pointer hover:-translate-y-1">
                             <div>
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className="w-16 h-16 rounded-[1.5rem] bg-gray-50 dark:bg-muted flex items-center justify-center text-primary dark:text-white group-hover:bg-lime-400 group-hover:text-black dark:group-hover:text-black transition-all duration-300 shadow-inner group-hover:shadow-lg group-hover:shadow-lime-400/20">
+                                    <div className="w-16 h-16 rounded-[1.5rem] bg-gray-50 dark:bg-muted flex items-center justify-center text-primary dark:text-white group-hover:bg-lime-400 group-hover:text-black dark:group-hover:text-black transition-all duration-300 shadow-inner">
                                         {map.icon === 'Web' ? <Icon icon={Globe} size={32} strokeWidth={1.5} /> : <Icon icon={Server} size={32} strokeWidth={1.5} />}
                                     </div>
-                                    <Badge variant="secondary" className="bg-gray-50 dark:bg-muted text-muted-foreground group-hover:bg-primary dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors">Career Path</Badge>
+                                    <Badge variant="secondary" className="bg-gray-50 dark:bg-muted text-muted-foreground">Career Path</Badge>
                                 </div>
                                 <h3 className="text-2xl font-bold text-primary dark:text-white mb-3">{map.title}</h3>
                                 <p className="text-muted-foreground mb-8 leading-relaxed">{map.description}</p>
                             </div>
                             <div className="pt-8 border-t border-gray-100 dark:border-border">
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-xs font-bold text-primary dark:text-white group-hover:text-lime-600 transition-colors">0% Complete</span>
+                                    <span className="text-xs font-bold text-primary dark:text-white">0% Complete</span>
                                     <span className="text-xs font-medium text-muted-foreground">0/12 Modules</span>
                                 </div>
                                 <ProgressBar value={0} max={12} size="sm" className="mb-6" />
-                                <Button className="w-full rounded-full group-hover:bg-black dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shadow-md shadow-gray-200 dark:shadow-none group-hover:shadow-xl group-hover:shadow-black/10">
-                                    Start Journey <Icon icon={ArrowRight01Icon} size={16} className="ml-2" />
+                                <Button className="w-full rounded-full">
+                                    Start Journey <Icon icon={ArrowUpRight01Icon} size={16} className="ml-2" />
                                 </Button>
                             </div>
                         </div>

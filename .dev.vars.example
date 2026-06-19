@@ -1,0 +1,12 @@
+# Cloudflare Worker local dev secrets.
+# Copy this to .dev.vars (gitignored) and fill in your real values.
+# .dev.vars is used by `wrangler dev` and is NEVER committed to git.
+#
+# SECURITY NOTE: If these values have been committed to git history or
+# exposed publicly, ROTATE them immediately:
+#   - Turso:  turso db tokens invalidate <db-name>
+#   - Auth:   generate a new AUTH_SECRET (64+ hex chars)
+
+LIBSQL_DB_URL="libsql://your-db-name.your-region.turso.io"
+LIBSQL_DB_AUTH_TOKEN="your-turso-auth-token-here"
+AUTH_SECRET="your-auth-secret-here"

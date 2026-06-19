@@ -57,3 +57,4 @@ coverage/
 .wrangler/
 .dev.vars
 worker/.dev.vars
+.env.cloudflare

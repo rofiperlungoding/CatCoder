@@ -2,14 +2,20 @@
  * Secure Code Runner Hook
  * Feature: security-hardening
  * Requirements: 1.3, 1.6
- * 
- * This hook provides sandboxed code execution using Web Workers with:
- * - 3-second timeout with worker termination
- * - Fresh worker instance for each execution (state isolation)
- * - Error handling and output aggregation
+ *
+ * Runs untrusted JavaScript in an opaque-origin sandboxed <iframe> (see
+ * `src/lib/sandboxRunner.ts`), NOT in the main realm. Shadowing globals via
+ * `new Function` params is escapable through the constructor chain, so a true
+ * realm boundary is required: the frame is created with `sandbox="allow-scripts"`
+ * and no `allow-same-origin`, so learner code cannot reach this app's cookies,
+ * localStorage, session tokens, or DOM.
+ *
+ * - Per-execution frame (state isolation, Requirement 1.6).
+ * - Hard timeout that tears the frame down (Requirement 1.3).
  */
 
 import { useState, useCallback, useRef } from 'react';
+import { runJsInSandbox, type SandboxResult } from '../lib/sandboxRunner';
 
 export interface CodeRunnerResult {
     success: boolean;
@@ -27,142 +33,68 @@ export interface UseSecureCodeRunnerReturn {
 // Timeout constant - 3 seconds as per requirements
 const EXECUTION_TIMEOUT_MS = 3000;
 
+
 /**
- * Hook for secure, sandboxed code execution
- * Creates a fresh Web Worker for each execution to ensure state isolation
+ * Hook for secure, sandboxed code execution.
+ * Each call spins up a fresh opaque-origin iframe (state isolation).
  */
 export const useSecureCodeRunner = (): UseSecureCodeRunnerReturn => {
     const [isRunning, setIsRunning] = useState(false);
-    const workerRef = useRef<Worker | null>(null);
-    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const abortRef = useRef(false);
 
     /**
-     * Terminates the current worker and clears timeout
+     * Tears down any in-flight execution. The iframe engine cleans itself up
+     * on resolve, so this is mainly a guard to ignore late results.
      */
     const terminate = useCallback(() => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-        }
-        if (workerRef.current) {
-            workerRef.current.terminate();
-            workerRef.current = null;
-        }
+        abortRef.current = true;
         setIsRunning(false);
     }, []);
 
-    /**
-     * Executes code in a sandboxed Web Worker
-     * Creates a fresh worker for each execution to prevent state leakage
-     */
-    const runCode = useCallback(async (code: string, language: string): Promise<CodeRunnerResult> => {
-        // Terminate any existing worker before starting new execution
-        terminate();
+    const runCode = useCallback(
+        async (code: string, language: string): Promise<CodeRunnerResult> => {
+            // Only JavaScript goes through the iframe sandbox; other languages
+            // are not supported by this hook (Python uses useCodeRunner/Pyodide).
+            if (language !== 'javascript') {
+                return {
+                    success: false,
+                    output: [],
+                    errors: [`Language "${language}" is not supported`],
+                    timedOut: false,
+                };
+            }
 
-        return new Promise((resolve) => {
-            const output: string[] = [];
-            const errors: string[] = [];
-            const executionId = Date.now().toString();
-
+            abortRef.current = false;
             setIsRunning(true);
 
+            let result: SandboxResult;
             try {
-                // Create fresh worker instance for each execution (Requirement 1.6)
-                const worker = new Worker('/sandbox-worker.js');
-                workerRef.current = worker;
-
-                // Set up timeout (Requirement 1.3 - 3 second timeout)
-                timeoutRef.current = setTimeout(() => {
-                    errors.push('Execution timed out after 3 seconds');
-                    terminate();
-                    resolve({
-                        success: false,
-                        output,
-                        errors,
-                        timedOut: true
-                    });
-                }, EXECUTION_TIMEOUT_MS);
-
-                // Handle messages from worker
-                worker.onmessage = (event) => {
-                    const { type, data, executionId: msgExecutionId } = event.data;
-
-                    // Ignore messages from previous executions
-                    if (msgExecutionId && msgExecutionId !== executionId) {
-                        return;
-                    }
-
-                    switch (type) {
-                        case 'log':
-                            output.push(data);
-                            break;
-                        case 'warn':
-                            output.push(`Warning: ${data}`);
-                            break;
-                        case 'error':
-                            errors.push(data);
-                            break;
-                        case 'complete':
-                            // Clear timeout and terminate worker
-                            if (timeoutRef.current) {
-                                clearTimeout(timeoutRef.current);
-                                timeoutRef.current = null;
-                            }
-                            worker.terminate();
-                            workerRef.current = null;
-                            setIsRunning(false);
-
-                            resolve({
-                                success: errors.length === 0,
-                                output,
-                                errors,
-                                timedOut: false
-                            });
-                            break;
-                    }
+                result = await runJsInSandbox(code, { timeoutMs: EXECUTION_TIMEOUT_MS });
+            } catch (err) {
+                result = {
+                    output: [],
+                    errors: [err instanceof Error ? err.message : 'Sandbox failed to start'],
+                    timedOut: false,
                 };
-
-                // Handle worker errors
-                worker.onerror = (error) => {
-                    if (timeoutRef.current) {
-                        clearTimeout(timeoutRef.current);
-                        timeoutRef.current = null;
-                    }
-                    errors.push(`Worker error: ${error.message || 'Unknown error'}`);
-                    terminate();
-                    resolve({
-                        success: false,
-                        output,
-                        errors,
-                        timedOut: false
-                    });
-                };
-
-                // Send code to worker for execution
-                worker.postMessage({ code, language, executionId });
-
-            } catch (error) {
-                // Handle worker creation errors
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                    timeoutRef.current = null;
-                }
-                errors.push(`Failed to create worker: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                setIsRunning(false);
-                resolve({
-                    success: false,
-                    output,
-                    errors,
-                    timedOut: false
-                });
             }
-        });
-    }, [terminate]);
+
+            // If the consumer aborted mid-run, don't flip state back on.
+            if (!abortRef.current) setIsRunning(false);
+
+            return {
+                success: result.errors.length === 0 && !result.timedOut,
+                output: result.output,
+                errors: result.errors,
+                timedOut: result.timedOut,
+            };
+        },
+        []
+    );
 
     return {
         runCode,
         isRunning,
-        terminate
+        terminate,
     };
 };
 

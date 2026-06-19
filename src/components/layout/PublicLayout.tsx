@@ -1,5 +1,7 @@
-import { ArrowUpRight01Icon,  Menu01Icon, Cancel01Icon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { ArrowUpRight01Icon, Menu01Icon, Cancel01Icon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { Icon } from '../ui';
+import { Button } from '../ds';
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 const links = [
@@ -73,30 +75,32 @@ export const PublicLayout: React.FC = () => {
 
 
     return (
-        <div className="min-h-screen bg-[#050505] text-[#FAFAFA] font-sans selection:bg-lime-500/30 selection:text-white overflow-x-hidden">
-            {/* Floating Pill Navbar */}
+        <div className="cc-root min-h-screen bg-[#050505] text-[#FAFAFA] font-sans selection:bg-lime-500/30 selection:text-white overflow-x-hidden">
+            {/* Floating Glass Navbar */}
             <div className="fixed top-6 inset-x-0 z-50 flex justify-center px-4">
-                <nav className="w-full max-w-4xl bg-black/60 backdrop-blur-md border border-white/10 shadow-xl shadow-black/50 rounded-full pl-5 pr-2 py-2 flex items-center justify-between transition-all duration-300">
+                <nav className="cc-glass w-full max-w-4xl rounded-full pl-5 pr-2 py-2 flex items-center justify-between transition-all duration-300">
                     {/* Logo Section */}
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                        <div className="flex items-center justify-center text-white">
+                        <div className="flex items-center justify-center">
                             <img src="/logo.png" alt="CatCoder Logo" className="w-5 h-5 object-contain" />
                         </div>
-                        <span className="font-bold text-lg tracking-tight text-white hidden sm:block">CatCoder</span>
+                        <span className="font-bold text-lg tracking-tight hidden sm:block" style={{ color: 'var(--cc-tx-1)', fontFamily: 'var(--cc-font-display)' }}>CatCoder</span>
                     </div>
 
                     {/* Desktop Menu */}
                     <div
                         ref={navRef}
-                        className="hidden md:flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/5 relative"
+                        className="hidden md:flex items-center gap-1 rounded-full p-1 relative"
+                        style={{ background: 'var(--cc-surface-3)' }}
                     >
                         {/* The Sliding Pill */}
                         <div
-                            className="absolute top-1 bottom-1 bg-white/10 shadow-sm rounded-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] pointer-events-none"
+                            className="absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] pointer-events-none"
                             style={{
                                 left: pillStyle.left,
                                 width: pillStyle.width,
-                                opacity: pillStyle.opacity
+                                opacity: pillStyle.opacity,
+                                background: 'rgba(255,255,255,.08)',
                             }}
                         />
 
@@ -107,10 +111,10 @@ export const PublicLayout: React.FC = () => {
                                     key={link.path}
                                     to={link.path}
                                     ref={el => { linkRefs.current[index] = el; }}
-                                    className={`relative z-10 px-4 py-1.5 text-xs font-medium rounded-full transition-colors duration-200 ${isActive || (pillStyle.opacity === 0 && isActive)
-                                        ? 'text-white font-semibold'
-                                        : 'text-gray-400 hover:text-white'
-                                        }`}
+                                    className="relative z-10 px-4 py-1.5 text-xs font-medium rounded-full transition-colors duration-200"
+                                    style={{ color: isActive ? 'var(--cc-brand-1)' : 'var(--cc-tx-2)' }}
+                                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--cc-tx-1)'; }}
+                                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--cc-tx-2)'; }}
                                 >
                                     {link.label}
                                 </Link>
@@ -119,38 +123,33 @@ export const PublicLayout: React.FC = () => {
                     </div>
 
                     {/* Auth Actions */}
-                    <div className="flex items-center gap-3 pl-2">
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="hidden md:flex items-center gap-2 bg-white hover:bg-gray-200 text-black rounded-full px-6 py-2.5 text-sm font-medium transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md group"
-                        >
-                            Start Learning
-                            <Icon icon={ArrowUpRight01Icon} size={16} strokeWidth={2} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        </button>
-                        <button className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-sm font-medium transition-colors text-white hover:border-white/20">
-                            <span>eng</span>
-                            <Icon icon={ArrowDown01Icon} size={14} strokeWidth={2} className="text-gray-400" />
-                        </button>
+                    <div className="flex items-center gap-2 pl-2">
+                        <Button variant="primary" size="sm" className="hidden md:inline-flex" onClick={() => navigate('/login')}>
+                            Start Learning <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} strokeWidth={2} />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                            eng <Icon icon={ArrowDown01Icon} size={12} strokeWidth={2} />
+                        </Button>
 
                         {/* Mobile Menu Toggle */}
-                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-                            {isMenuOpen ? <Icon icon={Cancel01Icon} size={20} /> : <Icon icon={Menu01Icon} size={20} />}
-                        </button>
+                        <Button variant="ghost" size="sm" iconOnly className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                            <Icon icon={isMenuOpen ? Cancel01Icon : Menu01Icon} size={20} />
+                        </Button>
                     </div>
                 </nav>
             </div>
 
             {/* Mobile Menu Dropdown */}
             {isMenuOpen && (
-                <div className="fixed inset-x-4 top-24 z-40 bg-[#0a0a0a] rounded-[2rem] border border-white/10 shadow-2xl p-6 md:hidden animate-in slide-in-from-top-4 fade-in duration-200">
+                <div className="cc-glass fixed inset-x-4 top-24 z-40 p-6 md:hidden animate-in slide-in-from-top-4 fade-in duration-200" style={{ borderRadius: 'var(--cc-r-xl)' }}>
                     <div className="flex flex-col gap-2">
-                        <Link to="/" className="text-2xl font-semibold text-white" onClick={() => setIsMenuOpen(false)}>Home</Link>
-                        <Link to="/features" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>Features</Link>
-                        <Link to="/pricing" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>Pricing</Link>
-                        <Link to="/about" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>About</Link>
-                        <Link to="/contact" className="text-2xl font-semibold text-gray-400" onClick={() => setIsMenuOpen(false)}>Contact</Link>
-                        <hr className="border-white/10 my-4" />
-                        <button onClick={() => { navigate('/login'); setIsMenuOpen(false); }} className="w-full py-4 rounded-xl bg-white text-black font-bold text-lg">Start Learning</button>
+                        <Link to="/" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-1)' }} onClick={() => setIsMenuOpen(false)}>Home</Link>
+                        <Link to="/features" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>Features</Link>
+                        <Link to="/pricing" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>Pricing</Link>
+                        <Link to="/about" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>About</Link>
+                        <Link to="/contact" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>Contact</Link>
+                        <hr className="my-4" style={{ border: 'none', borderTop: '1px solid var(--cc-border)' }} />
+                        <Button fullWidth size="lg" onClick={() => { navigate('/login'); setIsMenuOpen(false); }}>Start Learning</Button>
                     </div>
                 </div>
             )}
@@ -161,53 +160,53 @@ export const PublicLayout: React.FC = () => {
             </main>
 
             {/* CatCoder Footer */}
-            <footer className="bg-[#0a0a0a] py-20 px-6 sm:px-12 mt-20 rounded-t-[3rem] border-t border-white/5">
+            <footer className="py-20 px-6 sm:px-12 mt-20" style={{ background: 'var(--cc-surface-1)', borderTop: '1px solid var(--cc-border)', borderTopLeftRadius: 'var(--cc-r-xl)', borderTopRightRadius: 'var(--cc-r-xl)' }}>
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
                         <div className="flex flex-col gap-6 max-w-sm">
                             <div className="flex items-center gap-2">
-                                <img src="/logo.png" alt="CatCoder Logo" className="w-6 h-6 object-contain text-white" />
-                                <span className="font-bold text-2xl tracking-tight text-white">CatCoder</span>
+                                <img src="/logo.png" alt="CatCoder Logo" className="w-6 h-6 object-contain" />
+                                <span className="font-bold text-2xl tracking-tight" style={{ color: 'var(--cc-tx-1)', fontFamily: 'var(--cc-font-display)' }}>CatCoder</span>
                             </div>
-                            <p className="text-gray-400 leading-relaxed">
+                            <p className="leading-relaxed" style={{ color: 'var(--cc-tx-2)' }}>
                                 The best place to learn, practice, and master programming. Join our community of 100,000+ developers today.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-24">
                             <div className="flex flex-col gap-4">
-                                <h4 className="font-semibold text-sm text-gray-500">Product</h4>
-                                <Link to="/learn" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Learn</Link>
-                                <Link to="/practice" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Practice</Link>
-                                <Link to="/compete" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Compete</Link>
+                                <h4 className="cc-eyebrow">Product</h4>
+                                <Link to="/learn" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Learn</Link>
+                                <Link to="/practice" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Practice</Link>
+                                <Link to="/compete" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Compete</Link>
                             </div>
                             <div className="flex flex-col gap-4">
-                                <h4 className="font-semibold text-sm text-gray-500">Services</h4>
-                                <Link to="/features" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Features</Link>
+                                <h4 className="cc-eyebrow">Services</h4>
+                                <Link to="/features" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Features</Link>
                             </div>
                             <div className="flex flex-col gap-4">
-                                <h4 className="font-semibold text-sm text-gray-500">Company</h4>
-                                <Link to="/about" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">About</Link>
-                                <Link to="/contact" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Contact</Link>
-                                <Link to="/pricing" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Pricing</Link>
+                                <h4 className="cc-eyebrow">Company</h4>
+                                <Link to="/about" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>About</Link>
+                                <Link to="/contact" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Contact</Link>
+                                <Link to="/pricing" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Pricing</Link>
                             </div>
                             <div className="flex flex-col gap-4">
-                                <h4 className="font-semibold text-sm text-gray-500">Legal</h4>
-                                <Link to="#" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Privacy</Link>
-                                <Link to="#" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Terms</Link>
+                                <h4 className="cc-eyebrow">Legal</h4>
+                                <span className="text-sm font-medium transition-colors cursor-pointer" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Privacy</span>
+                                <span className="text-sm font-medium transition-colors cursor-pointer" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Terms</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 gap-4">
-                        <div className="flex gap-6 text-xs font-semibold text-gray-500">
-                            <span>© 2024 CatCoder. All rights reserved.</span>
+                    <div className="flex flex-col md:flex-row justify-between items-center pt-8 gap-4" style={{ borderTop: '1px solid var(--cc-border)' }}>
+                        <div className="text-xs font-semibold" style={{ color: 'var(--cc-tx-3)' }}>
+                            © 2024 CatCoder. All rights reserved.
                         </div>
-                        <div className="flex gap-6 text-xs font-semibold text-gray-500">
-                            <span>hello@catcoder.com</span>
+                        <div className="text-xs font-semibold" style={{ color: 'var(--cc-tx-3)' }}>
+                            hello@catcoder.com
                         </div>
-                        <div className="flex gap-6 text-xs font-semibold text-gray-500">
-                            <span>San Francisco, CA</span>
+                        <div className="text-xs font-semibold" style={{ color: 'var(--cc-tx-3)' }}>
+                            San Francisco, CA
                         </div>
                     </div>
                 </div>

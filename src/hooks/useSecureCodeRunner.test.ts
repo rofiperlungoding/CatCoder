@@ -1,11 +1,16 @@
 /**
  * Property-based tests for Secure Code Runner
  * Feature: security-hardening
- * 
+ *
  * Property 1: Console Output Capture
  * Property 2: Blocked API Access with Graceful Handling
- * Property 3: Worker State Isolation
- * 
+ * Property 3: Execution State Isolation
+ *
+ * Since jsdom cannot create real opaque-origin iframes, these tests validate
+ * the core output-capture and serialization logic that the sandbox document
+ * (built by sandboxRunner.ts) uses. The iframe sandbox itself is tested
+ * separately in security-pentest.test.ts Domain 1.
+ *
  * Validates: Requirements 1.2, 1.4, 1.5, 1.6
  */
 
@@ -16,73 +21,62 @@ import fc from 'fast-check';
 const PBT_CONFIG = { numRuns: 100 };
 
 /**
- * Since Web Workers don't work in jsdom, we test the sandbox logic directly
- * by simulating what the worker does with the sandboxed function approach
+ * Mirrors the serialization logic used inside the sandbox iframe's
+ * harness (see buildSandboxDocument in sandboxRunner.ts). This tests
+ * the output formatting that the sandbox sends back via postMessage.
  */
-
-// Helper to create sandboxed execution environment (mirrors sandbox-worker.js logic)
-function createSandboxedExecution(code: string): { output: string[]; errors: string[] } {
-    const output: string[] = [];
-    const errors: string[] = [];
-
-    const safeConsole = {
-        log: (...args: unknown[]) => {
-            output.push(args.map(a => {
-                try {
-                    return typeof a === 'object' ? JSON.stringify(a) : String(a);
-                } catch {
-                    return String(a);
-                }
-            }).join(' '));
-        },
-        error: (...args: unknown[]) => {
-            errors.push(args.map(a => String(a)).join(' '));
-        },
-        warn: (...args: unknown[]) => {
-            output.push(`Warning: ${args.map(a => String(a)).join(' ')}`);
-        },
-        info: (...args: unknown[]) => {
-            output.push(args.map(a => {
-                try {
-                    return typeof a === 'object' ? JSON.stringify(a) : String(a);
-                } catch {
-                    return String(a);
-                }
-            }).join(' '));
-        }
-    };
-
-    try {
-        // Create sandboxed function with blocked globals (same as sandbox-worker.js)
-        const sandboxedFn = new Function(
-            'console',
-            'window',
-            'document',
-            'fetch',
-            'XMLHttpRequest',
-            'localStorage',
-            'sessionStorage',
-            'indexedDB',
-            'navigator',
-            'location',
-            'self',
-            'globalThis',
-            'importScripts',
-            'WebSocket',
-            'EventSource',
-            `"use strict";\n${code}`
-        );
-
-        // Execute with null references for dangerous APIs
-        sandboxedFn(
-            safeConsole,
-            null, null, null, null, null, null, null, null, null, null, null, null, null, null
-        );
-    } catch (error) {
-        errors.push(String(error));
+function serialize(args: unknown[]): string {
+  const parts: string[] = [];
+  for (const a of args) {
+    if (a === null) { parts.push('null'); continue; }
+    if (a === undefined) { parts.push('undefined'); continue; }
+    const t = typeof a;
+    if (t === 'string') { parts.push(a as string); continue; }
+    if (t === 'number' || t === 'boolean' || t === 'bigint' || t === 'symbol') {
+      parts.push(String(a));
+      continue;
     }
+    if (t === 'function') {
+      try { parts.push(a.toString()); } catch { parts.push('[Function]'); }
+      continue;
+    }
+    try { parts.push(JSON.stringify(a)); } catch {
+      try { parts.push(String(a)); } catch { parts.push('[' + t + ']'); }
+    }
+  }
+  return parts.join(' ');
+}
 
-    return { output, errors };
+/**
+ * Simulates what happens inside the sandbox iframe: user code is wrapped in
+ * `new Function('console', '"use strict";\n' + code)` with a safeConsole that
+ * calls serialize. This runs in the *test* realm, so it doesn't have the
+ * opaque-origin protection — but we're testing output capture, not escape
+ * resistance. Escape resistance is validated in security-pentest.test.ts.
+ */
+function createSandboxedExecution(code: string): { output: string[]; errors: string[] } {
+  const output: string[] = [];
+  const errors: string[] = [];
+
+  const safeConsole = {
+    log: (...args: unknown[]) => { output.push(serialize(args)); },
+    error: (...args: unknown[]) => { errors.push(serialize(args)); },
+    warn: (...args: unknown[]) => { output.push('Warning: ' + serialize(args)); },
+    info: (...args: unknown[]) => { output.push(serialize(args)); },
+    debug: (...args: unknown[]) => { output.push(serialize(args)); },
+  };
+
+  try {
+    const sandboxedFn = new Function(
+      'console',
+      '"use strict";\n' + code
+    );
+    sandboxedFn(safeConsole);
+  } catch (error) {
+    errors.push(String(error));
+  }
+
+  return { output, errors };
 }
 
 describe('Secure Code Runner - Property Tests', () => {
@@ -144,93 +138,62 @@ describe('Secure Code Runner - Property Tests', () => {
     });
 
     /**
-     * Feature: security-hardening, Property 2: Blocked API Access with Graceful Handling
-     * For any JavaScript code that attempts to access blocked APIs,
-     * the Code_Runner SHALL prevent the access and continue execution without crashing.
-     * Validates: Requirements 1.2, 1.5
+     * Feature: security-hardening, Property 2: Serialization Robustness
+     * The sandbox serialization function must handle all JS types without
+     * throwing, including objects, arrays, functions, null, undefined.
      */
-    describe('Property 2: Blocked API Access with Graceful Handling', () => {
-        const blockedAPIs = [
-            'window',
-            'document',
-            'fetch',
-            'XMLHttpRequest',
-            'localStorage',
-            'sessionStorage',
-            'indexedDB',
-            'navigator',
-            'location'
-        ];
-
-        it('should return null for any blocked API access', () => {
-            fc.assert(
-                fc.property(
-                    fc.constantFrom(...blockedAPIs),
-                    (api) => {
-                        const code = `console.log(${api} === null);`;
-                        const { output, errors } = createSandboxedExecution(code);
-
-                        // Should execute without errors and blocked API should be null
-                        return errors.length === 0 && output.length > 0 && output[0] === 'true';
-                    }
-                ),
-                PBT_CONFIG
-            );
+    describe('Property 2: Serialization Robustness', () => {
+        it('should serialize objects via JSON.stringify', () => {
+            const code = 'console.log({ key: "value", num: 42 });';
+            const { output } = createSandboxedExecution(code);
+            expect(output.length).toBe(1);
+            expect(output[0]).toContain('key');
+            expect(output[0]).toContain('value');
         });
 
-        it('should continue execution after accessing blocked API', () => {
-            fc.assert(
-                fc.property(
-                    fc.constantFrom(...blockedAPIs),
-                    fc.integer({ min: 1, max: 1000 }),
-                    (api, marker) => {
-                        // Try to access blocked API, then log a marker
-                        const code = `
-                            const blocked = ${api};
-                            console.log(${marker});
-                        `;
-                        const { output, errors } = createSandboxedExecution(code);
-
-                        // Execution should continue and log the marker
-                        return errors.length === 0 && output.includes(String(marker));
-                    }
-                ),
-                PBT_CONFIG
-            );
+        it('should serialize arrays via JSON.stringify', () => {
+            const code = 'console.log([1, 2, 3]);';
+            const { output } = createSandboxedExecution(code);
+            expect(output.length).toBe(1);
+            expect(output[0]).toBe('[1,2,3]');
         });
 
-        it('should handle typeof checks on blocked APIs gracefully', () => {
-            fc.assert(
-                fc.property(
-                    fc.constantFrom(...blockedAPIs),
-                    (api) => {
-                        const code = `console.log(typeof ${api});`;
-                        const { output, errors } = createSandboxedExecution(code);
+        it('should handle null and undefined separately', () => {
+            const code = 'console.log(null, undefined);';
+            const { output } = createSandboxedExecution(code);
+            expect(output.length).toBe(1);
+            expect(output[0]).toBe('null undefined');
+        });
 
-                        // typeof null is 'object', execution should not crash
-                        return errors.length === 0 && output.length > 0;
-                    }
-                ),
-                PBT_CONFIG
-            );
+        it('should handle functions as [Function] or their source', () => {
+            const code = 'console.log(function test() { return 1; });';
+            const { output } = createSandboxedExecution(code);
+            expect(output.length).toBe(1);
+            expect(output[0]).toContain('function');
+        });
+
+        it('should serialize BigInt and Symbol types', () => {
+            const code = 'console.log(42n, Symbol("test"));';
+            const { output } = createSandboxedExecution(code);
+            expect(output.length).toBe(1);
+            expect(output[0]).toContain('42');
         });
     });
 
     /**
-     * Feature: security-hardening, Property 3: Worker State Isolation
-     * For any two sequential code executions, variables or state set in the first 
-     * execution SHALL NOT be accessible in the second execution.
-     * Validates: Requirements 1.6
+     * Feature: security-hardening, Property 3: Execution State Isolation
+     * Each invocation of `new Function` creates a fresh scope. The actual
+     * realm isolation (opaque-origin iframe) guarantees no state leaks
+     * across executions — that's tested in security-pentest.test.ts Domain 1.
+     * Here we verify the function-level scope isolation.
      */
-    describe('Property 3: Worker State Isolation', () => {
+    describe('Property 3: Execution State Isolation', () => {
         // Reserved words and built-in properties to avoid in generated names
         const reservedNames = new Set([
-            // Built-in object properties
             'name', 'length', 'caller', 'arguments', 'prototype', 'constructor',
             'toString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
             'toLocaleString', '__proto__', '__defineGetter__', '__defineSetter__',
             '__lookupGetter__', '__lookupSetter__', 'apply', 'bind', 'call',
-            // JavaScript reserved words
             'break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete',
             'do', 'else', 'finally', 'for', 'function', 'if', 'in', 'instanceof',
             'new', 'return', 'switch', 'this', 'throw', 'try', 'typeof', 'var',
@@ -240,7 +203,6 @@ describe('Secure Code Runner - Property Tests', () => {
             'true', 'false', 'undefined', 'NaN', 'Infinity'
         ]);
 
-        // Generator for safe variable names that won't conflict with built-ins
         const safeVarName = fc.string({ minLength: 3, maxLength: 15 })
             .filter(s => /^[a-zA-Z][a-zA-Z0-9]*$/.test(s) && !reservedNames.has(s));
 

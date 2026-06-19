@@ -10,7 +10,7 @@ import { LoadingSpinner } from '../../components/ui';
 import { useUserStore, useProgressStore } from '../../stores';
 import type { Lesson, Language } from '../../types';
 import { loadLessonsByLanguage, loadLessonById, loadAllLessons } from '../../data/lessons';
-import { LessonCarousel } from './LessonCarousel';
+import { LessonExperience } from './LessonExperience';
 
 const LANG_LABEL: Record<string, string> = { python: 'Python', javascript: 'JavaScript', cpp: 'C++' };
 const LANG_BLURB: Record<string, string> = {
@@ -300,7 +300,7 @@ export const LearnPage: React.FC = () => {
 
     if (activeLesson) {
         return (
-            <LessonCarousel
+            <LessonExperience
                 key={activeLesson.id}
                 activeLesson={activeLesson}
                 onComplete={() => navigate('/learn')}
