@@ -40,6 +40,9 @@ vi.mock('../shared/turnstile', () => ({
 const judgeMock = vi.fn();
 vi.mock('../shared/mistral', () => ({
     judgeWithMistral: (...args: unknown[]) => judgeMock(...args),
+    // judge.ts reads this fallback when env.MISTRAL_MODEL is unset;
+    // vitest throws on any export missing from the mock factory.
+    DEFAULT_JUDGE_MODEL: 'test-judge-model',
 }));
 
 import { handleJudge } from './judge';
