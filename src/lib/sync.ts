@@ -5,7 +5,36 @@ import { calculateLevel } from './utils';
 import { useUserStore } from '../stores';
 import { logger } from './logger';
 
-export const syncUserXP = async (userId: string) => {
+/**
+ * Identity guard for the sync → setUser → sync feedback loop.
+ * syncUserXP writes a NEW user object into the store; Home runs this sync
+ * inside useEffect([user]), so a fresh object identity would re-trigger the
+ * effect forever. XP/level are display-only mirrors of server truth, so only
+ * an actual VALUE change may re-enter the effect.
+ */
+function updateUserIfChanged(userId: string, xp: number, level: number): boolean {
+    const user = useUserStore.getState().user;
+    if (!user || user.id !== userId) return false;
+    if (user.xp === xp && user.level === level) return false;
+
+    useUserStore.getState().setUser({ ...user, xp, level });
+    return true;
+}
+
+let inFlightSync: Promise<number | null> | null = null;
+
+export const syncUserXP = async (userId: string): Promise<number | null> => {
+    // Dedupe concurrent calls: multiple mount cycles can fire sync at once;
+    // they all read the same data, so sharing one in-flight query is correct
+    // and prevents the burst of duplicate [Sync] activity on page load.
+    if (inFlightSync) return inFlightSync;
+    inFlightSync = runSync(userId).finally(() => {
+        inFlightSync = null;
+    });
+    return inFlightSync;
+};
+
+const runSync = async (userId: string): Promise<number | null> => {
     logger.debug('[Sync] Starting XP synchronization for user:', userId);
 
     try {
@@ -16,10 +45,7 @@ export const syncUserXP = async (userId: string) => {
             .eq('user_id', userId)
             .eq('status', 'completed');
 
-        if (error) {
-            console.error('[Sync] Failed to fetch user progress:', error);
-            throw error;
-        }
+        if (error) throw error;
 
         if (!progressData || progressData.length === 0) {
             logger.debug('[Sync] No progress found. Total XP: 0');
@@ -27,7 +53,6 @@ export const syncUserXP = async (userId: string) => {
         }
 
         // 2. Calculate Total XP
-        let totalXP = 0;
 
         // Create lookups for faster access (lessons are loaded lazily so the
         // initial bundle is not blocked on the full catalog).
@@ -35,6 +60,7 @@ export const syncUserXP = async (userId: string) => {
         const lessonMap = new Map(lessons.map(l => [l.id, l]));
         const problemMap = new Map(problems.map(p => [p.id, p]));
 
+        let totalXP = 0;
         progressData.forEach(item => {
             if (item.content_type === 'lesson') {
                 const lesson = lessonMap.get(item.content_id);
@@ -60,20 +86,17 @@ export const syncUserXP = async (userId: string) => {
         // The server recomputes XP inside the submit_completion RPC.
         const level = calculateLevel(totalXP);
 
-        // 4. Update Local Store (display only — server truth wins on next fetch)
-        const user = useUserStore.getState().user;
-        if (user) {
-            useUserStore.getState().setUser({
-                ...user,
-                xp: totalXP,
-                level: level
-            });
-        }
+        // 4. Update Local Store (display only — server truth wins on next
+        // fetch). Returns true only when XP/level actually changed, so the
+        // caller's user-object identity stays stable otherwise.
+        updateUserIfChanged(userId, totalXP, level);
 
         return totalXP;
 
     } catch (err) {
-        console.error('[Sync] Error during XP sync:', err);
+        // Single log point: the throw path above no longer pre-logs the same
+        // failure before it lands here.
+        logger.error('[Sync] Error during XP sync:', err);
         return null;
     }
 };

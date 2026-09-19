@@ -79,10 +79,14 @@ const fetchProfile = async (userId: string): Promise<User | null> => {
     }
 
     try {
-        // Add timeout to prevent hanging
+        // Timeout guard with a cancellable timer. Without clearTimeout the
+        // timer keeps running after the race settles and logs a ghost
+        // "[fetchProfile] Timeout after 10 seconds" warning on every page
+        // load — even for fetches that completed in milliseconds.
+        let timer: ReturnType<typeof setTimeout> | undefined;
         const timeoutPromise = new Promise<null>((resolve) => {
-            setTimeout(() => {
-                console.warn('[fetchProfile] Timeout after 10 seconds');
+            timer = setTimeout(() => {
+                logger.warn('[fetchProfile] Profile fetch timed out after 10 seconds');
                 resolve(null);
             }, 10000);
         });
@@ -124,9 +128,15 @@ const fetchProfile = async (userId: string): Promise<User | null> => {
             };
         })();
 
-        const result = await Promise.race([fetchPromise, timeoutPromise]);
-        logger.debug('[fetchProfile] Returning result:', result ? 'profile found' : 'null');
-        return result;
+        try {
+            const result = await Promise.race([fetchPromise, timeoutPromise]);
+            logger.debug('[fetchProfile] Returning result:', result ? 'profile found' : 'null');
+            return result;
+        } finally {
+            // Cancel the timeout whether the fetch won, the timeout won, or
+            // the fetch threw — no orphaned timers, no ghost warnings.
+            clearTimeout(timer);
+        }
     } catch (err: unknown) {
         console.error('[fetchProfile] Caught error:', err);
         return null;
