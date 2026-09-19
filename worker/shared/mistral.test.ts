@@ -21,32 +21,28 @@ afterEach(() => {
 });
 
 describe('judgeWithMistral', () => {
-    it('returns the safe fallback on malformed JSON content', async () => {
+    it('reports unavailable (not a wrong verdict) on malformed JSON content', async () => {
         vi.stubGlobal('fetch', vi.fn(async () => mistralResponse('this is not json {{{')));
         const out = await judgeWithMistral('key', input);
-        expect(out.correct).toBe(false);
-        expect(out.correctness).toBe(0);
-        expect(out.misconceptionTag).toBeNull();
-        expect(out.missingCases).toEqual([]);
-        expect(out.feedback.length).toBeGreaterThan(0);
+        expect(out.ok).toBe(false);
+        if (!out.ok) expect(out.reason).toBe('unavailable');
     });
 
-    it('returns the safe fallback when fetch throws', async () => {
+    it('reports unavailable when fetch throws', async () => {
         vi.stubGlobal('fetch', vi.fn(async () => {
             throw new Error('network down');
         }));
         const out = await judgeWithMistral('key', input);
-        expect(out.correct).toBe(false);
-        expect(out.correctness).toBe(0);
+        expect(out.ok).toBe(false);
     });
 
-    it('returns the safe fallback on a non-ok response', async () => {
+    it('reports unavailable on a non-ok response', async () => {
         vi.stubGlobal('fetch', vi.fn(async () => new Response('error', { status: 500 })));
         const out = await judgeWithMistral('key', input);
-        expect(out.correct).toBe(false);
+        expect(out.ok).toBe(false);
     });
 
-    it('clamps correctness into the 0..1 range', async () => {
+    it('returns a coerced verdict and clamps correctness into 0..1', async () => {
         vi.stubGlobal(
             'fetch',
             vi.fn(async () =>
@@ -56,7 +52,11 @@ describe('judgeWithMistral', () => {
             )
         );
         const out = await judgeWithMistral('key', input);
-        expect(out.correctness).toBeLessThanOrEqual(1);
-        expect(out.correctness).toBeGreaterThanOrEqual(0);
+        expect(out.ok).toBe(true);
+        if (out.ok) {
+            expect(out.output.correct).toBe(true);
+            expect(out.output.correctness).toBeLessThanOrEqual(1);
+            expect(out.output.correctness).toBeGreaterThanOrEqual(0);
+        }
     });
 });

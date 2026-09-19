@@ -10,6 +10,7 @@
 import type { Client } from '@libsql/client/web';
 import { getClient, queryAll, queryOne, run } from './db';
 import { getUserFromRequest } from './auth';
+import { newId } from './crypto';
 import { json, type Env, type UserRow } from './types';
 
 const COLUMNS: Record<string, string[]> = {
@@ -30,6 +31,21 @@ const COLUMNS: Record<string, string[]> = {
 
 const WRITABLE_TABLES = new Set(['profiles', 'user_progress']);
 const OWNED_SELECT_TABLES = new Set(['user_progress', 'attempts']);
+
+/**
+ * Columns a client may write via /api/db. Everything else — notably the
+ * server-authoritative game state (xp, level, rank, verification_rating) —
+ * is stripped from write payloads so XP cannot be forged by calling the
+ * query executor directly. Authoritative XP/rating changes flow through
+ * /api/rpc (submit_completion) and the Arena judge only.
+ */
+const WRITABLE_COLUMNS: Record<string, Set<string>> = {
+    profiles: new Set(['username', 'avatar_url', 'streak_current', 'streak_best', 'last_activity_date']),
+    user_progress: new Set([
+        'user_id', 'content_type', 'content_id', 'status',
+        'score', 'duration_seconds', 'completed_at',
+    ]),
+};
 
 const OPS: Record<string, string> = { eq: '=', neq: '!=', gt: '>', gte: '>=', lt: '<', lte: '<=' };
 
@@ -149,14 +165,17 @@ async function runWrite(
 
     if (desc.mode === 'insert' || desc.mode === 'upsert') {
         for (const raw of items) {
-            const item = scopeToUser(desc.table, { ...raw }, user);
+            const item = stripToWritable(desc.table, raw, user);
+            // user_progress has a TEXT PRIMARY KEY with no default; the client
+            // does not send one, so synthesize it server-side.
+            if (desc.table === 'user_progress' && !item.id) item.id = newId();
             const keys = Object.keys(item).filter((k) => cols.includes(k));
             const placeholders = keys.map(() => '?').join(', ');
             const args = keys.map((k) => item[k]);
             const conflict =
                 desc.mode === 'upsert'
                     ? ` ON CONFLICT(${desc.table === 'profiles' ? 'id' : 'user_id, content_type, content_id'}) DO UPDATE SET ${keys
-                          .filter((k) => k !== 'id')
+                          .filter((k) => k !== 'id' && k !== 'user_id')
                           .map((k) => `${k}=excluded.${k}`)
                           .join(', ')}`
                     : '';
@@ -170,7 +189,7 @@ async function runWrite(
     }
 
     if (desc.mode === 'update') {
-        const payload = scopeToUser(desc.table, { ...(items[0] ?? {}) }, user);
+        const payload = stripToWritable(desc.table, items[0] ?? {}, user);
         const keys = Object.keys(payload).filter((k) => cols.includes(k) && k !== 'id');
         if (keys.length === 0) return json({ data: [], error: null, count: null });
         const setSql = keys.map((k) => `${k} = ?`).join(', ');
@@ -196,6 +215,28 @@ function scopeToUser(table: string, item: Record<string, unknown>, user: UserRow
     if (table === 'profiles') item.id = user.id;
     if (table === 'user_progress') item.user_id = user.id;
     return item;
+}
+
+/**
+ * Drop every payload key that is not client-writable for this table.
+ * Ownership columns (profiles.id, user_progress.user_id) are always kept —
+ * scopeToUser has already forced them to the authenticated user's id, so a
+ * client cannot choose another owner. Server-authoritative columns such as
+ * xp/level/rank/verification_rating can never pass this filter.
+ */
+function stripToWritable(
+    table: string,
+    raw: Record<string, unknown>,
+    user: UserRow
+): Record<string, unknown> {
+    const scoped = scopeToUser(table, { ...raw }, user);
+    const writable = WRITABLE_COLUMNS[table];
+    const ownership = table === 'profiles' ? 'id' : 'user_id';
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(scoped)) {
+        if (k === ownership || writable.has(k)) out[k] = v;
+    }
+    return out;
 }
 
 /** Add an ownership filter to update/delete WHERE clauses. */

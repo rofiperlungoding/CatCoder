@@ -9,7 +9,7 @@ import type { Client } from '@libsql/client/web';
 import { getClient, queryOne, run } from './db';
 import { hashPassword, verifyPassword, newToken, newId } from './crypto';
 import { json, SESSION_TTL_MS, type Env, type UserRow, type SessionRow } from './types';
-import { checkRateLimit } from './shared/rateLimit';
+import { checkRateLimit, clientIp } from './shared/rateLimit';
 
 function sessionUser(user: UserRow) {
     return {
@@ -87,18 +87,41 @@ export async function handleSignUp(env: Env, body: { email?: string; password?: 
 const SIGNIN_MAX_ATTEMPTS = 10;
 const SIGNIN_WINDOW_SEC = 15 * 60; // 15 minutes in seconds
 
-export async function handleSignIn(env: Env, body: { email?: string; password?: string }, request?: Request) {
+export async function handleSignIn(
+    env: Env,
+    body: { email?: string; password?: string },
+    request: Request
+) {
     const client = getClient(env);
     const email = (body.email || '').trim().toLowerCase();
     const password = body.password || '';
 
-    // If request is provided, we can also rate limit by IP, but since the old logic
-    // was by email, we'll rate limit by email using KV.
-    const isAllowed = await checkRateLimit(env.RATE_LIMIT, `signin:${email}`, SIGNIN_MAX_ATTEMPTS, SIGNIN_WINDOW_SEC);
-    if (!isAllowed) {
+    // Dual-axis limiter: per-credential (stops one account being pounded) and
+    // per-IP (stops one host spraying many accounts). Both are KV-backed so
+    // they survive isolate recycling; see rateLimit.ts for the KV caveat.
+    const ip = clientIp(request);
+    const emailAllowed = await checkRateLimit(
+        env.RATE_LIMIT,
+        `signin:email:${email}`,
+        SIGNIN_MAX_ATTEMPTS,
+        SIGNIN_WINDOW_SEC
+    );
+    if (!emailAllowed) {
         return json(
             { error: 'Too many login attempts. Please try again in 15 minutes.' },
-            429,
+            429
+        );
+    }
+    const ipAllowed = await checkRateLimit(
+        env.RATE_LIMIT,
+        `signin:ip:${ip}`,
+        SIGNIN_MAX_ATTEMPTS,
+        SIGNIN_WINDOW_SEC
+    );
+    if (!ipAllowed) {
+        return json(
+            { error: 'Too many login attempts from this network. Please try again in 15 minutes.' },
+            429
         );
     }
 
@@ -124,9 +147,7 @@ export async function handleSession(env: Env, request: Request) {
     const client = getClient(env);
     const user = await getUserFromRequest(client, request);
     return json({ session: user ? { user: sessionUser(user) } : null });
-}
-
-export async function handleUpdateUser(
+}export async function handleUpdateUser(
     env: Env,
     request: Request,
     body: { email?: string; password?: string }
@@ -134,15 +155,29 @@ export async function handleUpdateUser(
     const client = getClient(env);
     const user = await getUserFromRequest(client, request);
     if (!user) return json({ error: 'Not authenticated' }, 401);
-    if (body.email) {
-        await run(client, 'UPDATE users SET email = ? WHERE id = ?', [
-            body.email.trim().toLowerCase(),
-            user.id,
-        ]);
+
+    const email = body.email?.trim().toLowerCase();
+    const password = body.password;
+
+    if (email) {
+        // Basic shape check plus a TLD guard — enough to catch typos and
+        // accidental junk without rejecting unusual-but-valid addresses.
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.includes('..')) {
+            return json({ error: 'Invalid email address' }, 400);
+        }
+        const clash = await queryOne(client, 'SELECT id FROM users WHERE email = ?', [email]);
+        if (clash && clash.id !== user.id) {
+            return json({ error: 'User already registered' }, 409);
+        }
+        await run(client, 'UPDATE users SET email = ? WHERE id = ?', [email, user.id]);
     }
-    if (body.password) {
+    if (password !== undefined) {
+        // Same policy as signup — without this, updates bypass the minimum.
+        if (password.length < 6) {
+            return json({ error: 'Password must be at least 6 characters' }, 400);
+        }
         await run(client, 'UPDATE users SET password_hash = ? WHERE id = ?', [
-            await hashPassword(body.password),
+            await hashPassword(password),
             user.id,
         ]);
     }

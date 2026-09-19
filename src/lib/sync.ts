@@ -54,23 +54,13 @@ export const syncUserXP = async (userId: string) => {
 
         logger.debug(`[Sync] Calculated Total XP: ${totalXP}`);
 
-        // 3. Update Profile in Supabase
+        // 3. SECURITY: XP is server-authoritative. The Worker strips xp/level
+        // from every client write to `profiles`, so pushing a client-computed
+        // total here would either be a silent no-op or an XP-forgery attempt.
+        // The server recomputes XP inside the submit_completion RPC.
         const level = calculateLevel(totalXP);
 
-        const { error: updateError } = await supabase
-            .from('profiles')
-            .update({
-                xp: totalXP,
-                level: level
-            })
-            .eq('id', userId);
-
-        if (updateError) {
-            console.error('[Sync] Failed to update profile:', updateError);
-            throw updateError;
-        }
-
-        // 4. Update Local Store
+        // 4. Update Local Store (display only — server truth wins on next fetch)
         const user = useUserStore.getState().user;
         if (user) {
             useUserStore.getState().setUser({

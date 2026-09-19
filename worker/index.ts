@@ -51,7 +51,7 @@ async function handleApi(request: Request, env: Env, path: string): Promise<Resp
             return handleSignUp(env, await readJson(request));
         }
         if (path === '/api/auth/signin' && method === 'POST') {
-            return handleSignIn(env, await readJson(request));
+            return handleSignIn(env, await readJson(request), request);
         }
         if (path === '/api/auth/signout' && method === 'POST') {
             return handleSignOut(env, request);

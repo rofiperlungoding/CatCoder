@@ -71,10 +71,20 @@ function coerceOutput(raw: unknown): JudgeOutput {
     return { correct, correctness, misconceptionTag, missingCases, feedback };
 }
 
+/**
+ * Result of a judge call. `ok: false` means the judge infrastructure itself
+ * failed (network, non-200, malformed JSON) — no verdict exists and callers
+ * MUST NOT record an attempt or adjust ratings. A real "wrong answer" from
+ * the model arrives as `ok: true` with a coerced JudgeOutput.
+ */
+export type JudgeResult =
+    | { ok: true; output: JudgeOutput }
+    | { ok: false; reason: 'unavailable' };
+
 export async function judgeWithMistral(
     apiKey: string,
     input: JudgeInput
-): Promise<JudgeOutput> {
+): Promise<JudgeResult> {
     try {
         const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
             method: 'POST',
@@ -93,16 +103,16 @@ export async function judgeWithMistral(
             }),
         });
 
-        if (!res.ok) return { ...FALLBACK };
+        if (!res.ok) return { ok: false, reason: 'unavailable' };
 
         const data = (await res.json()) as {
             choices?: Array<{ message?: { content?: string } }>;
         };
         const content = data.choices?.[0]?.message?.content;
-        if (typeof content !== 'string') return { ...FALLBACK };
+        if (typeof content !== 'string') return { ok: false, reason: 'unavailable' };
 
-        return coerceOutput(JSON.parse(content));
+        return { ok: true, output: coerceOutput(JSON.parse(content)) };
     } catch {
-        return { ...FALLBACK };
+        return { ok: false, reason: 'unavailable' };
     }
 }
