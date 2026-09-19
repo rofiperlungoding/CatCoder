@@ -4,7 +4,7 @@ import { applyVerificationResult } from '../rpc';
 import { corsHeaders, handleOptions, parseOrigins } from '../shared/cors';
 import { checkRateLimit, clientIp } from '../shared/rateLimit';
 import { verifyTurnstile } from '../shared/turnstile';
-import { judgeWithMistral } from '../shared/mistral';
+import { judgeWithMistral, DEFAULT_JUDGE_MODEL } from '../shared/mistral';
 import { json, type Env } from '../types';
 import type { TestCase } from '../../db/schema';
 
@@ -89,13 +89,17 @@ export async function handleJudge(request: Request, env: Env): Promise<Response>
     );
     if (!variant) return json({ error: 'Variant not found' }, 404, headers);
 
-    const result = await judgeWithMistral(env.MISTRAL_API_KEY, {
-        code: String(variant.code),
-        groundTruth: String(variant.bug_explanation),
-        misconception: String(variant.misconception),
-        hypothesis,
-        tests,
-    });
+    const result = await judgeWithMistral(
+        env.MISTRAL_API_KEY,
+        {
+            code: String(variant.code),
+            groundTruth: String(variant.bug_explanation),
+            misconception: String(variant.misconception),
+            hypothesis,
+            tests,
+        },
+        env.MISTRAL_MODEL || DEFAULT_JUDGE_MODEL
+    );
 
     // Judge infrastructure failure: no verdict exists. Never record an attempt
     // and never penalize the player's rating for our own outage.

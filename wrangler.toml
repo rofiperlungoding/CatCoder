@@ -25,6 +25,9 @@ run_worker_first = ["/api/*"]
 # `npx wrangler secret put <NAME>` and, for local dev, in worker/.dev.vars.
 [vars]
 LIBSQL_DB_URL = "libsql://catcoder-rofidarmawan.aws-ap-northeast-1.turso.io"
+# Judge model for the Bug Arena (free-tier friendly default; the paid-only
+# mistral-large-latest returns 403 on free keys). Override via secret/vars.
+MISTRAL_MODEL = "codestral-latest"
 # Comma-separated CORS allowlist. Every origin that serves the SPA must be
 # listed; /api responses echo the request Origin only when it appears here.
 ALLOWED_ORIGINS = "https://catcoder.online,https://www.catcoder.online"

@@ -81,9 +81,18 @@ export type JudgeResult =
     | { ok: true; output: JudgeOutput }
     | { ok: false; reason: 'unavailable' };
 
+/**
+ * Default judge model. `mistral-large-latest` requires a paid Mistral tier —
+ * free-tier keys get a silent 403, which used to surface only as an opaque
+ * 503. `codestral-latest` is available on the free tier and is code-focused,
+ * which suits a debugging judge. Override with the MISTRAL_MODEL env var.
+ */
+export const DEFAULT_JUDGE_MODEL = 'codestral-latest';
+
 export async function judgeWithMistral(
     apiKey: string,
-    input: JudgeInput
+    input: JudgeInput,
+    model: string = DEFAULT_JUDGE_MODEL
 ): Promise<JudgeResult> {
     try {
         const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
@@ -93,7 +102,7 @@ export async function judgeWithMistral(
                 Authorization: `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: 'mistral-large-latest',
+                model,
                 temperature: 0.2,
                 response_format: { type: 'json_object' },
                 messages: [
@@ -103,7 +112,12 @@ export async function judgeWithMistral(
             }),
         });
 
-        if (!res.ok) return { ok: false, reason: 'unavailable' };
+        if (!res.ok) {
+            // Surface the upstream status — a 403 (model not in tier) vs 429
+            // (rate limit) means very different operator actions.
+            console.warn(`[judge] mistral chat/completions failed: HTTP ${res.status}`);
+            return { ok: false, reason: 'unavailable' };
+        }
 
         const data = (await res.json()) as {
             choices?: Array<{ message?: { content?: string } }>;

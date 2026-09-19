@@ -3,6 +3,8 @@ export interface Env {
     LIBSQL_DB_AUTH_TOKEN: string;
     AUTH_SECRET: string;
     MISTRAL_API_KEY: string;
+    /** Optional: judge model override (default: codestral-latest). */
+    MISTRAL_MODEL?: string;
     TURNSTILE_SECRET: string;
     ALLOWED_ORIGINS: string;
     RATE_LIMIT: KVNamespace;

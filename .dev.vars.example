@@ -12,7 +12,10 @@ LIBSQL_DB_AUTH_TOKEN="your-turso-auth-token-here"
 AUTH_SECRET="your-auth-secret-here"
 
 # Bug Arena judge (Mistral) and bot protection (Turnstile server secret).
+# NOTE: the judge model defaults to codestral-latest (free-tier friendly).
+# mistral-large-latest requires a paid tier and 403s on free keys.
 MISTRAL_API_KEY="your-mistral-api-key-here"
+MISTRAL_MODEL="codestral-latest"
 TURNSTILE_SECRET="your-turnstile-secret-here"
 
 # Comma-separated CORS allowlist for local full-stack dev.
