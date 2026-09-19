@@ -29,10 +29,16 @@ jobs:
         env:
           VITE_BACKEND: ${{ secrets.VITE_BACKEND }}
           VITE_STORAGE_ENCRYPTION_KEY: ${{ secrets.VITE_STORAGE_ENCRYPTION_KEY }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
         run: |
           {
             echo "VITE_BACKEND=${VITE_BACKEND:-turso}"
             echo "VITE_STORAGE_ENCRYPTION_KEY=${VITE_STORAGE_ENCRYPTION_KEY:-ci-ephemeral-$(openssl rand -hex 16)}"
+            # Optional until set: without it the Arena still works, but the
+            # Turnstile widget fails closed (judge stays 403 in CI-built bundles).
+            if [ -n "$VITE_TURNSTILE_SITE_KEY" ]; then
+              echo "VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY"
+            fi
           } > .env.cloudflare
           echo "Wrote .env.cloudflare for the cloudflare-mode build"
 
