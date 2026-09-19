@@ -167,6 +167,41 @@ jobs:
           fi
 
       # ══════════════════════════════════════════
+      #  CHECK 4c: Unit Test Suite (vitest, all projects)
+      # ══════════════════════════════════════════
+      - name: "🧪 Unit Test Suite"
+        id: unittest
+        continue-on-error: true
+        run: |
+          set +e
+          npx playwright install chromium --with-deps > /dev/null 2>&1
+          npm test 2>&1 | tee unit_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
+      #  CHECK 4d: E2E Smoke (Playwright, local backend)
+      # ══════════════════════════════════════════
+      - name: "🌐 E2E Smoke Tests"
+        id: e2e
+        continue-on-error: true
+        run: |
+          set +e
+          npx playwright test 2>&1 | tee e2e_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "status=FAIL" >> $GITHUB_OUTPUT
+          else
+            echo "status=PASS" >> $GITHUB_OUTPUT
+          fi
+
+      # ══════════════════════════════════════════
       #  CHECK 5: Pentest Suite
       # ══════════════════════════════════════════
       - name: "⚔️ Pentest Suite"
@@ -260,12 +295,12 @@ jobs:
       # ══════════════════════════════════════════
       #  CHECK 10: Production Build Verification
       # ══════════════════════════════════════════
-      - name: "🏗️ Production Build Verification"
+      - name: "🏗️ Production Build Verification (cloudflare mode)"
         id: build
         continue-on-error: true
         run: |
           set +e
-          npm run build 2>&1 | tee build_output.txt
+          npm run cf:build 2>&1 | tee build_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
           if [ "$EXIT_CODE" -ne 0 ]; then
@@ -315,6 +350,7 @@ jobs:
           LINT_WARNINGS: ${{ steps.lint.outputs.warnings }}
           TYPECHECK_STATUS: ${{ steps.typecheck.outputs.status }}
           TYPECHECK_ERRORS: ${{ steps.typecheck.outputs.errors }}
+          UNITTEST_STATUS: ${{ steps.unittest.outputs.status }}
           PENTEST_STATUS: ${{ steps.pentest.outputs.status }}
           PENTEST_FAILED: ${{ steps.pentest.outputs.failed }}
           PENTEST_PASSED: ${{ steps.pentest.outputs.passed }}
@@ -349,6 +385,8 @@ jobs:
              [ "${{ steps.lint.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.typecheck.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.cf_typecheck.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.unittest.outputs.status }}" = "FAIL" ] || \
+             [ "${{ steps.e2e.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.pentest.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.ruff.outputs.status }}" = "FAIL" ] || \
              [ "${{ steps.mypy.outputs.status }}" = "FAIL" ] || \
