@@ -62,3 +62,4 @@ playwright-report/
 .dev.vars
 worker/.dev.vars
 .env.cloudflare
+backups/
