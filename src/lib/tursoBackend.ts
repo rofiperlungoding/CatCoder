@@ -216,6 +216,10 @@ class TursoQuery implements PromiseLike<QueryResult> {
     eq(col: string, val: unknown) { this.filters.push({ col, op: 'eq', val }); return this; }
     neq(col: string, val: unknown) { this.filters.push({ col, op: 'neq', val }); return this; }
     gt(col: string, val: unknown) { this.filters.push({ col, op: 'gt', val }); return this; }
+    gte(col: string, val: unknown) { this.filters.push({ col, op: 'gte', val }); return this; }
+    lt(col: string, val: unknown) { this.filters.push({ col, op: 'lt', val }); return this; }
+    lte(col: string, val: unknown) { this.filters.push({ col, op: 'lte', val }); return this; }
+    not() { return this; }
     order(col: string, opts?: { ascending?: boolean }) {
         this.orders.push({ col, asc: opts?.ascending !== false });
         return this;

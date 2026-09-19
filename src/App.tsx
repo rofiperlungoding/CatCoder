@@ -12,12 +12,12 @@ const HomePage = lazy(() => import('./pages/Home').then(m => ({ default: m.HomeP
 const LearnPage = lazy(() => import('./pages/Learn').then(m => ({ default: m.LearnPage })));
 const PracticePage = lazy(() => import('./pages/Practice').then(m => ({ default: m.PracticePage })));
 const CompetePage = lazy(() => import('./pages/Compete').then(m => ({ default: m.CompetePage })));
-const SpeedRunDetail = lazy(() => import('./pages/Compete').then(m => ({ default: m.SpeedRunDetail })));
 const RoadmapPage = lazy(() => import('./pages/Roadmap').then(m => ({ default: m.RoadmapPage })));
 const ProfilePage = lazy(() => import('./pages/Profile').then(m => ({ default: m.ProfilePage })));
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
 const FeaturesPage = lazy(() => import('./pages/Public').then(m => ({ default: m.FeaturesPage })));
 const PricingPage = lazy(() => import('./pages/Public').then(m => ({ default: m.PricingPage })));
+const FaqPage = lazy(() => import('./pages/Public').then(m => ({ default: m.FaqPage })));
 const AboutPage = lazy(() => import('./pages/Public').then(m => ({ default: m.AboutPage })));
 const ContactPage = lazy(() => import('./pages/Public').then(m => ({ default: m.ContactPage })));
 const LoginPage = lazy(() => import('./pages/Auth/Login').then(m => ({ default: m.LoginPage })));
@@ -28,6 +28,7 @@ const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ defa
 const NotFoundPage = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFoundPage })));
 const HoneypotPage = lazy(() => import('./pages/Honeypot').then(m => ({ default: m.HoneypotPage })));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfile').then(m => ({ default: m.PublicProfilePage })));
+const ArenaPage = lazy(() => import('./pages/Arena').then(m => ({ default: m.ArenaPage })));
 
 // Loading screen component
 const LoadingScreen = () => (
@@ -115,10 +116,11 @@ function App() {
         <Routes>
 
           {/* Public Routes */}
+          <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
           <Route element={<PublicLayout />}>
-            <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
             <Route path="/features" element={<PublicRoute><FeaturesPage /></PublicRoute>} />
             <Route path="/pricing" element={<PublicRoute><PricingPage /></PublicRoute>} />
+            <Route path="/faq" element={<PublicRoute><FaqPage /></PublicRoute>} />
             <Route path="/about" element={<PublicRoute><AboutPage /></PublicRoute>} />
             <Route path="/contact" element={<PublicRoute><ContactPage /></PublicRoute>} />
           </Route>
@@ -129,6 +131,9 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/onboarding" element={<PublicRoute><OnboardingPage /></PublicRoute>} />
 
+          {/* Bug Arena - playable by guests and signed-in users alike */}
+          <Route path="/arena" element={<ArenaPage />} />
+
           {/* Protected App Routes */}
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/home" element={<HomePage />} />
@@ -137,7 +142,6 @@ function App() {
             <Route path="/practice" element={<PracticePage />} />
             <Route path="/practice/:problemId" element={<PracticePage />} />
             <Route path="/compete" element={<CompetePage />} />
-            <Route path="/compete/:runId" element={<SpeedRunDetail />} />
             <Route path="/roadmap" element={<RoadmapPage />} />
             <Route path="/roadmap/:pathId" element={<RoadmapPage />} />
             <Route path="/profile" element={<ProfilePage />} />

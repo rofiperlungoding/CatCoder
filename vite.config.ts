@@ -89,6 +89,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Monaco's bundled editor and language workers are large; raise the
+        // precache size limit so they are cached for offline use.
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -162,7 +165,8 @@ export default defineConfig({
             'src/hooks/**/*.{test,spec}.ts',
             'src/services/**/*.{test,spec}.ts',
             'src/components/**/*.{test,spec}.{ts,tsx}',
-            'src/stores/**/*.{test,spec}.ts'
+            'src/stores/**/*.{test,spec}.ts',
+            'worker/**/*.{test,spec}.ts'
           ],
           setupFiles: ['./src/test/setup.ts'],
         }

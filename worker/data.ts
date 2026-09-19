@@ -21,9 +21,17 @@ const COLUMNS: Record<string, string[]> = {
         'id', 'user_id', 'content_type', 'content_id', 'status',
         'score', 'duration_seconds', 'completed_at', 'created_at',
     ],
+    buggy_variants: ['id', 'prompt', 'language', 'code', 'difficulty'],
+    attempts: [
+        'id', 'user_id', 'variant_id', 'hypothesis_text', 'submitted_tests',
+        'verdict', 'score', 'concept', 'misconception', 'created_at',
+    ],
 };
 
-const OPS: Record<string, string> = { eq: '=', neq: '!=', gt: '>' };
+const WRITABLE_TABLES = new Set(['profiles', 'user_progress']);
+const OWNED_SELECT_TABLES = new Set(['user_progress', 'attempts']);
+
+const OPS: Record<string, string> = { eq: '=', neq: '!=', gt: '>', gte: '>=', lt: '<', lte: '<=' };
 
 interface Filter { col: string; op: string; val: unknown }
 interface Order { col: string; asc: boolean }
@@ -62,9 +70,9 @@ export async function handleDb(env: Env, request: Request, desc: Descriptor): Pr
     const cols = assertTable(desc.table);
 
     if (desc.mode === 'select') {
-        // user_progress rows are private — only the authenticated owner can
-        // query them. profiles remain publicly readable (leaderboard).
-        if (desc.table === 'user_progress') {
+        // Private tables (user_progress, attempts) are scoped to the
+        // authenticated owner. profiles and buggy_variants are public reads.
+        if (OWNED_SELECT_TABLES.has(desc.table)) {
             const user = await getUserFromRequest(client, request);
             if (!user) return json({ error: 'Not authenticated' }, 401);
             return runSelectOwned(client, desc, cols, user);
@@ -75,6 +83,9 @@ export async function handleDb(env: Env, request: Request, desc: Descriptor): Pr
     // Writes require authentication and are scoped to the caller.
     const user = await getUserFromRequest(client, request);
     if (!user) return json({ error: 'Not authenticated' }, 401);
+    if (!WRITABLE_TABLES.has(desc.table)) {
+        return json({ error: 'Table is read-only' }, 403);
+    }
     return runWrite(client, desc, cols, user);
 }
 
@@ -86,7 +97,7 @@ async function runSelect(client: Client, desc: Descriptor, cols: string[]): Prom
         return json({ data: null, error: null, count: Number(row?.c ?? 0) });
     }
 
-    let sql = `SELECT * FROM ${desc.table}${where.sql}`;
+    let sql = `SELECT ${cols.join(', ')} FROM ${desc.table}${where.sql}`;
     if (desc.orders && desc.orders.length > 0) {
         const order = desc.orders
             .filter((o) => cols.includes(o.col))

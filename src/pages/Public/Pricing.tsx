@@ -1,135 +1,115 @@
-import { SparklesIcon, CheckmarkBadge01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
-import React, { useState } from 'react';
-import { Icon, Button, Badge } from '../../components/ui';
+import {
+    CheckmarkCircle02Icon, ArrowRight01Icon, SparklesIcon, ShieldEnergyIcon, UserGroupIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Surface, Button, Pill } from '../../components/ds';
+
+const INCLUDED = [
+    'Interactive lessons in Python, JavaScript, and C++',
+    'Coding problems that run in your browser, no setup',
+    'The Bug Arena: catch the bugs an AI writes, playable as a guest',
+    'AI review and an Elo-style verification rating',
+    'XP, levels, streaks, and the global leaderboard',
+    'A skill profile that tracks your concepts and misconceptions',
+];
+
+const REASONS = [
+    {
+        icon: ShieldEnergyIcon,
+        title: 'No payments, no catch',
+        body: 'There is no paid tier, no credit card, and no trial timer. Every feature on the site is available to everyone.',
+    },
+    {
+        icon: UserGroupIcon,
+        title: 'No account needed to try',
+        body: 'You can play a full round of the Bug Arena as a guest. Create a free account only when you want to save your rating and progress.',
+    },
+    {
+        icon: SparklesIcon,
+        title: 'Built to teach verification',
+        body: 'CatCoder exists to train the skill of catching incorrect code. Keeping it free keeps that practice open to anyone learning to code.',
+    },
+];
 
 export const PricingPage: React.FC = () => {
     const navigate = useNavigate();
-    const [isAnnual, setIsAnnual] = useState(true);
-
-    const plans = [
-        {
-            name: "Free",
-            price: 0,
-            period: "forever",
-            description: "Perfect for beginners starting their journey.",
-            features: [
-                "Access to basic Python & JS courses",
-                "50 daily coding challenges",
-                "Community forum access",
-                "Basic profile stats"
-            ],
-            missing: [
-                "Advanced C++ & System Design",
-                "Unlimited AI Hints",
-                "Certificates of Completion",
-                "Priority Support"
-            ],
-            cta: "Get Started Free",
-            variant: "secondary" as const,
-            popular: false
-        },
-        {
-            name: "Pro",
-            price: isAnnual ? 12 : 15,
-            period: "per month",
-            description: "For serious learners who want to master coding.",
-            features: [
-                "Access to ALL courses (Python, JS, C++)",
-                "Unlimited coding challenges",
-                "Unlimited AI Hints & Explanations",
-                "Advanced analytics & insights",
-                "Certificates of Completion",
-                "Priority Support"
-            ],
-            missing: [],
-            cta: "Upgrade to Pro",
-            variant: "primary" as const,
-            popular: true
-        }
-    ];
 
     return (
-        <div className="pt-32 pb-20 space-y-16 px-6 md:px-12 max-w-7xl mx-auto">
-            <div className="text-center space-y-6 max-w-3xl mx-auto">
-                <Badge className="bg-lime-500/10 text-lime-400 hover:bg-lime-500/20 border-lime-500/20">Simple Pricing</Badge>
-                <h1 className="text-4xl md:text-5xl font-extrabold text-white animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 fill-mode-backwards">
-                    Invest in your <span className="text-lime-400">Skills</span>.
-                </h1>
-                <p className="text-xl text-gray-400 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-backwards">
-                    Choose the plan that fits your goals. Upgrade anytime.
-                </p>
-
-                {/* Toggle */}
-                <div className="flex items-center justify-center gap-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-backwards">
-                    <span className={`text-sm font-semibold ${!isAnnual ? 'text-white' : 'text-gray-500'}`}>Monthly</span>
-                    <button
-                        className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${isAnnual ? 'bg-lime-500' : 'bg-white/20'} focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50`}
-                        onClick={() => setIsAnnual(!isAnnual)}
-                    >
-                        <div className={`w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                    </button>
-                    <span className={`text-sm font-semibold ${isAnnual ? 'text-white' : 'text-gray-500'}`}>
-                        Yearly <span className="text-lime-400 text-xs ml-1 font-bold bg-lime-500/10 px-2 py-0.5 rounded-full border border-lime-500/20">-20%</span>
-                    </span>
+        <div className="cc-root pt-32 pb-24 px-4 sm:px-6">
+            <div className="max-w-[1000px] mx-auto">
+                {/* Hero */}
+                <div className="text-center max-w-2xl mx-auto">
+                    <Pill variant="brand" className="mb-5">Pricing</Pill>
+                    <h1 className="cc-display text-4xl sm:text-5xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>
+                        Free, for everyone.
+                    </h1>
+                    <p className="mt-5 text-lg" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.6 }}>
+                        CatCoder is completely free. There are no paid plans and nothing is locked behind a
+                        subscription. Learn, practice, and play the Bug Arena at no cost.
+                    </p>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-backwards">
-                {plans.map((plan) => (
-                    <div
-                        key={plan.name}
-                        className={`
-                            relative bg-[#0a0a0a] rounded-[2.5rem] p-8 md:p-12 border transition-all duration-300
-                            ${plan.popular
-                                ? 'border-lime-500 shadow-xl shadow-lime-500/10 scale-105 z-10'
-                                : 'border-white/5 shadow-sm hover:border-white/10'
-                            }
-                        `}
-                    >
-                        {plan.popular && (
-                            <div className="absolute top-0 right-1/2 md:right-12 translate-x-1/2 md:translate-x-0 -translate-y-1/2 bg-lime-500 text-black px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-lg shadow-lime-500/20">
-                                <Icon icon={SparklesIcon} size={14} fill="currentColor" /> Most Popular
-                            </div>
-                        )}
-
-                        <div className="text-center mb-8">
-                            <h3 className="text-lg font-bold text-gray-400 uppercase tracking-wide mb-2">{plan.name}</h3>
-                            <div className="flex items-baseline justify-center gap-1">
-                                <span className="text-5xl font-extrabold text-white">${plan.price}</span>
-                                <span className="text-gray-500 font-medium">/{plan.period}</span>
-                            </div>
-                            <p className="text-sm text-gray-400 mt-4">{plan.description}</p>
-                        </div>
-
-                        <Button
-                            variant={plan.variant === 'primary' ? 'primary' : 'secondary'}
-                            className={`w-full h-12 rounded-full mb-8 text-lg ${plan.popular ? 'bg-lime-400 text-black hover:bg-lime-300 shadow-lg shadow-lime-500/20' : 'border-white/10 text-white hover:bg-white/5'}`}
-                            onClick={() => navigate('/login')}
-                        >
-                            {plan.cta}
-                        </Button>
-
-                        <ul className="space-y-4">
-                            {plan.features.map((feature, i) => (
-                                <li key={i} className="flex items-start gap-3 text-sm font-medium text-gray-300">
-                                    <div className="w-5 h-5 rounded-full bg-lime-500/10 text-lime-400 flex items-center justify-center shrink-0 mt-0.5 border border-lime-500/20">
-                                        <Icon icon={CheckmarkBadge01Icon} size={12} strokeWidth={3} />
-                                    </div>
-                                    {feature}
-                                </li>
-                            ))}
-                            {plan.missing.map((feature, i) => (
-                                <li key={i} className="flex items-start gap-3 text-sm font-medium text-gray-600">
-                                    <div className="w-5 h-5 rounded-full bg-white/5 text-gray-600 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Icon icon={Cancel01Icon} size={12} strokeWidth={3} />
-                                    </div>
-                                    {feature}
-                                </li>
-                            ))}
-                        </ul>
+                {/* The single, honest plan */}
+                <Surface elevation={3} glow className="mt-12 p-8 sm:p-10 max-w-xl mx-auto">
+                    <div className="flex items-center justify-between">
+                        <span className="cc-eyebrow">Everything, included</span>
+                        <Pill variant="brand">Free forever</Pill>
                     </div>
-                ))}
+                    <div className="mt-4 flex items-baseline gap-2">
+                        <span className="cc-mono text-5xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>$0</span>
+                        <span className="text-sm" style={{ color: 'var(--cc-tx-3)' }}>/ forever</span>
+                    </div>
+
+                    <div className="cc-divider my-7" />
+
+                    <ul className="space-y-3">
+                        {INCLUDED.map((item) => (
+                            <li key={item} className="flex items-start gap-3 text-sm" style={{ color: 'var(--cc-tx-2)' }}>
+                                <span style={{ color: 'var(--cc-brand-1)' }} className="mt-0.5 shrink-0">
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} />
+                                </span>
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+
+                    <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                        <Button size="lg" fullWidth onClick={() => navigate('/arena')}>
+                            Play the Bug Arena <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                        </Button>
+                        <Button variant="secondary" size="lg" fullWidth onClick={() => navigate('/login')}>
+                            Create a free account
+                        </Button>
+                    </div>
+                    <p className="mt-4 text-center cc-mono text-xs" style={{ color: 'var(--cc-tx-3)' }}>
+                        No credit card. No trial. Guest play needs no account.
+                    </p>
+                </Surface>
+
+                {/* Why it is free */}
+                <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    {REASONS.map((r) => (
+                        <Surface key={r.title} elevation={1} className="p-6">
+                            <span className="cc-icon-well w-10 h-10 text-lime-300 inline-flex" aria-hidden="true">
+                                <HugeiconsIcon icon={r.icon} size={20} strokeWidth={1.8} />
+                            </span>
+                            <h3 className="mt-4 text-base font-bold" style={{ color: 'var(--cc-tx-1)' }}>{r.title}</h3>
+                            <p className="mt-2 text-sm" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.6 }}>{r.body}</p>
+                        </Surface>
+                    ))}
+                </div>
+
+                {/* FAQ nudge */}
+                <div className="mt-16 text-center">
+                    <p className="text-sm" style={{ color: 'var(--cc-tx-2)' }}>
+                        Still have questions about how it works?
+                    </p>
+                    <Button variant="ghost" size="md" className="mt-2" onClick={() => navigate('/faq')}>
+                        Read the FAQ <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+                    </Button>
+                </div>
             </div>
         </div>
     );

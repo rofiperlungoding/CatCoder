@@ -4,8 +4,17 @@ import type { EditorProps, OnMount, BeforeMount } from '@monaco-editor/react';
 import { LoadingSpinner } from '../ui';
 import { useThemeStore } from '../../stores';
 
-// Lazy load Monaco Editor (~400KB savings)
-const Editor = lazy(() => import('@monaco-editor/react').then(m => ({ default: m.default })));
+// Lazy load Monaco Editor. Monaco is bundled from the local `monaco-editor`
+// package (self-hosted via Vite) instead of the jsdelivr CDN, so the editor
+// and its workers load from same-origin /assets and work offline.
+const Editor = lazy(async () => {
+    const [{ setupMonaco }, mod] = await Promise.all([
+        import('./monacoSetup'),
+        import('@monaco-editor/react'),
+    ]);
+    setupMonaco();
+    return { default: mod.default };
+});
 
 interface CodeEditorProps extends EditorProps {
     value: string;

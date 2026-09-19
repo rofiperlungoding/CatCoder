@@ -1,12 +1,12 @@
 export interface Env {
-    /** Turso database URL, e.g. libsql://my-db-user.turso.io */
-    LIBSQL_DB_URL?: string;
-    /** Turso auth token (Worker secret). */
-    LIBSQL_DB_AUTH_TOKEN?: string;
-    /** Secret used to sign/scope sessions and derive PBKDF2 keys. */
+    LIBSQL_DB_URL: string;
+    LIBSQL_DB_AUTH_TOKEN: string;
     AUTH_SECRET: string;
-    /** Static assets binding (configured in wrangler.toml). */
-    ASSETS: { fetch: (request: Request) => Promise<Response> };
+    MISTRAL_API_KEY: string;
+    TURNSTILE_SECRET: string;
+    ALLOWED_ORIGIN: string;
+    RATE_LIMIT: KVNamespace;
+    ASSETS: Fetcher;
 }
 
 export interface SessionRow {
@@ -24,7 +24,7 @@ export interface UserRow {
     created_at: string;
 }
 
-export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
+export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
 export function json(body: unknown, status = 200, extraHeaders?: Record<string, string>): Response {
     return new Response(JSON.stringify(body), {

@@ -14,5 +14,5 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "../db/**/*.ts"]
 }

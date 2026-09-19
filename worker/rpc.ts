@@ -6,6 +6,7 @@
 import { getClient, queryOne, run } from './db';
 import { getUserFromRequest } from './auth';
 import { newId } from './crypto';
+import { updateElo } from './shared/elo';
 import { json, type Env } from './types';
 
 const XP_BY_TYPE: Record<string, number> = { lesson: 50, problem: 100, challenge: 25 };
@@ -91,6 +92,66 @@ async function submitCompletion(env: Env, request: Request, args: Record<string,
         },
         error: null,
     });
+}
+
+interface VerificationInput {
+    userId: string;
+    variantId: string;
+    difficulty: number;
+    won: boolean;
+    concept: string | null;
+    misconception: string | null;
+    hypothesis: string;
+    tests: { input: string; expected: string }[];
+}
+
+export async function applyVerificationResult(
+    env: Env,
+    input: VerificationInput
+): Promise<{ verificationRating: number; delta: number }> {
+    const client = getClient(env);
+
+    const profile = await queryOne(client, 'SELECT verification_rating FROM profiles WHERE id = ?', [
+        input.userId,
+    ]);
+    const current =
+        profile && profile.verification_rating != null ? Number(profile.verification_rating) : 1200;
+
+    const existingCorrect = await queryOne(
+        client,
+        'SELECT id FROM attempts WHERE user_id = ? AND variant_id = ? AND verdict = ? LIMIT 1',
+        [input.userId, input.variantId, 'correct']
+    );
+    if (existingCorrect) {
+        return { verificationRating: current, delta: 0 };
+    }
+
+    const next = updateElo(current, input.difficulty, input.won);
+    const delta = next - current;
+    const now = new Date().toISOString();
+
+    await run(client, 'UPDATE profiles SET verification_rating = ? WHERE id = ?', [
+        next,
+        input.userId,
+    ]);
+    await run(
+        client,
+        'INSERT INTO attempts (id, user_id, variant_id, hypothesis_text, submitted_tests, verdict, score, concept, misconception, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+            newId(),
+            input.userId,
+            input.variantId,
+            input.hypothesis,
+            JSON.stringify(input.tests),
+            input.won ? 'correct' : 'incorrect',
+            delta,
+            input.concept,
+            input.misconception,
+            now,
+        ]
+    );
+
+    return { verificationRating: next, delta };
 }
 
 export async function handleRpc(

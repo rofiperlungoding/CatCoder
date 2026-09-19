@@ -45,11 +45,16 @@ const statements = schema
 const client = createClient({ url, authToken });
 
 let ok = 0;
+let skipped = 0;
 for (const stmt of statements) {
     try {
         await client.execute(stmt);
         ok++;
     } catch (err) {
+        if (/duplicate column name/i.test(err.message)) {
+            skipped++;
+            continue;
+        }
         console.error('FAILED:', stmt.split('\n')[0], '\n ->', err.message);
         process.exit(1);
     }
@@ -59,5 +64,5 @@ for (const stmt of statements) {
 const rs = await client.execute(
     "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
 );
-console.log(`Applied ${ok} statements.`);
+console.log(`Applied ${ok} statements (${skipped} skipped as already present).`);
 console.log('Tables:', rs.rows.map((r) => r.name).join(', '));

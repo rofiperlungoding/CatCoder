@@ -7,6 +7,10 @@ interface LeaderboardRowProps {
     xp: number;
     avatarUrl?: string;
     isCurrentUser?: boolean;
+    /** Optional metric override (defaults to xp). */
+    metricValue?: number;
+    /** Optional metric label (defaults to "XP"). */
+    metricLabel?: string;
 }
 
 const RANK_ACCENT: Record<number, string> = {
@@ -21,6 +25,8 @@ export const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
     xp,
     avatarUrl,
     isCurrentUser = false,
+    metricValue,
+    metricLabel = 'XP',
 }) => (
     <div
         className="flex items-center gap-3 p-2 rounded-xl transition-colors"
@@ -56,7 +62,7 @@ export const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
                 {isCurrentUser ? 'You' : name}
             </p>
             <p className="cc-mono text-[10px]" style={{ color: 'var(--cc-tx-3)' }}>
-                {xp.toLocaleString()} XP
+                {(metricValue ?? xp).toLocaleString()} {metricLabel}
             </p>
         </div>
     </div>

@@ -1,177 +1,126 @@
-import { ComputerTerminal01Icon, Activity01Icon, CrownIcon, MessageProgrammingIcon, BrainIcon, Briefcase01Icon, ArrowRight01Icon, EnergyIcon } from '@hugeicons/core-free-icons';
-import { Icon, Button } from '../../components/ui';
+import {
+    ComputerTerminal01Icon, CheckmarkCircle02Icon, BugIcon, SparklesIcon,
+    Trophy, BookOpen01Icon, Target01Icon, ArrowRight01Icon, ShieldEnergyIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Surface, Button, Pill } from '../../components/ds';
+
+const FEATURES = [
+    {
+        icon: ComputerTerminal01Icon,
+        title: 'Runs in your browser',
+        body: 'Write and run Python and JavaScript with no setup. Python runs through Pyodide and JavaScript runs in a sandboxed worker, so nothing executes on a server.',
+    },
+    {
+        icon: CheckmarkCircle02Icon,
+        title: 'Instant local feedback',
+        body: 'Your tests run the moment you hit run, right on your machine. You see pass and fail results immediately while you work through a problem.',
+    },
+    {
+        icon: SparklesIcon,
+        title: 'AI review you can trust',
+        body: 'The AI judges your reasoning against the known answer and explains what you missed. It never reveals the defect when you are wrong, it nudges you.',
+    },
+    {
+        icon: Trophy,
+        title: 'XP, levels, and leagues',
+        body: 'Every solve feeds your XP, your streak, and your place on the global leaderboard, from Bronze all the way to Diamond.',
+    },
+    {
+        icon: BookOpen01Icon,
+        title: 'Structured lessons',
+        body: 'Interactive lessons in Python, JavaScript, and C++ take you from syntax and control flow to the core data structures, one step at a time.',
+    },
+    {
+        icon: Target01Icon,
+        title: 'A skill profile',
+        body: 'CatCoder tags every attempt with a concept and a misconception, then shows your strongest and weakest areas so you know what to practice next.',
+    },
+];
 
 export const FeaturesPage: React.FC = () => {
     const navigate = useNavigate();
 
-    const features = [
-        {
-            icon: <Icon icon={ComputerTerminal01Icon} size={32} />,
-            title: "Interactive Code Editor",
-            description: "Write, run, and debug code directly in your browser with our powerful Monaco-based editor. Supports Python, JavaScript, and C++.",
-            color: "text-blue-400",
-            bg: "bg-blue-500/10"
-        },
-        {
-            icon: <Icon icon={Activity01Icon} size={32} />,
-            title: "Instant Feedback",
-            description: "Get real-time feedback on your code. Our automated testing engine checks your solutions against multiple test cases in milliseconds.",
-            color: "text-amber-400",
-            bg: "bg-amber-500/10"
-        },
-        {
-            icon: <Icon icon={CrownIcon} size={32} />,
-            title: "Gamified Learning",
-            description: "Earn XP, maintain streaks, and climb the leaderboards. Unlock badges and achievements as you master new skills.",
-            color: "text-lime-400",
-            bg: "bg-lime-500/10"
-        },
-        {
-            icon: <Icon icon={MessageProgrammingIcon} size={32} />,
-            title: "Community & Peer Review",
-            description: "Connect with other learners, discuss solutions, and review code. Learning is better when we do it together.",
-            color: "text-purple-400",
-            bg: "bg-purple-500/10"
-        },
-        {
-            icon: <Icon icon={BrainIcon} size={32} />,
-            title: "AI-Powered Hints",
-            description: "Stuck on a problem? Our intelligent hints system guides you to the solution without giving it away instantly.",
-            color: "text-rose-400",
-            bg: "bg-rose-500/10"
-        },
-        {
-            icon: <Icon icon={Briefcase01Icon} size={32} />,
-            title: "Real-world Scenarios",
-            description: "Practice with challenges inspired by real-world interview questions and industry use cases.",
-            color: "text-teal-400",
-            bg: "bg-teal-500/10"
-        }
-    ];
-
     return (
-        <div className="pt-32 pb-20 space-y-24">
-            {/* Hero Section */}
-            <section className="px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lime-500/10 text-lime-400 border border-lime-500/20 text-sm font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <Icon icon={EnergyIcon} size={16} fill="currentColor" />
-                    <span>Supercharge your coding skills</span>
+        <div className="cc-root pt-32 pb-24 px-4 sm:px-6">
+            <div className="max-w-[1100px] mx-auto">
+                {/* Hero */}
+                <div className="text-center max-w-2xl mx-auto">
+                    <Pill variant="brand" className="mb-5">Features</Pill>
+                    <h1 className="cc-display text-4xl sm:text-5xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>
+                        Everything you need to verify code.
+                    </h1>
+                    <p className="mt-5 text-lg" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.6 }}>
+                        Learn the language, practice in a real runtime, then prove you can catch the AI when it
+                        writes code that only looks right.
+                    </p>
                 </div>
 
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-8 max-w-4xl leading-tight">
-                    Everything you need to become a <span className="text-lime-400">Master Developer</span>.
-                </h1>
-
-                <p className="text-xl text-gray-400 max-w-2xl mb-10 leading-relaxed">
-                    CatCoder provides a comprehensive ecosystem for learning, practicing, and competing.
-                    From hello world to system design, we've got you covered.
-                </p>
-
-                <div className="flex gap-4">
-                    <Button size="lg" className="rounded-full px-8 h-14 text-lg shadow-xl shadow-lime-500/20 bg-lime-400 text-black hover:bg-lime-300" onClick={() => navigate('/learn')}>
-                        Start for Free <Icon icon={ArrowRight01Icon} className="ml-2" />
-                    </Button>
-                </div>
-            </section>
-
-            {/* Features Grid */}
-            <section className="px-6 md:px-12 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {features.map((feature, index) => (
-                        <div
-                            key={index}
-                            className="bg-[#0a0a0a] p-8 rounded-[2.5rem] border border-white/5 shadow-sm transition-all duration-300 group hover:border-white/20"
-                        >
-                            <div className={`w-16 h-16 ${feature.bg} ${feature.color} rounded-2xl flex items-center justify-center mb-6 text-current transition-transform duration-300 border border-white/5`}>
-                                {feature.icon}
-                            </div>
-                            <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
-                            <p className="text-gray-400 leading-relaxed">
-                                {feature.description}
-                            </p>
-                        </div>
+                {/* Feature grid */}
+                <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {FEATURES.map((f) => (
+                        <Surface key={f.title} elevation={1} className="p-6">
+                            <span className="cc-icon-well w-11 h-11 text-lime-300 inline-flex" aria-hidden="true">
+                                <HugeiconsIcon icon={f.icon} size={20} strokeWidth={1.7} />
+                            </span>
+                            <h3 className="mt-4 text-lg font-bold" style={{ color: 'var(--cc-tx-1)' }}>{f.title}</h3>
+                            <p className="mt-2 text-sm" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.6 }}>{f.body}</p>
+                        </Surface>
                     ))}
                 </div>
-            </section>
 
-            {/* Bento Highlight */}
-            <section className="px-6 md:px-12 max-w-7xl mx-auto">
-                <div className="bg-[#0a0a0a] text-white rounded-[3rem] p-12 md:p-24 relative overflow-hidden border border-white/10">
-                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-[120px] -mr-32 -mt-32 pointer-events-none"></div>
-
-                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-16">
-                        <div className="flex-1 space-y-8">
-                            <h2 className="text-4xl md:text-5xl font-bold leading-tight text-white">
-                                Designed for <span className="text-lime-400">Efficiency</span> and <span className="text-lime-400">Focus</span>.
+                {/* Bug Arena highlight */}
+                <Surface elevation={3} glow className="mt-8 p-8 sm:p-12 overflow-hidden">
+                    <div className="flex flex-col lg:flex-row items-start gap-10">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="cc-icon-well w-10 h-10 text-lime-300 inline-flex" aria-hidden="true">
+                                    <HugeiconsIcon icon={BugIcon} size={20} />
+                                </span>
+                                <span className="cc-eyebrow">The Bug Arena</span>
+                            </div>
+                            <h2 className="cc-display text-2xl sm:text-3xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>
+                                Catch the AI when it writes code wrong.
                             </h2>
-                            <p className="text-gray-400 text-lg leading-relaxed max-w-xl">
-                                Our platform is built with a minimalist aesthetic to reduce distractions.
-                                The clean interface puts your code front and center, helping you enter the flow state faster and stay there longer.
+                            <p className="mt-4 text-sm" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.7 }}>
+                                The AI ships confident but buggy code. You write a hypothesis about the defect and a
+                                minimal failing test, run it in the browser, and the judge scores your verification
+                                with an Elo-style rating. It is the one skill an AI cannot do for you.
                             </p>
-                            <ul className="space-y-4">
-                                {[
-                                    "Distraction-free coding environment",
-                                    "Dark mode optimized for long sessions",
-                                    "Keyboard shortcuts for power users"
-                                ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-lg font-medium text-white">
-                                        <div className="w-6 h-6 rounded-full bg-lime-500/20 flex items-center justify-center text-lime-400 shrink-0">
-                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            </svg>
-                                        </div>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <Button size="lg" onClick={() => navigate('/arena')}>
+                                    Try it free <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                                </Button>
+                                <Button variant="secondary" size="lg" onClick={() => navigate('/faq')}>
+                                    How it works
+                                </Button>
+                            </div>
                         </div>
-                        <div className="flex-1 w-full relative">
-                            {/* Removed rotated background blob for cleaner look */}
-                            <div className="absolute inset-0 bg-lime-500/10 blur-3xl rounded-full opacity-50"></div>
-                            {/* Formal, non-rotated code box */}
-                            <div className="bg-[#151515] border border-white/10 rounded-[1.5rem] p-8 shadow-2xl relative">
-
-                                <div className="flex gap-2 mb-4">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                                    <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-                                </div>
-                                <div className="space-y-3 font-mono text-sm">
-                                    <div className="flex">
-                                        <span className="text-purple-400 w-8 text-right mr-4 select-none opacity-50">1</span>
-                                        <span className="text-blue-400">def</span> <span className="text-yellow-400">is_prime</span>(n):
-                                    </div>
-                                    <div className="flex">
-                                        <span className="text-gray-500 w-8 text-right mr-4 select-none opacity-50">2</span>
-                                        <span className="pl-4"><span className="text-purple-400">if</span> n &lt;= 1:</span>
-                                    </div>
-                                    <div className="flex">
-                                        <span className="text-gray-500 w-8 text-right mr-4 select-none opacity-50">3</span>
-                                        <span className="pl-8"><span className="text-purple-400">return</span> <span className="text-yellow-400">False</span></span>
-                                    </div>
-                                    <div className="flex">
-                                        <span className="text-gray-500 w-8 text-right mr-4 select-none opacity-50">4</span>
-                                        <span className="pl-4"><span className="text-purple-400">for</span> i <span className="text-purple-400">in</span> <span className="text-blue-400">range</span>(2, <span className="text-blue-400">int</span>(n**0.5) + 1):</span>
-                                    </div>
-                                    <div className="flex">
-                                        <span className="text-gray-500 w-8 text-right mr-4 select-none opacity-50">5</span>
-                                        <span className="pl-8"><span className="text-purple-400">if</span> n % i == 0:</span>
-                                    </div>
-                                    <div className="flex">
-                                        <span className="text-gray-500 w-8 text-right mr-4 select-none opacity-50">6</span>
-                                        <span className="pl-12"><span className="text-purple-400">return</span> <span className="text-yellow-400">False</span></span>
-                                    </div>
-                                    <div className="flex">
-                                        <span className="text-gray-500 w-8 text-right mr-4 select-none opacity-50">7</span>
-                                        <span className="pl-4"><span className="text-purple-400">return</span> <span className="text-yellow-400">True</span></span>
-                                    </div>
+                        <div className="w-full lg:w-80 shrink-0">
+                            <div className="rounded-xl p-5 cc-mono text-[13px] leading-relaxed" style={{ background: 'var(--cc-surface-1)', boxShadow: 'var(--cc-well)' }}>
+                                <div style={{ color: 'var(--cc-tx-3)' }}>$ run failing test</div>
+                                <div className="mt-2" style={{ color: 'var(--cc-wa)' }}>x is_prime(1) returned true</div>
+                                <div style={{ color: 'var(--cc-ac)' }}>+ expected false</div>
+                                <div className="mt-3 flex items-center gap-2" style={{ color: 'var(--cc-brand-1)' }}>
+                                    <HugeiconsIcon icon={ShieldEnergyIcon} size={14} /> verified: off-by-one boundary
                                 </div>
                             </div>
                         </div>
                     </div>
+                </Surface>
+
+                {/* Closing CTA */}
+                <div className="mt-16 text-center">
+                    <h2 className="cc-display text-2xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>Start in one click.</h2>
+                    <p className="mt-2 text-sm" style={{ color: 'var(--cc-tx-2)' }}>Free, runs in any browser, no account needed to try.</p>
+                    <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center">
+                        <Button size="lg" onClick={() => navigate('/learn')}>Start learning</Button>
+                        <Button variant="secondary" size="lg" onClick={() => navigate('/arena')}>Open the Bug Arena</Button>
+                    </div>
                 </div>
-            </section>
+            </div>
         </div>
     );
 };

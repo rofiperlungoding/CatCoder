@@ -1,5 +1,5 @@
 import {
-    ProgrammingFlagIcon, BookOpen01Icon, FireIcon, Location01Icon, Edit02Icon,
+    ProgrammingFlagIcon, BookOpen01Icon, FireIcon, Trophy, Edit02Icon,
     CheckmarkBadge01Icon, ArrowRight01Icon, SparklesIcon, ArrowDown01Icon, Calendar01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -8,8 +8,9 @@ import { Avatar } from '../../components/ui';
 import { Button, Progress } from '../../components/ds';
 import { EditProfileModal } from '../../components/profile/EditProfileModal';
 import { ContributionGraph } from '../../components/profile/ContributionGraph';
+import { VerificationSection } from '../../components/profile/VerificationSection';
 import { useUserStore, useProgressStore, useUIStore } from '../../stores';
-import { calculateLevelProgress, formatXP } from '../../lib/utils';
+import { calculateLevelProgress, formatXP, getRankDisplayName } from '../../lib/utils';
 import { loadAllLessons } from '../../data/lessons';
 import { problems as allProblems } from '../../data/problems';
 import { openaiClient } from '../../services/ai/openaiClient';
@@ -93,9 +94,10 @@ export const ProfilePage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                         <h1 className="text-3xl font-bold truncate" style={{ color: 'var(--cc-tx-1)' }}>{user.username}</h1>
                         <div className="flex flex-wrap items-center gap-2 mt-3">
-                            <span className="cc-pill text-[11px]"><HugeiconsIcon icon={Location01Icon} size={12} /> Global</span>
+                            <span className={`cc-pill cc-league cc-league-${user.rank} text-[11px]`} style={{ textTransform: 'capitalize' }}>
+                                <HugeiconsIcon icon={Trophy} size={12} /> {getRankDisplayName(user.rank)} League
+                            </span>
                             <span className="cc-pill text-[11px]"><HugeiconsIcon icon={Calendar01Icon} size={12} /> Joined {joined}</span>
-                            <span className="cc-pill cc-pill-brand text-[11px]">PRO</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2.5 shrink-0">
@@ -168,6 +170,9 @@ export const ProfilePage: React.FC = () => {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Verification rating + skill profile (Bug Arena) */}
+                        <VerificationSection />
 
                         {/* Contribution graph */}
                         <div className="cc-glass p-6 md:p-7" style={{ borderRadius: 'var(--cc-r-lg)' }}>

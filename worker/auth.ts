@@ -9,6 +9,7 @@ import type { Client } from '@libsql/client/web';
 import { getClient, queryOne, run } from './db';
 import { hashPassword, verifyPassword, newToken, newId } from './crypto';
 import { json, SESSION_TTL_MS, type Env, type UserRow, type SessionRow } from './types';
+import { checkRateLimit } from './shared/rateLimit';
 
 function sessionUser(user: UserRow) {
     return {
@@ -80,38 +81,21 @@ export async function handleSignUp(env: Env, body: { email?: string; password?: 
 }
 
 /* ------------------------------------------------------------------ */
-/* signin rate limiting (per email, in-memory sliding window)          */
+/* signin rate limiting (per email, KV-backed sliding window)          */
 /* ------------------------------------------------------------------ */
 
 const SIGNIN_MAX_ATTEMPTS = 10;
-const SIGNIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const SIGNIN_WINDOW_SEC = 15 * 60; // 15 minutes in seconds
 
-interface AttemptBucket {
-    timestamps: number[];
-}
-const signinBuckets = new Map<string, AttemptBucket>();
-
-function checkSigninRateLimit(email: string): boolean {
-    const now = Date.now();
-    const cutoff = now - SIGNIN_WINDOW_MS;
-    let bucket = signinBuckets.get(email);
-    if (!bucket) {
-        bucket = { timestamps: [] };
-        signinBuckets.set(email, bucket);
-    }
-    // Drop timestamps outside the window.
-    bucket.timestamps = bucket.timestamps.filter((t) => t > cutoff);
-    if (bucket.timestamps.length >= SIGNIN_MAX_ATTEMPTS) return false;
-    bucket.timestamps.push(now);
-    return true;
-}
-
-export async function handleSignIn(env: Env, body: { email?: string; password?: string }) {
+export async function handleSignIn(env: Env, body: { email?: string; password?: string }, request?: Request) {
     const client = getClient(env);
     const email = (body.email || '').trim().toLowerCase();
     const password = body.password || '';
 
-    if (!checkSigninRateLimit(email)) {
+    // If request is provided, we can also rate limit by IP, but since the old logic
+    // was by email, we'll rate limit by email using KV.
+    const isAllowed = await checkRateLimit(env.RATE_LIMIT, `signin:${email}`, SIGNIN_MAX_ATTEMPTS, SIGNIN_WINDOW_SEC);
+    if (!isAllowed) {
         return json(
             { error: 'Too many login attempts. Please try again in 15 minutes.' },
             429,

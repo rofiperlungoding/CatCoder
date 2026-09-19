@@ -1,4 +1,4 @@
-import { ArrowUpRight01Icon, Menu01Icon, Cancel01Icon, ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { ArrowUpRight01Icon, Menu01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Icon } from '../ui';
 import { Button } from '../ds';
@@ -8,7 +8,7 @@ const links = [
     { path: '/', label: 'Home' },
     { path: '/features', label: 'Features' },
     { path: '/pricing', label: 'Pricing' },
-    { path: '/about', label: 'About' }
+    { path: '/faq', label: 'FAQ' }
 ];
 
 export const PublicLayout: React.FC = () => {
@@ -127,9 +127,6 @@ export const PublicLayout: React.FC = () => {
                         <Button variant="primary" size="sm" className="hidden md:inline-flex" onClick={() => navigate('/login')}>
                             Start Learning <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} strokeWidth={2} />
                         </Button>
-                        <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-                            eng <Icon icon={ArrowDown01Icon} size={12} strokeWidth={2} />
-                        </Button>
 
                         {/* Mobile Menu Toggle */}
                         <Button variant="ghost" size="sm" iconOnly className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -146,6 +143,7 @@ export const PublicLayout: React.FC = () => {
                         <Link to="/" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-1)' }} onClick={() => setIsMenuOpen(false)}>Home</Link>
                         <Link to="/features" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>Features</Link>
                         <Link to="/pricing" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>Pricing</Link>
+                        <Link to="/faq" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>FAQ</Link>
                         <Link to="/about" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>About</Link>
                         <Link to="/contact" className="text-2xl font-semibold" style={{ color: 'var(--cc-tx-2)' }} onClick={() => setIsMenuOpen(false)}>Contact</Link>
                         <hr className="my-4" style={{ border: 'none', borderTop: '1px solid var(--cc-border)' }} />
@@ -169,44 +167,37 @@ export const PublicLayout: React.FC = () => {
                                 <span className="font-bold text-2xl tracking-tight" style={{ color: 'var(--cc-tx-1)', fontFamily: 'var(--cc-font-display)' }}>CatCoder</span>
                             </div>
                             <p className="leading-relaxed" style={{ color: 'var(--cc-tx-2)' }}>
-                                The best place to learn, practice, and master programming. Join our community of 100,000+ developers today.
+                                Learn to code, then prove you can catch the AI when it writes code wrong. Free, in your browser, no account needed to try.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-24">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-24">
                             <div className="flex flex-col gap-4">
                                 <h4 className="cc-eyebrow">Product</h4>
-                                <Link to="/learn" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Learn</Link>
-                                <Link to="/practice" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Practice</Link>
-                                <Link to="/compete" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Compete</Link>
-                            </div>
-                            <div className="flex flex-col gap-4">
-                                <h4 className="cc-eyebrow">Services</h4>
                                 <Link to="/features" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Features</Link>
+                                <Link to="/arena" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Bug Arena</Link>
+                                <Link to="/pricing" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Pricing</Link>
                             </div>
                             <div className="flex flex-col gap-4">
                                 <h4 className="cc-eyebrow">Company</h4>
                                 <Link to="/about" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>About</Link>
+                                <Link to="/faq" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>FAQ</Link>
                                 <Link to="/contact" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Contact</Link>
-                                <Link to="/pricing" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Pricing</Link>
                             </div>
                             <div className="flex flex-col gap-4">
-                                <h4 className="cc-eyebrow">Legal</h4>
-                                <span className="text-sm font-medium transition-colors cursor-pointer" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Privacy</span>
-                                <span className="text-sm font-medium transition-colors cursor-pointer" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Terms</span>
+                                <h4 className="cc-eyebrow">Get started</h4>
+                                <Link to="/arena" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Play as guest</Link>
+                                <Link to="/login" className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-tx-2)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--cc-tx-1)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--cc-tx-2)'}>Sign in</Link>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex flex-col md:flex-row justify-between items-center pt-8 gap-4" style={{ borderTop: '1px solid var(--cc-border)' }}>
                         <div className="text-xs font-semibold" style={{ color: 'var(--cc-tx-3)' }}>
-                            © 2024 CatCoder. All rights reserved.
+                            © 2026 CatCoder. Free for everyone.
                         </div>
                         <div className="text-xs font-semibold" style={{ color: 'var(--cc-tx-3)' }}>
-                            hello@catcoder.com
-                        </div>
-                        <div className="text-xs font-semibold" style={{ color: 'var(--cc-tx-3)' }}>
-                            San Francisco, CA
+                            hello@catcoder.online
                         </div>
                     </div>
                 </div>

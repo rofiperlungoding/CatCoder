@@ -1,72 +1,94 @@
-import { FavouriteIcon, Target01Icon, Globe, UserGroupIcon } from '@hugeicons/core-free-icons';
-import { Icon } from '../../components/ui';
+import { Target01Icon, ShieldEnergyIcon, Globe, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Surface, Button, Pill } from '../../components/ds';
+
+const VALUES = [
+    {
+        icon: Target01Icon,
+        title: 'Verification first',
+        body: 'Anyone can accept code that looks right. CatCoder trains the harder skill: proving whether code is actually correct.',
+    },
+    {
+        icon: ShieldEnergyIcon,
+        title: 'Keep a human in the loop',
+        body: 'As AI writes more code, the risk is becoming a passive accepter. We practice the critical review that keeps people in control.',
+    },
+    {
+        icon: Globe,
+        title: 'Open to anyone',
+        body: 'Free, in any modern browser, with a guest path that needs no account. Open to anyone aged 13 and up.',
+    },
+];
+
 export const AboutPage: React.FC = () => {
+    const navigate = useNavigate();
+
     return (
-        <div className="pt-32 pb-20 space-y-24">
-            {/* Hero */}
-            <section className="px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center text-center">
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-8 max-w-4xl leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-backwards">
-                    Empowering the next generation of <span className="text-lime-400">Builders</span>.
-                </h1>
-                <p className="text-xl text-gray-400 max-w-2xl mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-backwards">
-                    CatCoder is on a mission to democratize coding education. We believe anyone can master the art of programming with the right tools and community.
-                </p>
-            </section>
+        <div className="cc-root pt-32 pb-24 px-4 sm:px-6">
+            <div className="max-w-[900px] mx-auto">
+                {/* Hero */}
+                <div className="text-center max-w-2xl mx-auto">
+                    <Pill variant="brand" className="mb-5">About</Pill>
+                    <h1 className="cc-display text-4xl sm:text-5xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>
+                        Training the skill the AI cannot replace.
+                    </h1>
+                    <p className="mt-5 text-lg" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.6 }}>
+                        CatCoder taught people to write code. The Bug Arena tests whether you can catch the AI when
+                        it writes it wrong.
+                    </p>
+                </div>
 
-            {/* Values */}
-            <section className="px-6 md:px-12 max-w-7xl mx-auto">
-                <div className="bg-[#0a0a0a] text-white rounded-[3rem] p-12 md:p-24 relative overflow-hidden border border-white/10">
-                    <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-[120px] -ml-32 -mt-32 pointer-events-none"></div>
+                {/* Why it matters */}
+                <Surface elevation={2} className="mt-12 p-8 sm:p-10">
+                    <span className="cc-eyebrow">Why it matters</span>
+                    <p className="mt-4 text-base" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.7 }}>
+                        As AI writes more of our code, learners risk becoming passive accepters who cannot tell
+                        correct code from plausible but wrong code. That leads to skill atrophy, unsafe software, and
+                        a widening gap between people who can audit AI and people who blindly trust it. CatCoder
+                        trains critical verification, and it teaches as it tests through misconception feedback.
+                    </p>
+                </Surface>
 
-                    <div className="relative z-10">
-                        <h2 className="text-3xl font-bold mb-16 text-center text-white">Our Core Values</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-                            <div className="space-y-4">
-                                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-lime-400 border border-white/5">
-                                    <Icon icon={Target01Icon} size={24} />
-                                </div>
-                                <h3 className="text-xl font-bold text-white">Excellence</h3>
-                                <p className="text-gray-400">We strive for the highest quality in our curriculum and platform experience.</p>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-rose-400 border border-white/5">
-                                    <Icon icon={FavouriteIcon} size={24} />
-                                </div>
-                                <h3 className="text-xl font-bold text-white">Passion</h3>
-                                <p className="text-gray-400">We love code, and we want to share that excitement with the world.</p>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-blue-400 border border-white/5">
-                                    <Icon icon={Globe} size={24} />
-                                </div>
-                                <h3 className="text-xl font-bold text-white">Accessibility</h3>
-                                <p className="text-gray-400">Education should be open to everyone, everywhere, regardless of background.</p>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-amber-400 border border-white/5">
-                                    <Icon icon={UserGroupIcon} size={24} />
-                                </div>
-                                <h3 className="text-xl font-bold text-white">Community</h3>
-                                <p className="text-gray-400">Learning is a social activity. We build bridges between learners.</p>
-                            </div>
-                        </div>
+                {/* Values */}
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    {VALUES.map((v) => (
+                        <Surface key={v.title} elevation={1} className="p-6">
+                            <span className="cc-icon-well w-10 h-10 text-lime-300 inline-flex" aria-hidden="true">
+                                <HugeiconsIcon icon={v.icon} size={20} strokeWidth={1.8} />
+                            </span>
+                            <h3 className="mt-4 text-base font-bold" style={{ color: 'var(--cc-tx-1)' }}>{v.title}</h3>
+                            <p className="mt-2 text-sm" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.6 }}>{v.body}</p>
+                        </Surface>
+                    ))}
+                </div>
+
+                {/* How it works, briefly */}
+                <Surface elevation={2} className="mt-8 p-8 sm:p-10">
+                    <span className="cc-eyebrow">How it works</span>
+                    <p className="mt-4 text-base" style={{ color: 'var(--cc-tx-2)', lineHeight: 1.7 }}>
+                        An AI generates confident but buggy code. You write a hypothesis about the defect plus a
+                        minimal failing test, and the browser runs those tests locally for instant feedback. The AI
+                        then judges your hypothesis against the stored answer and returns a verdict without revealing
+                        the bug. A server-side, Elo-style verification rating moves with each result, and every
+                        attempt is tagged with a concept and a misconception that feed your skill profile.
+                    </p>
+                </Surface>
+
+                {/* CTA */}
+                <div className="mt-16 text-center">
+                    <h2 className="cc-display text-2xl font-bold" style={{ color: 'var(--cc-tx-1)' }}>See it for yourself.</h2>
+                    <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center">
+                        <Button size="lg" onClick={() => navigate('/arena')}>
+                            Play the Bug Arena <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                        </Button>
+                        <Button variant="secondary" size="lg" onClick={() => navigate('/features')}>
+                            Explore features
+                        </Button>
                     </div>
                 </div>
-            </section>
-
-            {/* Story */}
-            <section className="px-6 md:px-12 max-w-4xl mx-auto text-center space-y-8">
-                <h2 className="text-3xl font-bold text-white">Our Story</h2>
-                <div className="prose prose-lg mx-auto text-gray-400">
-                    <p>
-                        CatCoder started as a small project in a university dorm room. We realized that traditional coding tutorials were boring, static, and lonely. We wanted to create something alive.
-                    </p>
-                    <p>
-                        By combining interactive challenges, gamification, and a supportive community, we've helped over 100,000 students write their first line of code. And we're just getting started.
-                    </p>
-                </div>
-            </section>
+            </div>
         </div>
     );
 };

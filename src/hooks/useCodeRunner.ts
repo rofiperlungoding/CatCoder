@@ -125,10 +125,6 @@ sys.stdout = io.StringIO()
 
         if (language === 'python') runCommand = 'python3 main.py';
         else if (language === 'javascript') runCommand = 'node main.js';
-        else if (language === 'cpp') {
-            compileCommand = 'g++ main.cpp -o main';
-            runCommand = './main';
-        }
 
         // 1. Compile (if needed)
         if (compileCommand) {
@@ -137,7 +133,7 @@ sys.stdout = io.StringIO()
         }
 
         // 2. Run
-        await addLog({ type: 'command', message: runCommand }, 400);
+        if (runCommand) await addLog({ type: 'command', message: runCommand }, 400);
 
         // 3. Execution (Sandboxed JS, Pyodide Python, or Mock C++)
         let output = '';
@@ -148,11 +144,9 @@ sys.stdout = io.StringIO()
             await addLog({ type: 'system', message: 'Initializing Python Environment...' }, 100);
             output = await executePython(code);
         } else if (language === 'cpp') {
-            // C++ Mock Fallback (Regex)
-            const coutMatch = code.match(/cout\s*<<\s*['"](.*?)['"]/g);
-            if (coutMatch) {
-                output = coutMatch.map(c => c.replace(/cout\s*<<\s*['"]/g, '').replace(/['"]$/g, '')).join('\n');
-            }
+            // In-browser C++ execution is not available (no compiler in the
+            // browser). Be honest rather than faking output with a regex.
+            output = 'Error: In-browser C++ execution is not available yet. Switch to Python or JavaScript to run and verify your solution.';
         }
 
         // 4. Output Logs

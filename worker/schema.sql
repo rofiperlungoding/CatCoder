@@ -63,3 +63,38 @@ CREATE INDEX IF NOT EXISTS idx_progress_user ON user_progress (user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_progress_unique
   ON user_progress (user_id, content_type, content_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
+
+-- Bug Arena: server-authoritative verification rating on the profile.
+-- ALTER is idempotent via apply-schema.mjs (duplicate-column errors are skipped).
+ALTER TABLE profiles ADD COLUMN verification_rating INTEGER NOT NULL DEFAULT 1200;
+
+CREATE TABLE IF NOT EXISTS buggy_variants (
+  id              TEXT PRIMARY KEY,
+  prompt          TEXT NOT NULL,
+  language        TEXT NOT NULL DEFAULT 'python',
+  code            TEXT NOT NULL,
+  bug_type        TEXT NOT NULL,
+  bug_explanation TEXT NOT NULL,
+  misconception   TEXT NOT NULL,
+  failing_tests   TEXT NOT NULL,
+  difficulty      INTEGER NOT NULL DEFAULT 1200
+);
+
+CREATE TABLE IF NOT EXISTS attempts (
+  id              TEXT PRIMARY KEY,
+  user_id         TEXT NOT NULL,
+  variant_id      TEXT NOT NULL,
+  hypothesis_text TEXT NOT NULL,
+  submitted_tests TEXT,
+  verdict         TEXT NOT NULL,
+  score           INTEGER NOT NULL,
+  concept         TEXT,
+  misconception   TEXT,
+  created_at      TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (variant_id) REFERENCES buggy_variants(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_buggy_variants_lang ON buggy_variants (language);
+CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts (user_id);
+CREATE INDEX IF NOT EXISTS idx_attempts_variant ON attempts (variant_id);

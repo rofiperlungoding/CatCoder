@@ -717,3 +717,163 @@ body {
 .cc-scroll::-webkit-scrollbar-track { background: transparent; }
 .cc-scroll::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,.10); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
 .cc-scroll::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,.18); background-clip: content-box; }
+
+/* ============================================================================
+   Landing (marketing homepage) — brutalist-arcade editorial layer.
+   Scoped behind .lp-root; reuses the cc-* token system.
+   ========================================================================== */
+.lp-root {
+  --lp-bg: var(--cc-bg);
+  --lp-raised: var(--cc-surface-2);
+  --lp-bg3: var(--cc-surface-3);
+  --lp-sunken: var(--cc-bg);
+  --lp-glass: rgba(24, 26, 30, 0.6);
+  --lp-border: var(--cc-border);
+  --lp-border-loud: rgba(255, 255, 255, 0.14);
+  --lp-veil: rgba(163, 230, 53, 0.1);
+  --lime-glow: rgba(163, 230, 53, 0.3);
+  background: var(--cc-bg);
+  color: var(--cc-tx-1);
+  font-family: var(--cc-font-sans);
+  position: relative;
+  overflow-x: clip;
+}
+
+/* Elevation model — reuse the app's soft-UI / clay depth (inset lit top edge +
+   layered drop shadow) so the homepage reads exactly like the dashboard. */
+.lp-e1 {
+  background-color: var(--cc-surface-2);
+  background-image: var(--cc-surface-sheen);
+  border: 1px solid var(--cc-border);
+  box-shadow: var(--cc-e1);
+}
+.lp-e2 {
+  background-color: var(--cc-surface-2);
+  background-image: var(--cc-surface-sheen);
+  border: 1px solid var(--cc-border);
+  box-shadow: var(--cc-e2);
+}
+.lp-e3 {
+  background-color: var(--cc-surface-2);
+  background-image: var(--cc-surface-sheen);
+  border: 1px solid var(--cc-border);
+  box-shadow: var(--cc-e3), var(--cc-glow-brand);
+}
+.lp-lift { transition: box-shadow 280ms ease, border-color 280ms ease, transform 280ms ease; }
+
+/* Perspective stage + spotlight surface. */
+.lp-stage { perspective: 1200px; transform-style: preserve-3d; }
+.lp-spot { position: relative; }
+.lp-spot::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.06), transparent 60%);
+}
+.lp-spot:hover::before { opacity: 1; }
+
+/* Ambient studio light behind hero product cluster. */
+.lp-ambient {
+  background: radial-gradient(closest-side, var(--lp-veil), transparent 75%);
+  filter: blur(10px);
+}
+
+/* FIG technical caption. */
+.lp-fig {
+  font-family: var(--cc-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cc-tx-3);
+}
+
+/* Film grain overlay — fixed, decorative, never intercepts pointer events. */
+.lp-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Blueprint grid — faint dotted lattice for technical-drawing feel. */
+.lp-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+.lp-dot-bg {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Stroke-only (outline) display text bleeding off-grid as background. */
+.lp-stroke {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--lp-border-loud);
+  text-stroke: 1.5px var(--lp-border-loud);
+}
+.lp-stroke-lime {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--cc-brand-2);
+  text-stroke: 2px var(--cc-brand-2);
+}
+
+/* Infinite marquee band. */
+@keyframes lp-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.lp-marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  will-change: transform;
+  animation: lp-marquee var(--lp-marquee-dur, 32s) linear infinite;
+}
+.lp-marquee-track[data-reverse="true"] { animation-direction: reverse; }
+.lp-marquee:hover .lp-marquee-track { animation-play-state: paused; }
+
+/* Vertical rotated section marker. */
+.lp-vlabel {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+/* Blinking terminal cursor. */
+@keyframes lp-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.lp-cursor { animation: lp-blink 1.05s step-end infinite; }
+
+/* Live pulse dot. */
+@keyframes lp-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(190, 242, 100, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(190, 242, 100, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(190, 242, 100, 0); }
+}
+.lp-live-dot { animation: lp-pulse 2s ease-out infinite; }
+
+/* Hairline tick marks / coordinate labels keep editorial precision. */
+.lp-tick { background: repeating-linear-gradient(90deg, var(--lp-border) 0 1px, transparent 1px 12px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-marquee-track { animation: none !important; }
+  .lp-cursor { animation: none !important; opacity: 1 !important; }
+  .lp-live-dot { animation: none !important; }
+}
+
+/* ============================================================================
+   Lenis smooth scroll — recommended base styles.
+   ========================================================================== */
+html.lenis,
+html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }

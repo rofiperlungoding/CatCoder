@@ -31,6 +31,13 @@ analytics.init();
 // Requirements 7.1, 7.2, 7.4: Monitor DOM for unauthorized script/iframe injections
 initializeDOMMonitor({
   enabled: isProduction,
+  // The app legitimately loads the Pyodide Python runtime from the sanctioned
+  // jsdelivr CDN (per the project bible). Monaco is self-hosted via Vite, so
+  // only Pyodide needs an allowance here; all other injected scripts are
+  // still removed.
+  allowedScriptSources: [
+    'cdn.jsdelivr.net/pyodide',
+  ],
   onViolation: (_element, type) => {
     console.warn(`[Security] Removed unauthorized ${type} injection`);
     // TODO: Integrate with security logger when implemented (Task 12)

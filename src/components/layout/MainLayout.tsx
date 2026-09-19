@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { CommandPalette } from './CommandPalette';
 import { Modal, Input, Button, Toaster, LevelUpModal } from '../ui';
 import { useUserStore, useUIStore } from '../../stores';
+import { useSmoothScroll } from '../../hooks/useSmoothScroll';
 
 export const MainLayout: React.FC = () => {
     const { signIn, signUp, initializeSession } = useUserStore();
@@ -18,6 +19,8 @@ export const MainLayout: React.FC = () => {
     // Hide sidebar on active lesson/practice routes (e.g., /learn/abc, /practice/123)
     // But show it on the main lists (/learn, /practice)
     const isFocusMode = /^\/(learn|practice)\/.+/.test(location.pathname);
+
+    useSmoothScroll(!isFocusMode);
 
     useEffect(() => {
         initializeSession();
