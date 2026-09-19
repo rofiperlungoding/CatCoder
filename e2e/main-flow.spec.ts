@@ -1,35 +1,45 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * Main navigation flows. These intentionally have no fallback branches:
+ * a missing element fails the test instead of silently exercising a
+ * different path (the previous version always passed, even with a
+ * completely broken UI, because every locator had an else-goto fallback).
+ *
+ * Both flows run against `npm run dev` (local backend, no network), so the
+ * Arena page must render its shell even though /api/arena/problem is
+ * unavailable — that is asserted explicitly.
+ */
 test.describe('CatCoder Main Flows', () => {
-  test('should load landing page and navigate to Arena', async ({ page }) => {
+  test('landing navigates to the Bug Arena via the nav link', async ({ page }) => {
     await page.goto('/');
-    
-    // Check if branding is there
-    await expect(page.getByText('CatCoder', { exact: false }).first()).toBeVisible();
-    
-    // Navigate to Bug Arena
-    const arenaLink = page.getByRole('link', { name: /Arena|Bug Arena/i }).first();
-    if (await arenaLink.isVisible()) {
-      await arenaLink.click();
-      await expect(page).toHaveURL(/.*\/arena/);
-    } else {
-      // Direct navigation if link not found
-      await page.goto('/arena');
-      await expect(page.getByText(/Arena/i).first()).toBeVisible();
-    }
+
+    const arenaLink = page.getByRole('link', { name: 'Bug Arena' }).first();
+    await expect(arenaLink).toBeVisible();
+    await arenaLink.click();
+
+    await expect(page).toHaveURL(/\/arena\/?$/);
+
+    // The Arena shell renders its title even when the API has no problems
+    // to serve (local dev backend).
+    await expect(page.getByText('Bug Arena').first()).toBeVisible();
   });
 
-  test('should allow navigating to login page', async ({ page }) => {
+  test('landing navigates to the login page', async ({ page }) => {
     await page.goto('/');
-    
-    const loginLink = page.getByRole('link', { name: /Sign In|Login/i }).first();
-    if (await loginLink.isVisible()) {
-      await loginLink.click();
-      await expect(page).toHaveURL(/.*\/login/);
-      await expect(page.getByRole('button', { name: /Sign In|Login/i })).toBeVisible();
-    } else {
-      await page.goto('/login');
-      await expect(page.getByRole('button', { name: /Sign In|Login/i })).toBeVisible();
-    }
+
+    // The landing nav renders Sign in as a button (SPA navigate), not an anchor.
+    const signInButton = page.getByRole('button', { name: 'Sign in' }).first();
+    await expect(signInButton).toBeVisible();
+    await signInButton.click();
+
+    await expect(page).toHaveURL(/\/login\/?$/);
+    await expect(page.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
+  });
+
+  test('/arena is a valid route rendering its shell without an API', async ({ page }) => {
+    await page.goto('/arena');
+
+    await expect(page.getByText('Bug Arena').first()).toBeVisible();
   });
 });
