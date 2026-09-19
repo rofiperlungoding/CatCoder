@@ -92,3 +92,7 @@ export default {
         return env.ASSETS.fetch(request);
     },
 };
+
+// Durable Object classes must be exported from the entry module so the
+// runtime can bind and instantiate them (see wrangler.toml migrations).
+export { RateLimiterDurableObject } from './shared/rateLimiterDo';

@@ -8,6 +8,8 @@ export interface Env {
     TURNSTILE_SECRET: string;
     ALLOWED_ORIGINS: string;
     RATE_LIMIT: KVNamespace;
+    /** Durable Object namespace backing the authoritative rate limiter. */
+    RATE_LIMITER_DO: DurableObjectNamespace;
     ASSETS: Fetcher;
 }
 

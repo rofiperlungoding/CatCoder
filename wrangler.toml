@@ -32,10 +32,23 @@ MISTRAL_MODEL = "codestral-latest"
 # listed; /api responses echo the request Origin only when it appears here.
 ALLOWED_ORIGINS = "https://catcoder.online,https://www.catcoder.online"
 
-# Workers KV namespace used for abuse control and rate limiting.
+# Workers KV namespace (legacy, kept for rollback) — the authoritative
+# limiter is now the RATE_LIMITER_DO Durable Object below.
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
 id = "72707135c41f4422831b2afc42b2b1ed"
+
+# Durable Object backing the rate limiter. One DO instance per identity
+# ("judge:<ip>", "signin:email:<addr>", "signin:ip:<addr>"), so the window
+# counter is exact across every Worker isolate — KV alone is eventually
+# consistent and lets concurrent requests race past the limit.
+[[durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "RateLimiterDurableObject"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiterDurableObject"]
 
 [observability]
 enabled = true

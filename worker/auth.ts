@@ -81,7 +81,7 @@ export async function handleSignUp(env: Env, body: { email?: string; password?: 
 }
 
 /* ------------------------------------------------------------------ */
-/* signin rate limiting (per email, KV-backed sliding window)          */
+/* signin rate limiting (per email + per IP, Durable Object window)   */
 /* ------------------------------------------------------------------ */
 
 const SIGNIN_MAX_ATTEMPTS = 10;
@@ -97,11 +97,12 @@ export async function handleSignIn(
     const password = body.password || '';
 
     // Dual-axis limiter: per-credential (stops one account being pounded) and
-    // per-IP (stops one host spraying many accounts). Both are KV-backed so
-    // they survive isolate recycling; see rateLimit.ts for the KV caveat.
+    // per-IP (stops one host spraying many accounts). Backed by the
+    // RATE_LIMITER_DO Durable Object, so counters are exact across all
+    // Worker isolates — KV alone is eventually consistent.
     const ip = clientIp(request);
     const emailAllowed = await checkRateLimit(
-        env.RATE_LIMIT,
+        env,
         `signin:email:${email}`,
         SIGNIN_MAX_ATTEMPTS,
         SIGNIN_WINDOW_SEC
@@ -113,7 +114,7 @@ export async function handleSignIn(
         );
     }
     const ipAllowed = await checkRateLimit(
-        env.RATE_LIMIT,
+        env,
         `signin:ip:${ip}`,
         SIGNIN_MAX_ATTEMPTS,
         SIGNIN_WINDOW_SEC

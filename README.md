@@ -160,8 +160,10 @@ npx wrangler secret put AUTH_SECRET
 npx wrangler secret put MISTRAL_API_KEY
 npx wrangler secret put TURNSTILE_SECRET
 ```
-- Declare the `RATE_LIMIT` KV namespace in `wrangler.toml`. Create it with
-  `npx wrangler kv namespace create RATE_LIMIT` and paste the returned id.
+- Rate limiting is backed by a Durable Object (`RATE_LIMITER_DO` binding,
+  declared in `wrangler.toml` with its migration) — no KV setup required.
+  The legacy `RATE_LIMIT` KV binding stays declared as a rollback path but
+  is no longer read or written.
 
 ### 3. Local development
 ```bash

@@ -29,6 +29,7 @@ vi.mock('../rpc', () => ({
 }));
 
 vi.mock('../shared/rateLimit', () => ({
+    // New DO-backed signature: (env, identity, limit, windowSeconds).
     checkRateLimit: vi.fn(async () => true),
     clientIp: vi.fn(() => '1.2.3.4'),
 }));
