@@ -30,7 +30,7 @@ import { join } from 'node:path';
 const APPLY = process.argv.includes('--apply');
 
 // Identifiers that were created by automated probes/EPs during testing.
-const PREFIXES = ['cc_smoke', 'cc_sec', 'cc-rl', 'cc-sec', 'prodprobe', 'probe'];
+const PREFIXES = ['cc_smoke', 'cc_sec', 'cc-rl', 'cc-sec', 'prodprobe', 'probe', 'prodaudit'];
 
 const TABLES = {
     app_logs: 'user_id',
