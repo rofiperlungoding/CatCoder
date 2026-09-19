@@ -4,7 +4,7 @@ export interface Env {
     AUTH_SECRET: string;
     MISTRAL_API_KEY: string;
     TURNSTILE_SECRET: string;
-    ALLOWED_ORIGIN: string;
+    ALLOWED_ORIGINS: string;
     RATE_LIMIT: KVNamespace;
     ASSETS: Fetcher;
 }

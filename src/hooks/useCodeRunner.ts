@@ -121,7 +121,7 @@ sys.stdout = io.StringIO()
         clearLogs();
 
         let runCommand = '';
-        let compileCommand = '';
+        const compileCommand = '';
 
         if (language === 'python') runCommand = 'python3 main.py';
         else if (language === 'javascript') runCommand = 'node main.js';

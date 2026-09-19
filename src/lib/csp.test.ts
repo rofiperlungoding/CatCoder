@@ -99,6 +99,34 @@ describe('Content Security Policy Configuration', () => {
     expect(scriptSrc).not.toContain("'unsafe-inline'");
   });
 
+  /**
+   * Turnstile (Arena bot protection) loads its script and challenge iframe
+   * from challenges.cloudflare.com. Without these the widget silently fails
+   * to load in production and every judge submit returns 403.
+   */
+  it('should allow challenges.cloudflare.com in script-src for Turnstile', () => {
+    const scriptSrcMatch = cspContent.match(/script-src\s+([^;]+)/);
+    const scriptSrc = scriptSrcMatch ? scriptSrcMatch[1] : '';
+    expect(scriptSrc).toContain('https://challenges.cloudflare.com');
+  });
+
+  it('should allow challenges.cloudflare.com in frame-src for the Turnstile iframe', () => {
+    const frameSrcMatch = cspContent.match(/frame-src\s+([^;]+)/);
+    const frameSrc = frameSrcMatch ? frameSrcMatch[1] : '';
+    expect(frameSrc).toContain('https://challenges.cloudflare.com');
+  });
+
+  it('should allow challenges.cloudflare.com in connect-src', () => {
+    const connectSrcMatch = cspContent.match(/connect-src\s+([^;]+)/);
+    const connectSrc = connectSrcMatch ? connectSrcMatch[1] : '';
+    expect(connectSrc).toContain('https://challenges.cloudflare.com');
+  });
+
+  it('should keep jsdelivr as the Pyodide CDN in script-src and connect-src', () => {
+    expect(cspContent).toMatch(/script-src[^;]*https:\/\/cdn\.jsdelivr\.net/);
+    expect(cspContent).toMatch(/connect-src[^;]*https:\/\/cdn\.jsdelivr\.net/);
+  });
+
   it('should not allow all https sources in img-src', () => {
     // Extract just the img-src directive
     const imgSrcMatch = cspContent.match(/img-src\s+([^;]+)/);

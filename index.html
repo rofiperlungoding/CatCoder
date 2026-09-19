@@ -41,8 +41,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- Content Security Policy -->
+  <!-- script-src: jsDelivr serves the Pyodide bootstrap; challenges.cloudflare.com
+       serves the Turnstile widget. unsafe-eval stays for Pyodide/Monaco.
+       frame-src: the Turnstile challenge iframe. connect-src: same-origin API
+       (/api/*), Supabase (legacy backend), jsDelivr (Pyodide WASM/wheels), and
+       challenges.cloudflare.com (Turnstile siteverify is server-side, but the
+       widget itself may fetch). -->
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://pyodide.org; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://pyodide.org; img-src 'self' data: https://*.supabase.co blob:; worker-src 'self' blob:; font-src 'self' data:; frame-src 'self' blob:; base-uri 'self'; form-action 'self';">
+    content="default-src 'none'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://challenges.cloudflare.com; img-src 'self' data: https://*.supabase.co blob:; worker-src 'self' blob:; font-src 'self' data:; frame-src 'self' blob: https://challenges.cloudflare.com; base-uri 'self'; form-action 'self';">
 </head>
 
 <body>

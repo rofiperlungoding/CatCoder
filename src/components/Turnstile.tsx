@@ -55,7 +55,14 @@ export function Turnstile() {
         let cancelled = false;
 
         if (!SITE_KEY) {
-            setTurnstileToken('dev');
+            // Fail closed in production: without a site key the widget cannot
+            // render, so submitting would always 403 at the judge. Only the
+            // dev server bypasses.
+            if (import.meta.env.DEV) {
+                setTurnstileToken('dev');
+            } else {
+                setTurnstileToken(null);
+            }
             return;
         }
 
@@ -95,9 +102,16 @@ export function Turnstile() {
     }, []);
 
     if (!SITE_KEY) {
+        if (import.meta.env.DEV) {
+            return (
+                <p className="cc-eyebrow" style={{ color: 'var(--cc-tx-3)' }}>
+                    Verification bypassed in local dev
+                </p>
+            );
+        }
         return (
             <p className="cc-eyebrow" style={{ color: 'var(--cc-tx-3)' }}>
-                Verification bypassed in local dev
+                Human verification is unavailable. Please try again later.
             </p>
         );
     }

@@ -11,7 +11,7 @@ import { handleProblem } from './arena/problem';
 import { handleJudge } from './arena/judge';
 import { handleLeaderboard } from './arena/leaderboard';
 import { handleSkill } from './arena/skill';
-import { handleOptions } from './shared/cors';
+import { handleOptions, parseOrigins } from './shared/cors';
 import { json, type Env } from './types';
 
 async function readJson(request: Request): Promise<Record<string, unknown>> {
@@ -30,20 +30,21 @@ async function handleApi(request: Request, env: Env, path: string): Promise<Resp
             return json({ status: 'ok' });
         }
 
+        if (path.startsWith('/api/arena/')) {
+            const origin = request.headers.get('Origin');
+            if (method === 'OPTIONS') return handleOptions(parseOrigins(env.ALLOWED_ORIGINS), origin);
+        }
+
         if (path === '/api/arena/problem') {
-            if (method === 'OPTIONS') return handleOptions(env.ALLOWED_ORIGIN);
             return handleProblem(request, env);
         }
         if (path === '/api/arena/judge') {
-            if (method === 'OPTIONS') return handleOptions(env.ALLOWED_ORIGIN);
             return handleJudge(request, env);
         }
         if (path === '/api/arena/leaderboard') {
-            if (method === 'OPTIONS') return handleOptions(env.ALLOWED_ORIGIN);
             return handleLeaderboard(request, env);
         }
         if (path === '/api/arena/skill') {
-            if (method === 'OPTIONS') return handleOptions(env.ALLOWED_ORIGIN);
             return handleSkill(request, env);
         }
 

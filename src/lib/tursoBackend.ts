@@ -9,37 +9,9 @@
  * Selected when `VITE_BACKEND=turso` (see supabase.ts).
  */
 
-const SESSION_KEY = 'cc_turso_session';
+import { readSession, writeSession, type StoredSession, type SessionUser } from './sessionStorage';
+
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || '';
-
-interface SessionUser {
-    id: string;
-    email: string;
-    created_at: string;
-    user_metadata: Record<string, unknown>;
-}
-interface StoredSession {
-    access_token: string;
-    user: SessionUser;
-}
-
-function readSession(): StoredSession | null {
-    try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        return raw ? (JSON.parse(raw) as StoredSession) : null;
-    } catch {
-        return null;
-    }
-}
-
-function writeSession(session: StoredSession | null): void {
-    try {
-        if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-        else localStorage.removeItem(SESSION_KEY);
-    } catch {
-        /* ignore */
-    }
-}
 
 async function api<T = unknown>(
     path: string,

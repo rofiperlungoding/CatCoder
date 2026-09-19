@@ -46,7 +46,7 @@ import { handleJudge } from './judge';
 import { applyVerificationResult } from '../rpc';
 
 const env = {
-    ALLOWED_ORIGIN: 'https://example.com',
+    ALLOWED_ORIGINS: 'https://example.com',
     MISTRAL_API_KEY: 'k',
 } as unknown as Env;
 

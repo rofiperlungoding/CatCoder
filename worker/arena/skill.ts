@@ -1,13 +1,14 @@
 import { getClient, queryAll, queryOne } from '../db';
 import { getUserFromRequest } from '../auth';
-import { corsHeaders, handleOptions } from '../shared/cors';
+import { corsHeaders, handleOptions, parseOrigins } from '../shared/cors';
 import { json, type Env } from '../types';
 
 export async function handleSkill(request: Request, env: Env): Promise<Response> {
-    const origin = env.ALLOWED_ORIGIN;
-    const headers = corsHeaders(origin);
+    const allowed = parseOrigins(env.ALLOWED_ORIGINS);
+    const requestOrigin = request.headers.get('Origin');
+    const headers = corsHeaders(allowed, requestOrigin);
 
-    if (request.method === 'OPTIONS') return handleOptions(origin);
+    if (request.method === 'OPTIONS') return handleOptions(allowed, requestOrigin);
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405, headers);
 
     const client = getClient(env);

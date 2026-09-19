@@ -10,3 +10,10 @@
 LIBSQL_DB_URL="libsql://your-db-name.your-region.turso.io"
 LIBSQL_DB_AUTH_TOKEN="your-turso-auth-token-here"
 AUTH_SECRET="your-auth-secret-here"
+
+# Bug Arena judge (Mistral) and bot protection (Turnstile server secret).
+MISTRAL_API_KEY="your-mistral-api-key-here"
+TURNSTILE_SECRET="your-turnstile-secret-here"
+
+# Comma-separated CORS allowlist for local full-stack dev.
+ALLOWED_ORIGINS="http://localhost:5173,http://localhost:8787"

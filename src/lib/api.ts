@@ -27,23 +27,13 @@ export interface JudgeVerdict {
     misconceptionTag?: string | null;
 }
 
-const SESSION_KEY = 'cc_turso_session';
+import { readSession } from './sessionStorage';
+
 const API_BASE =
     (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || '';
 
-interface StoredSession {
-    access_token?: string;
-}
-
 export function getSessionToken(): string | null {
-    try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw) as StoredSession;
-        return parsed?.access_token ?? null;
-    } catch {
-        return null;
-    }
+    return readSession()?.access_token ?? null;
 }
 
 export function isSignedIn(): boolean {
