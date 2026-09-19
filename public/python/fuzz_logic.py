@@ -1,10 +1,16 @@
 import py_compile
 import sys
 import json
+
+# Windows consoles default to a legacy code page (cp1252) that cannot encode
+# the status glyphs printed below; force UTF-8 so the script runs anywhere.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 from secure_core import engine
 
 # Blueprint Requirement 4.2: Automated Fuzzing for Logic Integriy
-# To be run in CI with: python src/lib/fuzz_logic.py
+# To be run in CI with: python public/python/fuzz_logic.py
 
 def test_fuzz_xp_updates():
     print("Starting XP Fuzzing...")

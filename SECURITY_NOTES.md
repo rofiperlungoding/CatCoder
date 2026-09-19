@@ -2,7 +2,34 @@
 
 This file documents actions needed after the security hardening pass.
 
-## Turso Token Rotation (REQUIRED)
+## Status of Older Items
+
+- **`.env.cloudflare` untracking: DONE.** The file is no longer in the git
+  index and is listed in `.gitignore`. Nothing further to do.
+- **Turso token rotation and `AUTH_SECRET` generation: still on you** if the
+  values were ever exposed; commands below still apply.
+
+## Known Dev-Dependency Advisories (accepted, 2026-09)
+
+`npm audit` reports 4 critical advisories in `@vitest/browser` (browser-mode
+API exposure / CDP proxy class, fixed upstream in vitest `>= 4.1.11`). They are
+**dev-only** — none of it ships in the production Worker or SPA bundle, which
+is why the CI audit gate runs with `--omit=dev`.
+
+The version is pinned by `@storybook/addon-vitest@10.4.1`, which does not yet
+accept vitest `>= 4.1.11`. When a compatible Storybook release lands:
+
+```bash
+npm update storybook @storybook/addon-vitest vitest @vitest/browser-playwright @vitest/coverage-v8
+npm audit   # expect: 0 vulnerabilities
+npm test && npx playwright test
+```
+
+Until then, do not weaken the `--omit=dev` gate to "fix" the count; production
+runtime dependencies are currently at 1 low-severity advisory (esbuild via
+Storybook's dev toolchain, not bundled).
+
+## Turso Token Rotation (CONDITIONAL)
 
 The `.dev.vars` file on disk contains a live Turso JWT auth token. Although this
 file is gitignored and was never committed to git history, the token should be

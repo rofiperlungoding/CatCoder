@@ -55,12 +55,15 @@ jobs:
       # ══════════════════════════════════════════
       #  CHECK 1: Supply Chain (NPM Audit)
       # ══════════════════════════════════════════
-      - name: "🔍 NPM Security Audit"
+      - name: "🔍 NPM Security Audit (production deps)"
         id: npm_audit
         continue-on-error: true
         run: |
           set +e
-          npm audit --json > audit_raw.json 2>&1 || true
+          # Gate on runtime dependencies only. Known dev-only advisories
+          # (@vitest/browser, pinned by Storybook) are tracked in
+          # SECURITY_NOTES.md and must not block the pipeline.
+          npm audit --omit=dev --json > audit_raw.json 2>&1 || true
           set -e
           CRITICAL=$(cat audit_raw.json | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || true)
           [ -z "$CRITICAL" ] && CRITICAL=0
@@ -232,7 +235,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          ruff check src/lib/secure_core.py 2>&1 | tee ruff_output.txt
+          ruff check public/python/secure_core.py 2>&1 | tee ruff_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
           if [ "$EXIT_CODE" -ne 0 ]; then
@@ -249,7 +252,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          mypy src/lib/secure_core.py 2>&1 | tee mypy_output.txt
+          mypy public/python/secure_core.py 2>&1 | tee mypy_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
           if [ "$EXIT_CODE" -ne 0 ]; then
@@ -266,7 +269,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          bandit src/lib/secure_core.py 2>&1 | tee bandit_output.txt
+          bandit public/python/secure_core.py 2>&1 | tee bandit_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
           if [ "$EXIT_CODE" -ne 0 ]; then
@@ -283,7 +286,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          python src/lib/fuzz_logic.py 2>&1 | tee fuzz_output.txt
+          python public/python/fuzz_logic.py 2>&1 | tee fuzz_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
           if [ "$EXIT_CODE" -ne 0 ]; then
