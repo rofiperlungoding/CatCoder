@@ -51,7 +51,7 @@ export async function handleJudge(request: Request, env: Env): Promise<Response>
 
     const ip = clientIp(request);
 
-    const rateAllowed = await checkRateLimit(env.RATE_LIMIT, `judge:${ip}`, 20, 60);
+    const rateAllowed = await checkRateLimit(env, `judge:${ip}`, 20, 60);
     if (!rateAllowed) return json({ error: 'Rate limit exceeded' }, 429, headers);
 
     let body: Partial<JudgeBody>;
