@@ -29,6 +29,16 @@ Until then, do not weaken the `--omit=dev` gate to "fix" the count; production
 runtime dependencies are currently at 1 low-severity advisory (esbuild via
 Storybook's dev toolchain, not bundled).
 
+## Local Dev Gotcha: `wrangler dev` Rewrites CORS Headers
+
+While smoke-testing the CORS allowlist locally we observed `Access-Control-Allow-Origin`
+values on `/api/*` responses appearing as `http://127.0.0.1:8787` regardless of what the
+Worker code emits — even a **hardcoded** header value gets rewritten. This is the wrangler
+v4 local dev proxy adjusting CORS for the locally-served SPA; it is **not** our code and
+**does not happen in production**. Unit tests (`worker/shared/cors.test.ts`) pin the real
+behavior. To verify CORS truth, test the deployed Worker (or `curl` the production URL),
+never `wrangler dev` responses.
+
 ## Turso Token Rotation (CONDITIONAL)
 
 The `.dev.vars` file on disk contains a live Turso JWT auth token. Although this
