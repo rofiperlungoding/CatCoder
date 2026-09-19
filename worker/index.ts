@@ -49,7 +49,7 @@ async function handleApi(request: Request, env: Env, path: string): Promise<Resp
         }
 
         if (path === '/api/auth/signup' && method === 'POST') {
-            return handleSignUp(env, await readJson(request));
+            return handleSignUp(env, request, await readJson(request));
         }
         if (path === '/api/auth/signin' && method === 'POST') {
             return handleSignIn(env, await readJson(request), request);

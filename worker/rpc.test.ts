@@ -138,6 +138,13 @@ const db = vi.hoisted(() => {
     return { state, client, queryOne, run };
 });
 
+vi.mock('./shared/rateLimit', () => ({
+    // Default: limits pass; individual tests override via rateAllowed.
+    checkRateLimit: vi.fn(async () => true),
+    checkReadRateLimit: vi.fn(async () => true),
+    clientIp: vi.fn(() => '1.2.3.4'),
+}));
+
 vi.mock('./db', () => ({
     getClient: () => db.client,
     queryOne: (c: unknown, sql: string, args?: unknown[]) => db.queryOne(c, sql, args),
@@ -297,5 +304,52 @@ describe('submit_completion duplicate guard', () => {
 
         // No double award: 100 + 100 problem XP, once.
         expect(Number(db.state.profiles[0].xp)).toBe(200);
+    });
+
+    it('rejects an empty content id with 400', async () => {
+        const res = await handleRpc(env, authedRequest(), 'submit_completion', {
+            p_content_type: 'lesson',
+            p_content_id: '',
+        });
+        expect(res.status).toBe(400);
+    });
+
+    it('rejects unknown content types even when unique ids would pass the index', async () => {
+        const res = await handleRpc(env, authedRequest(), 'submit_completion', {
+            p_content_type: 'fabricated_type',
+            p_content_id: 'forge-1',
+        });
+        expect(res.status).toBe(400);
+        expect(db.state.progress).toHaveLength(0);
+    });
+
+    it('rejects oversized content ids with 400', async () => {
+        const res = await handleRpc(env, authedRequest(), 'submit_completion', {
+            p_content_type: 'lesson',
+            p_content_id: 'x'.repeat(250),
+        });
+        expect(res.status).toBe(400);
+    });
+
+    it('rate limits completion submissions per user', async () => {
+        const { checkRateLimit } = await import('./shared/rateLimit');
+        vi.mocked(checkRateLimit).mockResolvedValueOnce(false);
+
+        const res = await handleRpc(env, authedRequest(), 'submit_completion', {
+            p_content_type: 'lesson',
+            p_content_id: 'lesson-rl',
+        });
+        expect(res.status).toBe(429);
+        expect(db.state.progress).toHaveLength(0);
+    });
+
+    it('soft rate limits the log rpc per IP and caps payload size', async () => {
+        const { checkRateLimit } = await import('./shared/rateLimit');
+        vi.mocked(checkRateLimit).mockResolvedValueOnce(false);
+
+        const res = await handleRpc(env, authedRequest(), 'log_app_error', { big: 'payload' });
+        const body = (await res.json()) as { data: { success: boolean } };
+        expect(res.status).toBe(200);
+        expect(body.data.success).toBe(false);
     });
 });

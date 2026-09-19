@@ -1,5 +1,6 @@
 import { getClient, queryAll } from '../db';
 import { corsHeaders, handleOptions, parseOrigins } from '../shared/cors';
+import { checkReadRateLimit, clientIp } from '../shared/rateLimit';
 import { json, type Env } from '../types';
 
 export async function handleLeaderboard(request: Request, env: Env): Promise<Response> {
@@ -9,6 +10,11 @@ export async function handleLeaderboard(request: Request, env: Env): Promise<Res
 
     if (request.method === 'OPTIONS') return handleOptions(allowed, requestOrigin);
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405, headers);
+
+    // Public read — same fail-open per-IP cap as the problem endpoint.
+    if (!(await checkReadRateLimit(env, `leaderboard:${clientIp(request)}`, 60, 60))) {
+        return json({ error: 'Rate limit exceeded' }, 429, headers);
+    }
 
     const client = getClient(env);
     const rows = await queryAll(

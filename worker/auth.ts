@@ -49,18 +49,43 @@ export async function getUserFromRequest(client: Client, request: Request): Prom
         | null;
 }
 
-export async function handleSignUp(env: Env, body: { email?: string; password?: string; username?: string }) {
+export async function handleSignUp(
+    env: Env,
+    request: Request,
+    body: { email?: string; password?: string; username?: string }
+) {
     const client = getClient(env);
     const email = (body.email || '').trim().toLowerCase();
     const password = body.password || '';
     if (!email || !password) return json({ error: 'Email and password are required' }, 400);
     if (password.length < 6) return json({ error: 'Password must be at least 6 characters' }, 400);
 
+    // Signup was previously unthrottled: one host could mint unlimited
+    // accounts — each burns two INSERTs plus an expensive PBKDF2 hash, and
+    // profile spam inflates the public leaderboard. 5/hour/IP is generous
+    // for humans and useless for a bulk-registration script.
+    const ip = clientIp(request);
+    const ipAllowed = await checkRateLimit(env, `signup:ip:${ip}`, 5, 3600);
+    if (!ipAllowed) {
+        return json(
+            { error: 'Too many accounts created from this network. Please try again later.' },
+            429
+        );
+    }
+
     const existing = await queryOne(client, 'SELECT id FROM users WHERE email = ?', [email]);
     if (existing) return json({ error: 'User already registered' }, 409);
 
     const id = newId();
     const username = (body.username || email.split('@')[0] || 'User').trim();
+    // Usernames surface on the public leaderboard — enforce uniqueness so a
+    // fresh account cannot impersonate an existing player.
+    const usernameClash = await queryOne(
+        client,
+        'SELECT id FROM profiles WHERE LOWER(username) = LOWER(?)',
+        [username]
+    );
+    if (usernameClash) return json({ error: 'Username already taken' }, 409);
     const now = new Date().toISOString();
     const passwordHash = await hashPassword(password);
 
@@ -156,6 +181,13 @@ export async function handleSession(env: Env, request: Request) {
     const client = getClient(env);
     const user = await getUserFromRequest(client, request);
     if (!user) return json({ error: 'Not authenticated' }, 401);
+
+    // PBKDF2 is deliberately CPU-expensive; without a limiter this endpoint
+    // is a cheap amplification DoS through repeated password changes.
+    const updateAllowed = await checkRateLimit(env, `update-user:${user.id}`, 5, 600);
+    if (!updateAllowed) {
+        return json({ error: 'Too many account updates. Please try again later.' }, 429);
+    }
 
     const email = body.email?.trim().toLowerCase();
     const password = body.password;

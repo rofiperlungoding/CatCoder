@@ -2,6 +2,7 @@ import type { Client } from '@libsql/client/web';
 import { getClient, queryOne } from '../db';
 import { getUserFromRequest } from '../auth';
 import { corsHeaders, handleOptions, parseOrigins } from '../shared/cors';
+import { checkReadRateLimit, clientIp } from '../shared/rateLimit';
 import { json, type Env } from '../types';
 
 type Row = Record<string, unknown>;
@@ -54,6 +55,13 @@ export async function handleProblem(request: Request, env: Env): Promise<Respons
 
     if (request.method === 'OPTIONS') return handleOptions(allowed, requestOrigin);
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405, headers);
+
+    // Public read, but each hit runs up to three SQL queries (concept bias,
+    // solved-set subquery, random pick) — cap per-IP hammering. Fail-open:
+    // a limiter outage must not take the Arena down.
+    if (!(await checkReadRateLimit(env, `problem:${clientIp(request)}`, 60, 60))) {
+        return json({ error: 'Rate limit exceeded' }, 429, headers);
+    }
 
     const client = getClient(env);
     const user = await getUserFromRequest(client, request);

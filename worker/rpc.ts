@@ -7,6 +7,7 @@ import { getClient, queryOne, run } from './db';
 import { getUserFromRequest } from './auth';
 import { newId } from './crypto';
 import { updateElo } from './shared/elo';
+import { checkRateLimit, clientIp } from './shared/rateLimit';
 import { json, type Env } from './types';
 
 const XP_BY_TYPE: Record<string, number> = { lesson: 50, problem: 100, challenge: 25 };
@@ -56,6 +57,28 @@ async function submitCompletion(env: Env, request: Request, args: Record<string,
     const contentType = String(args.p_content_type ?? '');
     const contentId = String(args.p_content_id ?? '');
     const durationSeconds = args.p_duration_seconds == null ? null : Number(args.p_duration_seconds);
+
+    // The completion endpoint is client-driven: without these caps, a script
+    // could POST fabricated unique content ids and farm XP at the default
+    // award rate, unlimited. Unknown types get no XP; oversized ids are
+    // rejected so rows stay small and listable.
+    if (!Object.prototype.hasOwnProperty.call(XP_BY_TYPE, contentType)) {
+        return json({ error: `Invalid content type: ${contentType}` }, 400);
+    }
+    if (contentId.length === 0 || contentId.length > 200) {
+        return json({ error: 'Invalid content id' }, 400);
+    }
+    if (durationSeconds != null && (!Number.isFinite(durationSeconds) || durationSeconds < 0 || durationSeconds > 86400)) {
+        return json({ error: 'Invalid duration' }, 400);
+    }
+
+    // Content ids are client-catalog values the server cannot independently
+    // verify, so fabricated-but-unique ids would each pass the unique index
+    // and award XP. A per-user cap keeps any farming velocity worthless while
+    // staying far above legitimate completion rates (a lesson takes minutes).
+    if (!(await checkRateLimit(env, `submit:${user.id}`, 30, 60))) {
+        return json({ error: 'Too many completions. Please slow down.' }, 429);
+    }
 
     const profile = await queryOne(client, 'SELECT * FROM profiles WHERE id = ?', [user.id]);
     if (!profile) return json({ data: { success: false, error: 'Profile missing' }, error: null });
@@ -204,12 +227,19 @@ export async function handleRpc(
             return json({ data: { success: true, sessions_invalidated: 0 }, error: null });
         case 'log_security_event':
         case 'log_app_error': {
+            // These endpoints are open (error reporting can fire pre-auth),
+            // so cap the insert rate per IP and the row size — app_logs is
+            // unbounded and must not become a free DB-filling dump.
+            const logAllowed = await checkRateLimit(env, `logs:${clientIp(request)}`, 30, 60);
+            if (!logAllowed) {
+                return json({ data: { success: false, error: 'Rate limited' }, error: null });
+            }
             try {
                 const client = getClient(env);
                 await run(
                     client,
                     'INSERT INTO app_logs (id, kind, user_id, payload, created_at) VALUES (?, ?, ?, ?, ?)',
-                    [newId(), fn, null, JSON.stringify(args).slice(0, 8000), new Date().toISOString()]
+                    [newId(), fn, null, JSON.stringify(args).slice(0, 4000), new Date().toISOString()]
                 );
             } catch {
                 /* logging must never break the caller */

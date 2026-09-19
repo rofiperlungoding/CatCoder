@@ -102,6 +102,13 @@ export async function handleDb(env: Env, request: Request, desc: Descriptor): Pr
     if (!WRITABLE_TABLES.has(desc.table)) {
         return json({ error: 'Table is read-only' }, 403);
     }
+    // No client flow deletes rows through this endpoint, and a scoped DELETE
+    // is an abuse vector: toggling user_progress rows off/on would re-arm
+    // submit_completion and farm XP in a loop. Delete support can come back
+    // behind an explicit per-table policy if a UI ever needs it.
+    if (desc.mode === 'delete') {
+        return json({ error: 'Delete is not supported' }, 403);
+    }
     return runWrite(client, desc, cols, user);
 }
 
@@ -162,6 +169,11 @@ async function runWrite(
     user: UserRow
 ): Promise<Response> {
     const items = Array.isArray(desc.payload) ? desc.payload : desc.payload ? [desc.payload] : [];
+    // Cap writes per request so a scripted client cannot flood the DB with
+    // thousands of rows in one call (the client app writes 1 per request).
+    if (items.length > 50) {
+        return json({ error: 'Too many rows in a single write' }, 400);
+    }
 
     if (desc.mode === 'insert' || desc.mode === 'upsert') {
         for (const raw of items) {

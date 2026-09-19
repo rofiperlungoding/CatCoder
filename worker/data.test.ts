@@ -127,6 +127,35 @@ describe('handleDb write scrubbing', () => {
         expect(runMock).not.toHaveBeenCalled();
     });
 
+    it('blocks delete entirely — no client flow deletes, and scoped deletes re-arm XP farming', async () => {
+        const desc: Descriptor = {
+            table: 'user_progress',
+            mode: 'delete',
+            filters: [{ col: 'content_id', op: 'eq', val: 'lesson-1' }],
+        } as unknown as Descriptor;
+
+        const res = await handleDb(env, authedRequest, desc);
+        expect(res.status).toBe(403);
+        expect(runMock).not.toHaveBeenCalled();
+    });
+
+    it('rejects oversized write batches (row-flood guard)', async () => {
+        const rows = Array.from({ length: 51 }, (_, i) => ({
+            content_type: 'lesson',
+            content_id: `bulk-${i}`,
+            status: 'completed',
+        }));
+        const desc: Descriptor = {
+            table: 'user_progress',
+            mode: 'insert',
+            payload: rows,
+        } as unknown as Descriptor;
+
+        const res = await handleDb(env, authedRequest, desc);
+        expect(res.status).toBe(400);
+        expect(runMock).not.toHaveBeenCalled();
+    });
+
     it('rejects tables outside the allowlist entirely', async () => {
         const desc: Descriptor = {
             table: 'users',

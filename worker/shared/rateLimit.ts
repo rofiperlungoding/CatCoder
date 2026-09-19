@@ -29,11 +29,39 @@ export async function checkRateLimit(
     limit: number,
     windowSeconds: number
 ): Promise<boolean> {
+    return withLimiter(env, identity, limit, windowSeconds, false);
+}
+
+/**
+ * Fail-open variant for public READ-only endpoints (problem, leaderboard).
+ * The protected resource there is cheap, so a missing binding or a limiter
+ * hiccup must not take the feature down — only an explicit "over limit"
+ * verdict from the DO denies.
+ */
+export async function checkReadRateLimit(
+    env: Env,
+    identity: string,
+    limit: number,
+    windowSeconds: number
+): Promise<boolean> {
+    return withLimiter(env, identity, limit, windowSeconds, true);
+}
+
+async function withLimiter(
+    env: Env,
+    identity: string,
+    limit: number,
+    windowSeconds: number,
+    failOpen: boolean
+): Promise<boolean> {
     const namespace = env.RATE_LIMITER_DO;
     if (!namespace) {
-        // Fail-closed: a missing DO binding is a deploy misconfiguration.
-        console.error('[rateLimit] RATE_LIMITER_DO binding missing — denying request');
-        return false;
+        // Fail-closed by default: a missing DO binding is a deploy
+        // misconfiguration. Reads may opt out (see checkReadRateLimit).
+        if (!failOpen) {
+            console.error('[rateLimit] RATE_LIMITER_DO binding missing — denying request');
+        }
+        return failOpen;
     }
 
     // One DO instance per identity = one serialized counter per identity.
@@ -41,15 +69,21 @@ export async function checkRateLimit(
     const stub = namespace.get(doId);
 
     const body: RateLimitRequest = { limit, windowSeconds };
-    const res = await stub.fetch('https://rate-limiter.internal/check', {
-        method: 'POST',
-        body: JSON.stringify(body),
-    });
+    let res: Response;
+    try {
+        res = await stub.fetch('https://rate-limiter.internal/check', {
+            method: 'POST',
+            body: JSON.stringify(body),
+        });
+    } catch (err) {
+        console.error('[rateLimit] DO fetch failed —', failOpen ? 'allowing' : 'denying', err);
+        return failOpen;
+    }
 
     if (!res.ok) {
-        // Fail-closed: limiter outage must not become an open door.
-        console.error('[rateLimit] DO responded', res.status, '— denying request');
-        return false;
+        // Fail-closed on writes/auth; reads stay up through limiter hiccups.
+        console.error('[rateLimit] DO responded', res.status, '—', failOpen ? 'allowing' : 'denying');
+        return failOpen;
     }
 
     const data = (await res.json()) as RateLimitResponse;
