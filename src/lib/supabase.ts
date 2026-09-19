@@ -24,10 +24,26 @@ const hasRealCredentials =
     !!import.meta.env.VITE_SUPABASE_ANON_KEY &&
     import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co';
 
-const useTurso = backendMode === 'turso';
+// Safety net: production builds behind `cf:build`/`--mode cloudflare` are
+// compiled for the Worker + Turso backend. If the git-ignored .env.cloudflare
+// ever reaches the bundler without VITE_BACKEND, defaulting to "local" would
+// ship a silently broken SPA (dead auth/API) — so fail over to turso instead.
+const isProductionBuild =
+    import.meta.env.PROD === true || import.meta.env.MODE === 'production';
+
+const useTurso =
+    backendMode === 'turso' || (backendMode === undefined && isProductionBuild);
 const useLocal =
     !useTurso &&
     (backendMode === 'local' || (backendMode !== 'supabase' && !hasRealCredentials));
+
+if (backendMode === undefined && isProductionBuild) {
+    console.error(
+        '[CatCoder] VITE_BACKEND is not set in a production build — ' +
+            'defaulting to the Turso backend. This usually means ' +
+            '.env.cloudflare was missing when the bundle was compiled.'
+    );
+}
 
 function buildRealClient(): SupabaseClient<Database> {
     return createClient<Database>(supabaseUrl, supabaseAnonKey, {
