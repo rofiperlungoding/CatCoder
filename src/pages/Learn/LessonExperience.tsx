@@ -87,7 +87,12 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({ activeLesson
         (async () => {
             try {
                 const result = await useProgressStore.getState().validateAndComplete('lesson', activeLesson.id, activeLesson.language);
-                if (result.success) {
+                // Backend dedupe answers success:true with xp_awarded:0 and a
+                // message — surface it as "Already completed", not "+0 XP".
+                if (result.success && result.message === 'Already completed') {
+                    setCompletion({ xpAwarded: 0, alreadyCompleted: true, estimate: false, pending: false });
+                    addToast('info', 'Lesson already completed.');
+                } else if (result.success) {
                     const awarded = result.xp_awarded ?? estimate;
                     setCompletion({ xpAwarded: awarded, alreadyCompleted: false, estimate: false, pending: false });
                     addToast('success', `Lesson complete! +${awarded} XP`);
