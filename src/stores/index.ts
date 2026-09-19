@@ -1,10 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import type { User, UserProgress, Language, Activity } from '../types';
-import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../lib/utils';
+import { calculateLevel, getRank } from '../lib/utils';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { secureStorage, migrateToEncrypted } from '../lib/secureStorage';
-import { getTrueTime, syncServerTime, isClockOutOfSync } from '../lib/serverTime';
 import {
     registerDeviceSession,
     verifyDeviceFingerprint,
@@ -185,7 +184,11 @@ interface UserState {
     initializeSession: () => Promise<void>;
     addXP: (amount: number) => void;
     setSelectedLanguage: (language: Language) => void;
-    updateStreak: () => void;
+    // SECURITY: streak is server-authoritative. It is advanced only by the
+    // submit_completion RPC (UTC-day rule on last_activity_date) and arrives
+    // in the client via fetchProfile and the RPC result fields. There is no
+    // client write path and no local estimate; the former localStorage-based
+    // updateStreak was removed to keep it that way.
     updateProfile: (updates: Partial<User>) => Promise<void>;
     addActivity: (activity: Omit<Activity, 'id' | 'timestamp'>) => void;
 }
@@ -618,51 +621,10 @@ export const useUserStore = create<UserState>()(
 
             setSelectedLanguage: (language) => set({ selectedLanguage: language }),
 
-            updateStreak: async () => {
-                const { user } = get();
-                if (!user) return;
-
-                // Sync server time first to ensure accurate streak calculation
-                // Requirements 8.4: Use getTrueTime for all streak calculations
-                await syncServerTime();
-
-                // Check if clock is out of sync - warn but don't block
-                if (isClockOutOfSync()) {
-                    console.warn('[Streak] System clock is significantly out of sync with server. Streak calculation may be affected.');
-                }
-
-                // Use server-synchronized time for streak calculations
-                // This prevents users from manipulating streaks by changing system clock
-                const trueTime = getTrueTime();
-                const today = new Date(trueTime).toDateString();
-                const lastVisit = getLocalStorage('lastVisit', '');
-                const yesterday = new Date(trueTime - 86400000).toDateString();
-
-                let newStreak = user.streakCurrent;
-
-                if (lastVisit === yesterday) {
-                    newStreak += 1;
-                } else if (lastVisit !== today) {
-                    newStreak = 1;
-                }
-
-                setLocalStorage('lastVisit', today);
-
-                const updatedUser = {
-                    ...user,
-                    streakCurrent: newStreak,
-                    streakBest: Math.max(user.streakBest, newStreak)
-                };
-
-                set({ user: updatedUser });
-
-                // SECURITY: streak columns are server-authoritative — the
-                // submit_completion RPC advances them from last_activity_date
-                // and /api/db strips them from client writes. The server
-                // values replace this local estimate on the next profile
-                // fetch, so pushing them here would be a silent no-op at
-                // best and a forged-write attempt at worst.
-            },
+            // SECURITY: no updateStreak — streaks are computed server-side
+            // (submit_completion RPC) and overwrite this store via every
+            // fetchProfile / validateAndComplete result. Client-side streak
+            // math from localStorage['lastVisit'] was removed deliberately.
             updateProfile: async (updates) => {
                 const { user } = get();
                 if (!user) return;
