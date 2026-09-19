@@ -17,6 +17,7 @@ interface JudgeBody {
 
 /** Cost-control caps: the judge bills per token, so bound what clients send. */
 const MAX_HYPOTHESIS_LENGTH = 2000;
+const MIN_HYPOTHESIS_LENGTH = 10;
 const MAX_TESTS = 20;
 const MAX_TEST_FIELD_LENGTH = 200;
 
@@ -65,10 +66,10 @@ export async function handleJudge(request: Request, env: Env): Promise<Response>
     const turnstileToken = typeof body.turnstileToken === 'string' ? body.turnstileToken : '';
     const tests = parseTests(body.tests);
 
-    if (!variantId || tests === null) {
+    if (!variantId || tests === null || hypothesis.trim().length < MIN_HYPOTHESIS_LENGTH) {
         return json(
             {
-                error: `Invalid submission: variantId is required, tests must be at most ${MAX_TESTS} pairs of ${MAX_TEST_FIELD_LENGTH} characters.`,
+                error: `Invalid submission: variantId is required, hypothesis must be at least ${MIN_HYPOTHESIS_LENGTH} characters, tests must be at most ${MAX_TESTS} pairs of ${MAX_TEST_FIELD_LENGTH} characters.`,
             },
             400,
             headers

@@ -59,6 +59,8 @@ function post(body: unknown): Request {
 }
 
 const tests: TestCase[] = [{ input: '3', expected: '2' }];
+// MIN_HYPOTHESIS_LENGTH on the server is 10 chars — keep bodies above it.
+const hypothesis = 'my hypothesis here';
 
 describe('handleJudge', () => {
     beforeEach(() => {
@@ -72,7 +74,7 @@ describe('handleJudge', () => {
         const res = await handleJudge(
             post({
                 variantId: 'bv_1',
-                hypothesis: 'h',
+                hypothesis,
                 turnstileToken: 't',
                 tests: Array.from({ length: 21 }, (_, i) => ({ input: String(i), expected: 'x' })),
             }),
@@ -88,7 +90,7 @@ describe('handleJudge', () => {
         const res = await handleJudge(
             post({
                 variantId: 'bv_1',
-                hypothesis: 'h',
+                hypothesis,
                 turnstileToken: 't',
                 tests: [{ input: 'x'.repeat(201), expected: 'y' }],
             }),
@@ -102,7 +104,7 @@ describe('handleJudge', () => {
         judgeMock.mockResolvedValue({ ok: false, reason: 'unavailable' });
 
         const res = await handleJudge(
-            post({ variantId: 'bv_1', hypothesis: 'h', turnstileToken: 't', tests }),
+            post({ variantId: 'bv_1', hypothesis, turnstileToken: 't', tests }),
             env
         );
         expect(res.status).toBe(503);
@@ -124,7 +126,7 @@ describe('handleJudge', () => {
         });
 
         const res = await handleJudge(
-            post({ variantId: 'bv_1', hypothesis: 'h', turnstileToken: 't', tests }),
+            post({ variantId: 'bv_1', hypothesis, turnstileToken: 't', tests }),
             env
         );
         expect(res.status).toBe(200);
@@ -133,6 +135,17 @@ describe('handleJudge', () => {
         const body = (await res.json()) as { correct: boolean; verificationRating: number | null };
         expect(body.correct).toBe(true);
         expect(body.verificationRating).toBe(1210);
+    });
+
+    it('rejects an empty/too-short hypothesis with 400 before Turnstile or Mistral', async () => {
+        judgeMock.mockResolvedValue({ ok: false, reason: 'unavailable' });
+
+        const res = await handleJudge(
+            post({ variantId: 'bv_1', hypothesis: 'short', turnstileToken: 't', tests }),
+            env
+        );
+        expect(res.status).toBe(400);
+        expect(judgeMock).not.toHaveBeenCalled();
     });
 
     it('clamps a too-long hypothesis instead of rejecting the whole submission', async () => {

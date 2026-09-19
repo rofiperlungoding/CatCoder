@@ -63,6 +63,24 @@ function pythonScript(code: string): string {
     ].join('\n');
 }
 
+// Pyodide reuses one __main__ namespace for every run, so globals defined by
+// one submission's code (or a previous test's leftovers) leak into the next
+// test. Purge all non-dunder module-level names before each test to keep runs
+// independent. 'json' is re-imported by the wrapper script each run.
+const PY_NAMESPACE_RESET = [
+    'for _k in [k for k in dir() if not k.startswith("_") and k != "json"]:',
+    '    del globals()[_k]',
+].join('\n');
+
+function resetPyodideNamespace(pyodide: { runPython: (code: string) => unknown }): void {
+    try {
+        pyodide.runPython(PY_NAMESPACE_RESET);
+    } catch {
+        // A failed reset must not block the run — worst case we fall back to
+        // the previous (shared-namespace) behavior.
+    }
+}
+
 function javascriptScript(code: string, input: string): string {
     return [
         code,
@@ -90,6 +108,7 @@ async function runPython(code: string, tests: TestCase[]): Promise<TestRunResult
     const script = pythonScript(code);
     for (const test of tests) {
         try {
+            resetPyodideNamespace(pyodide);
             pyodide.globals.set('cc_input', test.input);
             const value = await withTimeout(pyodide.runPythonAsync(script), PY_TIMEOUT_MS);
             const actual = typeof value === 'string' ? value : String(value);
