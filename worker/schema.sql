@@ -98,3 +98,11 @@ CREATE TABLE IF NOT EXISTS attempts (
 CREATE INDEX IF NOT EXISTS idx_buggy_variants_lang ON buggy_variants (language);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts (user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_variant ON attempts (variant_id);
+
+-- Integrity guard for the Arena: at most one 'correct' attempt per
+-- (user, variant). The ELO read-modify-write in worker/rpc.ts is made
+-- conditional on winning this INSERT, so concurrent double-submissions can
+-- never apply the rating adjustment twice. apply-schema.mjs skips the
+-- duplicate-index error on re-run, so this is safe to apply idempotently.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_attempts_correct_unique
+  ON attempts (user_id, variant_id) WHERE verdict = 'correct';

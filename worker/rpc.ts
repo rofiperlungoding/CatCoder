@@ -32,6 +32,22 @@ function getRank(xp: number): string {
     return 'bronze';
 }
 
+function alreadyCompleted(profile: Record<string, unknown>): Response {
+    return json({
+        data: {
+            success: true,
+            xp_awarded: 0,
+            message: 'Already completed',
+            new_xp: Number(profile.xp),
+            new_level: Number(profile.level),
+            new_rank: String(profile.rank),
+            new_streak_current: Number(profile.streak_current),
+            new_streak_best: Number(profile.streak_best),
+        },
+        error: null,
+    });
+}
+
 async function submitCompletion(env: Env, request: Request, args: Record<string, unknown>) {
     const client = getClient(env);
     const user = await getUserFromRequest(client, request);
@@ -49,29 +65,25 @@ async function submitCompletion(env: Env, request: Request, args: Record<string,
         'SELECT id FROM user_progress WHERE user_id = ? AND content_type = ? AND content_id = ? AND status = ?',
         [user.id, contentType, contentId, 'completed']
     );
-    if (dup) {
-        return json({
-            data: {
-                success: true,
-                xp_awarded: 0,
-                message: 'Already completed',
-                new_xp: Number(profile.xp),
-                new_level: Number(profile.level),
-                new_rank: String(profile.rank),
-                new_streak_current: Number(profile.streak_current),
-                new_streak_best: Number(profile.streak_best),
-            },
-            error: null,
-        });
-    }
+    if (dup) return alreadyCompleted(profile);
 
     const xp = XP_BY_TYPE[contentType] ?? 25;
     const now = new Date().toISOString();
-    await run(
-        client,
-        'INSERT INTO user_progress (id, user_id, content_type, content_id, status, score, duration_seconds, completed_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [newId(), user.id, contentType, contentId, 'completed', xp, durationSeconds, now, now]
-    );
+
+    // The unique index (user_id, content_type, content_id) is the real guard
+    // against double awards: a concurrent duplicate submission bounces off the
+    // constraint here instead of slipping past the check-then-insert window
+    // and blowing up as a 500.
+    try {
+        await run(
+            client,
+            'INSERT INTO user_progress (id, user_id, content_type, content_id, status, score, duration_seconds, completed_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [newId(), user.id, contentType, contentId, 'completed', xp, durationSeconds, now, now]
+        );
+    } catch (err) {
+        if (!/UNIQUE constraint failed/i.test(String((err as Error)?.message))) throw err;
+        return alreadyCompleted(profile);
+    }
 
     const newXp = Number(profile.xp) + xp;
     const newLevel = calculateLevel(newXp);
@@ -117,40 +129,58 @@ export async function applyVerificationResult(
     const current =
         profile && profile.verification_rating != null ? Number(profile.verification_rating) : 1200;
 
-    const existingCorrect = await queryOne(
-        client,
-        'SELECT id FROM attempts WHERE user_id = ? AND variant_id = ? AND verdict = ? LIMIT 1',
-        [input.userId, input.variantId, 'correct']
-    );
-    if (existingCorrect) {
+    // INSERT-first guard: attempts carries a partial unique index on
+    // (user_id, variant_id) WHERE verdict = 'correct' (idx_attempts_correct_unique).
+    // Racing submissions for the same variant each compute their own ELO, but
+    // only the INSERT that wins the constraint gets to write its rating —
+    // the profiles read-modify-write below is conditional on that win.
+    const now = new Date().toISOString();
+    const correctVerdict = input.won ? 'correct' : 'incorrect';
+    const attemptId = newId();
+    try {
+        await run(
+            client,
+            "INSERT INTO attempts (id, user_id, variant_id, hypothesis_text, submitted_tests, verdict, score, concept, misconception, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                attemptId,
+                input.userId,
+                input.variantId,
+                input.hypothesis,
+                JSON.stringify(input.tests),
+                correctVerdict,
+                0,
+                input.concept,
+                input.misconception,
+                now,
+            ]
+        );
+    } catch (err) {
+        if (!/UNIQUE constraint failed/i.test(String((err as Error)?.message))) throw err;
+        // A 'correct' attempt for this (user, variant) already exists.
         return { verificationRating: current, delta: 0 };
     }
 
+    // CAS-safe compare-and-set: recompute from the current row only if it
+    // hasn't changed underneath us; a concurrent winner already wrote their
+    // rating, so we keep theirs and report a zero delta for this attempt.
     const next = updateElo(current, input.difficulty, input.won);
-    const delta = next - current;
-    const now = new Date().toISOString();
-
-    await run(client, 'UPDATE profiles SET verification_rating = ? WHERE id = ?', [
-        next,
-        input.userId,
-    ]);
-    await run(
-        client,
-        'INSERT INTO attempts (id, user_id, variant_id, hypothesis_text, submitted_tests, verdict, score, concept, misconception, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-            newId(),
+    const res = await client.execute({
+        sql: 'UPDATE profiles SET verification_rating = ? WHERE id = ? AND verification_rating = ?',
+        args: [next, input.userId, current] as never[],
+    });
+    if ((res.rowsAffected ?? 0) === 0) {
+        const fresh = await queryOne(client, 'SELECT verification_rating FROM profiles WHERE id = ?', [
             input.userId,
-            input.variantId,
-            input.hypothesis,
-            JSON.stringify(input.tests),
-            input.won ? 'correct' : 'incorrect',
-            delta,
-            input.concept,
-            input.misconception,
-            now,
-        ]
-    );
+        ]);
+        return {
+            verificationRating:
+                fresh && fresh.verification_rating != null ? Number(fresh.verification_rating) : current,
+            delta: 0,
+        };
+    }
 
+    const delta = next - current;
+    await run(client, "UPDATE attempts SET score = ? WHERE id = ?", [delta, attemptId]);
     return { verificationRating: next, delta };
 }
 
