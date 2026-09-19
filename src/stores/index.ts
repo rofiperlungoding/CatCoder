@@ -4,7 +4,7 @@ import type { User, UserProgress, Language, Activity } from '../types';
 import { calculateLevel, getRank, getLocalStorage, setLocalStorage } from '../lib/utils';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { secureStorage, migrateToEncrypted } from '../lib/secureStorage';
-import { getTrueTime, getTrueDate, syncServerTime, isClockOutOfSync } from '../lib/serverTime';
+import { getTrueTime, syncServerTime, isClockOutOfSync } from '../lib/serverTime';
 import {
     registerDeviceSession,
     verifyDeviceFingerprint,
@@ -656,14 +656,12 @@ export const useUserStore = create<UserState>()(
 
                 set({ user: updatedUser });
 
-                // Sync to Supabase using server time for last_activity_date
-                if (!user.id.startsWith('guest-') && !user.id.startsWith('mock-')) {
-                    syncProfileToSupabase(user.id, {
-                        streak_current: newStreak,
-                        streak_best: Math.max(user.streakBest, newStreak),
-                        last_activity_date: getTrueDate().toISOString().split('T')[0]
-                    });
-                }
+                // SECURITY: streak columns are server-authoritative — the
+                // submit_completion RPC advances them from last_activity_date
+                // and /api/db strips them from client writes. The server
+                // values replace this local estimate on the next profile
+                // fetch, so pushing them here would be a silent no-op at
+                // best and a forged-write attempt at worst.
             },
             updateProfile: async (updates) => {
                 const { user } = get();

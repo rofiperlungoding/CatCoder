@@ -42,12 +42,25 @@ const db = vi.hoisted(() => {
                 return { rowsAffected: 1 };
             }
             if (/UPDATE profiles SET xp/.test(sql)) {
-                const [xp, level, rank, id] = args as [number, number, string, string];
+                // Full submit_completion update: xp, level, rank,
+                // streak_current, streak_best, last_activity_date, id.
+                const [xp, level, rank, streakCurrent, streakBest, lastActivity, id] = args as [
+                    number,
+                    number,
+                    string,
+                    number,
+                    number,
+                    string,
+                    string
+                ];
                 const p = state.profiles.find((r) => r.id === id);
                 if (p) {
                     p.xp = xp;
                     p.level = level;
                     p.rank = rank;
+                    p.streak_current = streakCurrent;
+                    p.streak_best = streakBest;
+                    p.last_activity_date = lastActivity;
                 }
                 return { rowsAffected: p ? 1 : 0 };
             }
@@ -81,12 +94,25 @@ const db = vi.hoisted(() => {
 
     const run = async (_c: unknown, sql: string, args: unknown[] = []) => {
         if (/UPDATE profiles SET xp/.test(sql)) {
-            const [xp, level, rank, id] = args as [number, number, string, string];
+            // Full submit_completion update: xp, level, rank, streak_current,
+            // streak_best, last_activity_date, id (mirrors client.execute).
+            const [xp, level, rank, streakCurrent, streakBest, lastActivity, id] = args as [
+                number,
+                number,
+                string,
+                number,
+                number,
+                string,
+                string
+            ];
             const p = state.profiles.find((r) => r.id === id);
             if (p) {
                 p.xp = xp;
                 p.level = level;
                 p.rank = rank;
+                p.streak_current = streakCurrent;
+                p.streak_best = streakBest;
+                p.last_activity_date = lastActivity;
             }
             return;
         }
@@ -304,6 +330,79 @@ describe('submit_completion duplicate guard', () => {
 
         // No double award: 100 + 100 problem XP, once.
         expect(Number(db.state.profiles[0].xp)).toBe(200);
+    });
+});
+
+describe('submit_completion server-side streak rules', () => {
+    const DAY = 86_400_000;
+    const isoDay = (offsetDays: number) => new Date(Date.now() - offsetDays * DAY).toISOString().slice(0, 10);
+
+    function profileWith(streakCurrent: number, streakBest: number, lastActivityDate: string | null) {
+        db.state.profiles = [
+            {
+                id: 'user-1',
+                xp: 100,
+                level: 2,
+                rank: 'bronze',
+                streak_current: streakCurrent,
+                streak_best: streakBest,
+                last_activity_date: lastActivityDate,
+            },
+        ];
+    }
+
+    const complete = () =>
+        handleRpc(env, authedRequest(), 'submit_completion', {
+            p_content_type: 'lesson',
+            p_content_id: `lesson-${Math.random().toString(36).slice(2)}`,
+        });
+
+    beforeEach(() => {
+        db.state.attempts = [];
+        db.state.progress = [];
+    });
+
+    it('starts a streak at 1 on the first ever completion', async () => {
+        profileWith(0, 0, null);
+        const res = await complete();
+        const body = (await res.json()) as { data: { new_streak_current: number; new_streak_best: number } };
+        expect(body.data.new_streak_current).toBe(1);
+        expect(body.data.new_streak_best).toBe(1);
+        expect(db.state.profiles[0].streak_current).toBe(1);
+    });
+
+    it('advances the streak when the last activity was yesterday', async () => {
+        profileWith(4, 6, isoDay(1));
+        const res = await complete();
+        const body = (await res.json()) as { data: { new_streak_current: number; new_streak_best: number } };
+        expect(body.data.new_streak_current).toBe(5);
+        expect(body.data.new_streak_best).toBe(6); // ratchet keeps the old best
+        expect(db.state.profiles[0].last_activity_date).toBe(isoDay(0));
+    });
+
+    it('keeps the streak unchanged for a second completion on the same UTC day', async () => {
+        profileWith(7, 9, isoDay(0));
+        const res = await complete();
+        const body = (await res.json()) as { data: { new_streak_current: number } };
+        expect(body.data.new_streak_current).toBe(7);
+        expect(Number(db.state.profiles[0].streak_current)).toBe(7);
+    });
+
+    it('resets the streak to 1 after a gap but never lowers streak_best', async () => {
+        profileWith(12, 12, isoDay(3));
+        const res = await complete();
+        const body = (await res.json()) as { data: { new_streak_current: number; new_streak_best: number } };
+        expect(body.data.new_streak_current).toBe(1);
+        expect(body.data.new_streak_best).toBe(12);
+        expect(Number(db.state.profiles[0].streak_best)).toBe(12);
+    });
+
+    it('raises streak_best when the current streak grows past it', async () => {
+        profileWith(4, 4, isoDay(1));
+        const res = await complete();
+        const body = (await res.json()) as { data: { new_streak_current: number; new_streak_best: number } };
+        expect(body.data.new_streak_current).toBe(5);
+        expect(body.data.new_streak_best).toBe(5);
     });
 
     it('rejects an empty content id with 400', async () => {

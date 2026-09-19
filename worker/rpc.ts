@@ -12,6 +12,27 @@ import { json, type Env } from './types';
 
 const XP_BY_TYPE: Record<string, number> = { lesson: 50, problem: 100, challenge: 25 };
 
+/**
+ * Streaks are computed server-side from the profile's last_activity_date
+ * (a UTC calendar date string). The client can no longer write streak
+ * columns: every completion advances the streak per the classic
+ * consecutive-UTC-day rule — same day: no change; exactly yesterday: +1;
+ * anything older: reset to 1. streak_best is a server-side ratchet:
+ * max(old_best, new_current), so only genuine growth ever raises it.
+ */
+function nextStreakState(lastActivityDate: string | null | undefined): {
+    /** -1 = same UTC day (keep current), -2 = consecutive day (+1), 1 = reset */
+    rule: -1 | -2 | 1;
+    today: string;
+} {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const last = typeof lastActivityDate === 'string' ? lastActivityDate.slice(0, 10) : null;
+    if (last === today) return { rule: -1, today };
+    if (last === yesterday) return { rule: -2, today };
+    return { rule: 1, today };
+}
+
 // Mirror of src/lib/utils.ts calculateLevel / getRank so server + client agree.
 function calculateLevel(xp: number): number {
     let level = 1;
@@ -111,9 +132,16 @@ async function submitCompletion(env: Env, request: Request, args: Record<string,
     const newXp = Number(profile.xp) + xp;
     const newLevel = calculateLevel(newXp);
     const newRank = getRank(newXp);
-    await run(client, 'UPDATE profiles SET xp = ?, level = ?, rank = ? WHERE id = ?', [
-        newXp, newLevel, newRank, user.id,
-    ]);
+    const streak = nextStreakState(profile.last_activity_date as string | null | undefined);
+    const currentStreak = Number(profile.streak_current) || 0;
+    const newStreakCurrent = streak.rule === -1 ? currentStreak : streak.rule === -2 ? currentStreak + 1 : 1;
+    const newStreakBest = Math.max(Number(profile.streak_best) || 0, newStreakCurrent);
+
+    await run(
+        client,
+        'UPDATE profiles SET xp = ?, level = ?, rank = ?, streak_current = ?, streak_best = ?, last_activity_date = ? WHERE id = ?',
+        [newXp, newLevel, newRank, newStreakCurrent, newStreakBest, streak.today, user.id]
+    );
 
     return json({
         data: {
@@ -122,8 +150,8 @@ async function submitCompletion(env: Env, request: Request, args: Record<string,
             new_xp: newXp,
             new_level: newLevel,
             new_rank: newRank,
-            new_streak_current: Number(profile.streak_current),
-            new_streak_best: Number(profile.streak_best),
+            new_streak_current: newStreakCurrent,
+            new_streak_best: newStreakBest,
         },
         error: null,
     });

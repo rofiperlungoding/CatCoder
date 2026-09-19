@@ -40,7 +40,10 @@ const OWNED_SELECT_TABLES = new Set(['user_progress', 'attempts']);
  * /api/rpc (submit_completion) and the Arena judge only.
  */
 const WRITABLE_COLUMNS: Record<string, Set<string>> = {
-    profiles: new Set(['username', 'avatar_url', 'streak_current', 'streak_best', 'last_activity_date']),
+    // Streak columns are server-authoritative: they are advanced inside the
+    // submit_completion RPC from last_activity_date. Exposing them here let
+    // a client POST streak_current=999 directly.
+    profiles: new Set(['username', 'avatar_url']),
     user_progress: new Set([
         'user_id', 'content_type', 'content_id', 'status',
         'score', 'duration_seconds', 'completed_at',

@@ -583,6 +583,17 @@ function completeContent(args: Record<string, unknown>) {
     target.xp = newXp;
     target.level = calculateLevel(newXp);
     target.rank = getRank(newXp);
+    // Server-authoritative streak, identical rule to the Worker's
+    // submit_completion: consecutive-UTC-day based on last_activity_date,
+    // best is a ratchet (max of old best and the new current).
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const last = typeof target.last_activity_date === 'string' ? target.last_activity_date.slice(0, 10) : null;
+    const prevStreak = Number(target.streak_current) || 0;
+    const newStreak = last === today ? prevStreak : last === yesterday ? prevStreak + 1 : 1;
+    target.streak_current = newStreak;
+    target.streak_best = Math.max(Number(target.streak_best) || 0, newStreak);
+    target.last_activity_date = today;
     saveTable('profiles', allProfiles);
 
     return {
