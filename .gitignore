@@ -50,6 +50,10 @@ eslint-out.txt
 lint.json
 coverage/
 
+# Playwright output
+test-results/
+playwright-report/
+
 # Editor / OS misc
 *.code-workspace
 
